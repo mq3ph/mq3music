@@ -9,12 +9,10 @@ const cats=[
   'ORIGINAL SONGS'
 ];
 
-
 let tab='Name Request';
 let songs=[];
 let requests=[];
 let orders=[];
-
 
 /*
   Keeps the currently edited song.
@@ -136,6 +134,317 @@ function actions(...items){
   e.append(...items);
 
   return e;
+}
+
+
+/* =========================================================
+   MQ3 DELETE CONFIRMATION MODAL
+========================================================= */
+
+function showDeleteConfirm(title){
+
+  if(
+    !document.getElementById(
+      'mq3-delete-modal-style'
+    )
+  ){
+
+    const style=
+      document.createElement(
+        'style'
+      );
+
+    style.id=
+      'mq3-delete-modal-style';
+
+    style.textContent=`
+      .mq3-delete-modal{
+        width:min(92vw,460px);
+        border:1px solid rgba(232,184,91,.55);
+        border-radius:22px;
+        padding:0;
+        color:#f8e7bd;
+        background:
+          radial-gradient(circle at top right,rgba(130,56,30,.24),transparent 42%),
+          linear-gradient(180deg,#240706 0%,#120504 100%);
+        box-shadow:
+          0 28px 80px rgba(0,0,0,.62),
+          inset 0 1px 0 rgba(255,255,255,.04);
+      }
+
+      .mq3-delete-modal::backdrop{
+        background:rgba(0,0,0,.74);
+        backdrop-filter:blur(3px);
+      }
+
+      .mq3-delete-wrap{
+        padding:28px;
+      }
+
+      .mq3-delete-kicker{
+        margin:0 0 10px;
+        color:#e8b85b;
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:.18em;
+        text-transform:uppercase;
+      }
+
+      .mq3-delete-title{
+        margin:0;
+        color:#ffe6a6;
+        font-family:Georgia,serif;
+        font-size:26px;
+        line-height:1.2;
+      }
+
+      .mq3-delete-copy{
+        margin:14px 0 0;
+        color:#d9c8b0;
+        font-size:14px;
+        line-height:1.65;
+      }
+
+      .mq3-delete-song{
+        color:#fff0c5;
+        font-weight:800;
+      }
+
+      .mq3-delete-actions{
+        display:flex;
+        justify-content:flex-end;
+        gap:12px;
+        margin-top:26px;
+        flex-wrap:wrap;
+      }
+
+      .mq3-delete-cancel,
+      .mq3-delete-danger{
+        min-width:120px;
+        border-radius:999px;
+        padding:12px 18px;
+        font:inherit;
+        font-weight:800;
+        cursor:pointer;
+      }
+
+      .mq3-delete-cancel{
+        border:1px solid rgba(232,184,91,.5);
+        color:#f8e7bd;
+        background:transparent;
+      }
+
+      .mq3-delete-danger{
+        border:1px solid #d9634c;
+        color:#fff8ef;
+        background:linear-gradient(180deg,#a62f26,#751d18);
+        box-shadow:0 8px 20px rgba(129,28,22,.28);
+      }
+
+      .mq3-delete-cancel:hover{
+        background:rgba(232,184,91,.08);
+      }
+
+      .mq3-delete-danger:hover{
+        filter:brightness(1.08);
+      }
+
+      .mq3-delete-cancel:focus-visible,
+      .mq3-delete-danger:focus-visible{
+        outline:2px solid #f2c86d;
+        outline-offset:3px;
+      }
+
+      @media(max-width:520px){
+        .mq3-delete-wrap{
+          padding:24px 20px 20px;
+        }
+
+        .mq3-delete-actions{
+          display:grid;
+          grid-template-columns:1fr 1fr;
+        }
+
+        .mq3-delete-cancel,
+        .mq3-delete-danger{
+          min-width:0;
+          width:100%;
+        }
+      }
+    `;
+
+    document.head.append(style);
+  }
+
+
+  return new Promise(
+    resolve=>{
+
+      const dialog=
+        document.createElement(
+          'dialog'
+        );
+
+      dialog.className=
+        'mq3-delete-modal';
+
+
+      const wrap=
+        node(
+          'div',
+          undefined,
+          'mq3-delete-wrap'
+        );
+
+
+      const kicker=
+        node(
+          'p',
+          'MQ3 MUSIC',
+          'mq3-delete-kicker'
+        );
+
+
+      const heading=
+        node(
+          'h2',
+          'Delete this song?',
+          'mq3-delete-title'
+        );
+
+
+      const copy=
+        node(
+          'p',
+          undefined,
+          'mq3-delete-copy'
+        );
+
+
+      const songName=
+        node(
+          'span',
+          `"${title}"`,
+          'mq3-delete-song'
+        );
+
+
+      copy.append(
+        'You are about to permanently delete ',
+        songName,
+        '. This will remove the song record and its stored audio. This action cannot be undone.'
+      );
+
+
+      const buttons=
+        node(
+          'div',
+          undefined,
+          'mq3-delete-actions'
+        );
+
+
+      const cancel=
+        node(
+          'button',
+          'Cancel',
+          'mq3-delete-cancel'
+        );
+
+      cancel.type='button';
+
+
+      const remove=
+        node(
+          'button',
+          'Delete Song',
+          'mq3-delete-danger'
+        );
+
+      remove.type='button';
+
+
+      buttons.append(
+        cancel,
+        remove
+      );
+
+
+      wrap.append(
+        kicker,
+        heading,
+        copy,
+        buttons
+      );
+
+
+      dialog.append(
+        wrap
+      );
+
+
+      document.body.append(
+        dialog
+      );
+
+
+      let settled=false;
+
+
+      const finish=value=>{
+
+        if(settled){
+          return;
+        }
+
+        settled=true;
+
+        if(dialog.open){
+          dialog.close();
+        }
+
+        dialog.remove();
+
+        resolve(value);
+      };
+
+
+      cancel.onclick=
+        ()=>finish(false);
+
+
+      remove.onclick=
+        ()=>finish(true);
+
+
+      dialog.addEventListener(
+        'cancel',
+        e=>{
+
+          e.preventDefault();
+
+          finish(false);
+        }
+      );
+
+
+      dialog.addEventListener(
+        'click',
+        e=>{
+
+          if(e.target===dialog){
+
+            finish(false);
+          }
+        }
+      );
+
+
+      dialog.showModal();
+
+      cancel.focus();
+    }
+  );
 }
 
 
@@ -1149,10 +1458,6 @@ function render(){
     .textContent='';
 
 
-  /* =======================================================
-     SONG TABS
-  ======================================================= */
-
   if(
     cats.includes(tab)
   ){
@@ -1243,10 +1548,6 @@ function render(){
     );
 
 
-  /* =======================================================
-     NAME REQUEST
-  ======================================================= */
-
   }else if(
     tab==='Name Request'
   ){
@@ -1333,10 +1634,6 @@ function render(){
         }
       );
 
-
-  /* =======================================================
-     PAYMENTS
-  ======================================================= */
 
   }else{
 
@@ -1531,11 +1828,13 @@ function render(){
 
 async function deleteSong(s){
 
-  if(
-    !confirm(
-      `Delete "${s.title}" permanently?\n\nThis will remove the song and its stored audio. This cannot be undone.`
-    )
-  ){
+  const approved=
+    await showDeleteConfirm(
+      s.title
+    );
+
+
+  if(!approved){
     return;
   }
 
@@ -1873,10 +2172,6 @@ $('song-form').onsubmit=
           .files[0];
 
 
-      /*
-        We now have ONLY ONE audio upload:
-        the full MP3.
-      */
       if(
         fullFile&&
         (
@@ -1903,10 +2198,6 @@ $('song-form').onsubmit=
           :null;
 
 
-      /*
-        If the Lyrics field is empty,
-        try embedded MP3 lyrics automatically.
-      */
       if(
         fullFile&&
         !$('song-lyrics')
@@ -1930,15 +2221,6 @@ $('song-form').onsubmit=
       }
 
 
-      /*
-        Price is no longer visible in the admin form.
-
-        New songs = free (0).
-
-        When editing an old song, preserve its existing
-        database price so editing lyrics does not
-        unexpectedly change older records.
-      */
       const preservedPrice=
         editingSong
           ?Number(
@@ -1968,11 +2250,6 @@ $('song-form').onsubmit=
         price:
           preservedPrice,
 
-        /*
-          First save as draft.
-          This prevents an incomplete upload from
-          appearing in the public app.
-        */
         published:false,
 
         duration_seconds:
@@ -1995,9 +2272,6 @@ $('song-form').onsubmit=
         saved.id;
 
 
-      /*
-        Upload ONLY the full MP3.
-      */
       if(fullFile){
 
         const ticket=
@@ -2049,10 +2323,6 @@ $('song-form').onsubmit=
       }
 
 
-      /*
-        After successful upload, apply the public
-        visibility checkbox.
-      */
       await api(
         '/api/admin/songs',
         {
