@@ -20,3 +20,5 @@ npm test
 ```
 
 No secrets, real music, or real customer records are included. Live integrations require your environment settings and post-deployment checks.
+
+Mobile PWA support included: install from a supported mobile browser after HTTPS deployment. Internet remains required for music and transactions. See SETUP.md.

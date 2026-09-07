@@ -1,0 +1,5 @@
+tests/
+test-results/
+.env.local
+.env
+*.zip

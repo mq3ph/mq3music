@@ -4,7 +4,7 @@ Ito ang deployable app. Ang public page ay para sa listeners. Ang `/admin` ay ma
 
 ## 1. Ilagay ang code sa GitHub
 
-Extract `MQ3-vercel-ready.zip`. Ilagay ang **contents** nito sa root ng GitHub repository mo: dapat direktang makita roon ang `package.json`, `src`, `public`, at `schema.sql`.
+Extract `MQ3-mobile-pwa.zip`. Ilagay ang **contents** nito sa root ng GitHub repository mo: dapat direktang makita roon ang `package.json`, `src`, `public`, at `schema.sql`.
 
 Kung buong `D:/MQ3 Music App` ang repository mo, piliin ang **vercel-app** bilang Root Directory sa Vercel. Huwag i-deploy ang lumang static app sa root.
 
@@ -125,3 +125,17 @@ Backups: **Download metadata backup** exports catalog, requests and orders, incl
 - [Private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
 - [Neon serverless driver](https://neon.com/docs/serverless/serverless-driver)
 - [Resend email API](https://resend.com/docs/api-reference/emails/send-email)
+
+## Mobile installation (PWA)
+
+This version includes a web app manifest, 192/512px icons, a maskable icon, Apple touch icon, standalone launch mode, an Install MQ3 action, and a generic offline fallback. Responsive layout was checked at 320, 390, and 430px.
+
+After deploying to the HTTPS Vercel URL:
+- Android: open in Chrome, then use Install MQ3 when the browser offers installation, or browser menu → Install app / Add to Home screen.
+- iPhone: open in Safari → Share → Add to Home Screen → keep Open as Web App enabled if shown → Add.
+
+This is an installable web app, not an APK or an App Store listing. Actual Android/iPhone installation has not been tested on physical devices. Browser installation UI and availability vary.
+
+Internet is required for listening, requests, uploads, and purchases. Only a generic offline page is cached; private audio, API results, account data, and admin pages are not cached by the service worker. Installed-app storage may differ from the browser on some devices: purchase access can be restored using the existing email access-link flow.
+
+For service-worker changes, increment the mq3-offline-v1 cache version in public/sw.js. The whole app folder, including public/icons and the manifest/service-worker files, must be uploaded.

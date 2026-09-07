@@ -1,0 +1,2 @@
+const accessToken=location.hash.slice(1);history.replaceState(null,'',location.pathname);
+document.getElementById('redeem').onclick=async e=>{e.target.disabled=true;try{const r=await fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:accessToken})});const data=await r.json();if(!r.ok)throw Error(data.error);document.getElementById('status').textContent='Access activated. Return to music to listen.';}catch(error){document.getElementById('status').textContent=error.message;e.target.disabled=false;}};
