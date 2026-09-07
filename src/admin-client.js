@@ -1,57 +1,105 @@
 import {upload} from '@vercel/blob/client';
 
 const $=id=>document.getElementById(id);
-const cats=['NAME SONGS','INSPIRATIONAL SONGS','OPM','ORIGINAL SONGS'];
+
+const cats=[
+  'NAME SONGS',
+  'INSPIRATIONAL SONGS',
+  'OPM',
+  'ORIGINAL SONGS'
+];
 
 let tab='Name Request';
 let songs=[];
 let requests=[];
 let orders=[];
 
-const message=t=>{$('admin-message').textContent=t||'';};
+/*
+  Keeps the currently edited song.
+  Used to preserve existing metadata that is no longer
+  displayed in the upload form, such as its old price.
+*/
+let editingSong=null;
+
+
+const message=t=>{
+  $('admin-message').textContent=t||'';
+};
+
 
 async function api(path,body){
+
   const r=await fetch(path,{
     method:body?'POST':'GET',
-    headers:body?{'Content-Type':'application/json'}:{},
-    body:body?JSON.stringify(body):undefined
+    headers:body
+      ?{'Content-Type':'application/json'}
+      :{},
+    body:body
+      ?JSON.stringify(body)
+      :undefined
   });
 
   const data=await r.json();
 
   if(!r.ok){
+
     if(r.status===401){
       $('dashboard').classList.add('hidden');
       $('login-panel').classList.remove('hidden');
     }
 
-    throw Error(data.error||'Request failed.');
+    throw Error(
+      data.error||
+      'Request failed.'
+    );
   }
 
   return data;
 }
 
-function node(tag,value,cls){
-  const e=document.createElement(tag);
 
-  if(value!==undefined)e.textContent=value;
-  if(cls)e.className=cls;
+function node(tag,value,cls){
+
+  const e=
+    document.createElement(tag);
+
+  if(value!==undefined){
+    e.textContent=value;
+  }
+
+  if(cls){
+    e.className=cls;
+  }
 
   return e;
 }
 
+
 function button(label,action){
-  const b=node('button',label,'button');
+
+  const b=
+    node(
+      'button',
+      label,
+      'button'
+    );
+
   b.type='button';
 
   b.onclick=async()=>{
+
     b.disabled=true;
 
     try{
+
       await action();
+
     }catch(e){
+
       message(e.message);
+
     }finally{
+
       b.disabled=false;
     }
   };
@@ -59,7 +107,9 @@ function button(label,action){
   return b;
 }
 
+
 function badge(value){
+
   return node(
     'span',
     value,
@@ -67,7 +117,9 @@ function badge(value){
   );
 }
 
+
 function actions(...items){
+
   const e=node('div');
 
   e.style.display='flex';
@@ -80,8 +132,13 @@ function actions(...items){
   return e;
 }
 
+
 const money=n=>
-  '₱'+(Number(n||0)/100).toFixed(2);
+  '₱'+
+  (
+    Number(n||0)/100
+  ).toFixed(2);
+
 
 const date=v=>
   v
@@ -94,7 +151,9 @@ const date=v=>
 ========================================================= */
 
 function formatDuration(seconds){
-  const n=Number(seconds);
+
+  const n=
+    Number(seconds);
 
   if(
     !Number.isFinite(n)||
@@ -103,12 +162,14 @@ function formatDuration(seconds){
     return '—';
   }
 
-  const total=Math.round(n);
+  const total=
+    Math.round(n);
 
   return (
     Math.floor(total/60)+
     ':'+
-    String(total%60).padStart(2,'0')
+    String(total%60)
+      .padStart(2,'0')
   );
 }
 
@@ -119,15 +180,21 @@ function readAudioDuration(file){
     (resolve,reject)=>{
 
       const audio=
-        document.createElement('audio');
+        document.createElement(
+          'audio'
+        );
 
       const objectUrl=
-        URL.createObjectURL(file);
+        URL.createObjectURL(
+          file
+        );
 
-      const done=
-        ()=>URL.revokeObjectURL(
+      const done=()=>{
+
+        URL.revokeObjectURL(
           objectUrl
         );
+      };
 
       audio.preload='metadata';
 
@@ -142,6 +209,7 @@ function readAudioDuration(file){
           Number.isFinite(value)&&
           value>0
         ){
+
           resolve(
             Math.round(value)
           );
@@ -176,7 +244,6 @@ function readAudioDuration(file){
 
 /* =========================================================
    EMBEDDED MP3 LYRICS
-   Best-effort reader for ID3v2 USLT / TXXX lyrics.
 ========================================================= */
 
 function syncSafeInt(
@@ -219,12 +286,9 @@ function decodeId3Text(
     return '';
   }
 
-
   try{
 
-    if(
-      encoding===0
-    ){
+    if(encoding===0){
 
       return new TextDecoder(
         'windows-1252'
@@ -234,10 +298,7 @@ function decodeId3Text(
         .trim();
     }
 
-
-    if(
-      encoding===3
-    ){
+    if(encoding===3){
 
       return new TextDecoder(
         'utf-8'
@@ -247,7 +308,6 @@ function decodeId3Text(
         .trim();
     }
 
-
     if(
       encoding===1||
       encoding===2
@@ -255,7 +315,6 @@ function decodeId3Text(
 
       let littleEndian=false;
       let start=0;
-
 
       if(
         encoding===1&&
@@ -279,14 +338,10 @@ function decodeId3Text(
         }
       }
 
-
       let view=
         bytes.slice(start);
 
-
-      if(
-        view.length%2
-      ){
+      if(view.length%2){
 
         view=
           view.slice(
@@ -295,9 +350,7 @@ function decodeId3Text(
           );
       }
 
-
       let text='';
-
 
       for(
         let i=0;
@@ -308,16 +361,12 @@ function decodeId3Text(
         const code=
           littleEndian
             ?view[i]|
-              (
-                view[i+1]<<8
-              )
-            :(
-                view[i]<<8
-              )|
+              (view[i+1]<<8)
+            :(view[i]<<8)|
               view[i+1];
 
-
         if(code){
+
           text+=
             String.fromCharCode(
               code
@@ -325,20 +374,16 @@ function decodeId3Text(
         }
       }
 
-
       return text.trim();
     }
 
   }catch{}
 
-
   return '';
 }
 
 
-function termLen(
-  encoding
-){
+function termLen(encoding){
 
   return (
     encoding===1||
@@ -365,16 +410,13 @@ function findTerm(
       i++
     ){
 
-      if(
-        bytes[i]===0
-      ){
+      if(bytes[i]===0){
         return i;
       }
     }
 
     return bytes.length;
   }
-
 
   for(
     let i=start;
@@ -386,10 +428,10 @@ function findTerm(
       bytes[i]===0&&
       bytes[i+1]===0
     ){
+
       return i;
     }
   }
-
 
   return bytes.length;
 }
@@ -408,9 +450,7 @@ function lyricsFromFrame(
   }
 
 
-  if(
-    id==='USLT'
-  ){
+  if(id==='USLT'){
 
     const encoding=
       data[0];
@@ -429,7 +469,6 @@ function lyricsFromFrame(
         termLen(encoding)
       );
 
-
     return decodeId3Text(
       data.slice(pos),
       encoding
@@ -437,9 +476,7 @@ function lyricsFromFrame(
   }
 
 
-  if(
-    id==='TXXX'
-  ){
+  if(id==='TXXX'){
 
     const encoding=
       data[0];
@@ -467,7 +504,6 @@ function lyricsFromFrame(
         termLen(encoding)
       );
 
-
     if(
       description.includes(
         'lyric'
@@ -481,14 +517,11 @@ function lyricsFromFrame(
     }
   }
 
-
   return '';
 }
 
 
-async function readEmbeddedLyrics(
-  file
-){
+async function readEmbeddedLyrics(file){
 
   try{
 
@@ -499,37 +532,30 @@ async function readEmbeddedLyrics(
           .arrayBuffer()
       );
 
-
     if(
       header.length<10||
       String.fromCharCode(
         ...header.slice(0,3)
       )!=='ID3'
     ){
-
       return '';
     }
 
-
     const version=
       header[3];
-
 
     if(
       version!==3&&
       version!==4
     ){
-
       return '';
     }
-
 
     const tagSize=
       syncSafeInt(
         header,
         6
       );
-
 
     const bytes=
       new Uint8Array(
@@ -544,13 +570,10 @@ async function readEmbeddedLyrics(
           .arrayBuffer()
       );
 
-
     let pos=10;
 
-
     while(
-      pos+10<=
-      bytes.length
+      pos+10<=bytes.length
     ){
 
       const id=
@@ -561,14 +584,12 @@ async function readEmbeddedLyrics(
           )
         );
 
-
       if(
         !/^[A-Z0-9]{4}$/
           .test(id)
       ){
         break;
       }
-
 
       const size=
         version===4
@@ -581,7 +602,6 @@ async function readEmbeddedLyrics(
               pos+4
             );
 
-
       if(
         !size||
         pos+10+size>
@@ -589,7 +609,6 @@ async function readEmbeddedLyrics(
       ){
         break;
       }
-
 
       if(
         id==='USLT'||
@@ -605,7 +624,6 @@ async function readEmbeddedLyrics(
             )
           );
 
-
         if(found){
 
           return found.slice(
@@ -615,13 +633,10 @@ async function readEmbeddedLyrics(
         }
       }
 
-
-      pos+=
-        10+size;
+      pos+=10+size;
     }
 
   }catch{}
-
 
   return '';
 }
@@ -645,20 +660,16 @@ function normalizeName(value){
 }
 
 
-function findMatchingNameSong(
-  request
-){
+function findMatchingNameSong(request){
 
   const wanted=
     normalizeName(
       request.name
     );
 
-
   if(!wanted){
     return null;
   }
-
 
   return songs.find(
     song=>{
@@ -672,7 +683,6 @@ function findMatchingNameSong(
         return false;
       }
 
-
       const names=
         String(
           song.names||''
@@ -683,10 +693,7 @@ function findMatchingNameSong(
           .map(
             normalizeName
           )
-          .filter(
-            Boolean
-          );
-
+          .filter(Boolean);
 
       return names.includes(
         wanted
@@ -707,6 +714,7 @@ async function load(){
     requests,
     orders
   ]=await Promise.all([
+
     api(
       '/api/admin/songs'
     ),
@@ -719,7 +727,6 @@ async function load(){
       '/api/admin/orders'
     )
   ]);
-
 
   render();
 }
@@ -736,16 +743,13 @@ async function enter(){
       '/api/admin/session'
     );
 
-
   $('login-panel')
     .classList
     .add('hidden');
 
-
   $('dashboard')
     .classList
     .remove('hidden');
-
 
   $('setup').textContent=
     Object.entries(
@@ -761,13 +765,11 @@ async function enter(){
       )
       .join(' · ');
 
-
   await load();
 }
 
 
-$('login')
-  .onsubmit=
+$('login').onsubmit=
   async e=>{
 
     e.preventDefault();
@@ -777,18 +779,15 @@ $('login')
 
     b.disabled=true;
 
-
     try{
 
       await api(
         '/api/login',
         {
           password:
-            $('password')
-              .value
+            $('password').value
         }
       );
-
 
       $('password').value='';
 
@@ -796,13 +795,11 @@ $('login')
 
       await enter();
 
-
     }catch(e){
 
       message(
         e.message
       );
-
 
     }finally{
 
@@ -811,8 +808,7 @@ $('login')
   };
 
 
-$('logout')
-  .onclick=
+$('logout').onclick=
   async()=>{
 
     try{
@@ -823,7 +819,6 @@ $('logout')
       );
 
       location.reload();
-
 
     }catch(e){
 
@@ -861,15 +856,11 @@ for(
       }
     );
 
-
-  $('tabs')
-    .append(b);
+  $('tabs').append(b);
 }
 
 
-for(
-  const c of cats
-){
+for(const c of cats){
 
   const o=
     node(
@@ -904,7 +895,6 @@ function table(headers){
   const hr=
     node('tr');
 
-
   headers.forEach(
     h=>
       hr.append(
@@ -915,22 +905,17 @@ function table(headers){
       )
   );
 
-
   head.append(hr);
 
   t.append(head);
 
-
   const body=
     node('tbody');
 
-
   t.append(body);
-
 
   $('records')
     .replaceChildren(t);
-
 
   return body;
 }
@@ -944,13 +929,11 @@ function row(
   const tr=
     node('tr');
 
-
   values.forEach(
     v=>{
 
       const td=
         node('td');
-
 
       if(
         v instanceof Node
@@ -964,11 +947,9 @@ function row(
           v??'—';
       }
 
-
       tr.append(td);
     }
   );
-
 
   body.append(tr);
 }
@@ -991,37 +972,28 @@ async function sendRequestMessage(
     return;
   }
 
-
   if(
-    request.song_id!==
-      song.id||
-    request.status!==
-      'available'
+    request.song_id!==song.id||
+    request.status!=='available'
   ){
 
     await api(
       `/api/admin/requests/${request.id}`,
       {
-        status:
-          'available',
-
-        songId:
-          song.id
+        status:'available',
+        songId:song.id
       }
     );
   }
-
 
   await api(
     `/api/admin/requests/${request.id}/notify`,
     {}
   );
 
-
   message(
     `Message sent to ${request.email}.`
   );
-
 
   await load();
 }
@@ -1031,17 +1003,11 @@ async function sendRequestMessage(
    RECORD TITLE
 ========================================================= */
 
-function categoryLabel(
-  category
-){
+function categoryLabel(category){
 
-  if(
-    category===
-    'NAME SONGS'
-  ){
+  if(category==='NAME SONGS'){
     return 'Name Songs';
   }
-
 
   if(
     category===
@@ -1050,14 +1016,12 @@ function categoryLabel(
     return 'Inspirational Songs';
   }
 
-
   if(
     category===
     'ORIGINAL SONGS'
   ){
     return 'Original Songs';
   }
-
 
   return 'OPM';
 }
@@ -1068,11 +1032,9 @@ function setRecordsTitle(){
   const title=
     $('records-title');
 
-
   if(!title){
     return;
   }
-
 
   if(
     tab==='Name Request'
@@ -1080,7 +1042,6 @@ function setRecordsTitle(){
 
     title.textContent=
       'Name Requests';
-
 
   }else if(
     cats.includes(tab)
@@ -1092,10 +1053,8 @@ function setRecordsTitle(){
           s.category===tab
       ).length;
 
-
     title.textContent=
       `${categoryLabel(tab)} · ${total} song${total===1?'':'s'}`;
-
 
   }else{
 
@@ -1118,12 +1077,10 @@ function render(){
         const active=
           b.textContent===tab;
 
-
         b.classList.toggle(
           'active',
           active
         );
-
 
         b.setAttribute(
           'aria-pressed',
@@ -1147,26 +1104,24 @@ function render(){
     );
 
 
-  $('summary')
-    .textContent=
+  $('summary').textContent=
 
-      `${songs.length} songs · `+
+    `${songs.length} songs · `+
 
-      `${requests.filter(
-        r=>
-          r.status!==
-          'notified'
-      ).length} pending name requests · `+
+    `${requests.filter(
+      r=>
+        r.status!=='notified'
+    ).length} pending name requests · `+
 
-      `${paid.length} verified payments · `+
+    `${paid.length} verified payments · `+
 
-      `${money(
-        paid.reduce(
-          (n,o)=>
-            n+o.amount,
-          0
-        )
-      )} verified revenue`;
+    `${money(
+      paid.reduce(
+        (n,o)=>
+          n+o.amount,
+        0
+      )
+    )} verified revenue`;
 
 
   const search=
@@ -1184,7 +1139,6 @@ function render(){
 
   setRecordsTitle();
 
-
   $('tab-note')
     .textContent='';
 
@@ -1197,32 +1151,22 @@ function render(){
     cats.includes(tab)
   ){
 
-    $('tab-note')
-      .textContent=
+    $('tab-note').textContent=
 
-      tab===
-      'ORIGINAL SONGS'
-
+      tab==='ORIGINAL SONGS'
         ?'Lyrics & melodies: MQ3. Music & voice: assisted by Suno.'
-
         :'Lyrics: AI-generated. Music: generated with Suno. Curated by MQ3.';
 
 
     const body=
       table([
         '#',
-
-        tab===
-          'NAME SONGS'
-            ?'Name'
-            :'Title',
-
+        tab==='NAME SONGS'
+          ?'Name'
+          :'Title',
         'Lyrics',
-
         'Full Length',
-
         'Views',
-
         'Audio'
       ]);
 
@@ -1245,13 +1189,9 @@ function render(){
                 String(
                   b.title||''
                 ),
-
                 undefined,
-
                 {
-                  sensitivity:
-                    'base',
-
+                  sensitivity:'base',
                   numeric:true
                 }
               )
@@ -1314,9 +1254,7 @@ function render(){
         r=>{
 
           let song=
-            findMatchingNameSong(
-              r
-            );
+            findMatchingNameSong(r);
 
 
           if(
@@ -1328,24 +1266,18 @@ function render(){
               songs.find(
                 s=>
 
-                  s.id===
-                    r.song_id&&
-
-                  s.category===
-                    'NAME SONGS'&&
-
+                  s.id===r.song_id&&
+                  s.category==='NAME SONGS'&&
                   s.published&&
-
                   s.audio_path
               )||null;
           }
 
 
           const visibleStatus=
-            r.status===
-              'notified'
-                ?'notified'
-                :'pending';
+            r.status==='notified'
+              ?'notified'
+              :'pending';
 
 
           const items=[
@@ -1396,9 +1328,7 @@ function render(){
 
   }else{
 
-    $('tab-note')
-      .textContent=
-
+    $('tab-note').textContent=
       'Manual verification: check the actual amount and transaction reference in your GCash/PayPal account before approving. Membership access is fixed-term and does not auto-renew.';
 
 
@@ -1419,10 +1349,8 @@ function render(){
 
       .filter(
         o=>
-
           o.provider===
             tab.toLowerCase()&&
-
           match(o)
       )
 
@@ -1433,8 +1361,7 @@ function render(){
 
 
           if(
-            o.status===
-            'submitted'
+            o.status==='submitted'
           ){
 
             buttons.push(
@@ -1451,18 +1378,13 @@ function render(){
                     return;
                   }
 
-
                   await api(
                     `/api/admin/orders/${o.id}/review`,
                     {
-                      status:
-                        'paid',
-
-                      verified:
-                        true
+                      status:'paid',
+                      verified:true
                     }
                   );
-
 
                   await load();
                 }
@@ -1476,11 +1398,9 @@ function render(){
                   await api(
                     `/api/admin/orders/${o.id}/review`,
                     {
-                      status:
-                        'rejected'
+                      status:'rejected'
                     }
                   );
-
 
                   await load();
                 }
@@ -1490,8 +1410,7 @@ function render(){
 
 
           if(
-            o.status===
-            'paid'
+            o.status==='paid'
           ){
 
             buttons.push(
@@ -1508,12 +1427,10 @@ function render(){
                     return;
                   }
 
-
                   await api(
                     `/api/admin/orders/${o.id}/email`,
                     {}
                   );
-
 
                   message(
                     'Access email accepted for delivery.'
@@ -1534,17 +1451,13 @@ function render(){
 
               o.email,
 
-              o.kind===
-                'membership'
-
-                  ?'Membership'
-
-                  :songs.find(
-                      s=>
-                        s.id===
-                        o.song_id
-                    )?.title||
-                    'Song',
+              o.kind==='membership'
+                ?'Membership'
+                :songs.find(
+                    s=>
+                      s.id===o.song_id
+                  )?.title||
+                  'Song',
 
               money(
                 o.amount
@@ -1585,16 +1498,13 @@ function render(){
     const tr=
       node('tr');
 
-
     const td=
       node(
         'td',
         'No records in this tab yet.'
       );
 
-
     td.colSpan=12;
-
 
     tr.append(td);
 
@@ -1604,7 +1514,7 @@ function render(){
 
 
 /* =========================================================
-   REPLACE AUDIO
+   REPLACE FULL AUDIO
 ========================================================= */
 
 async function replaceAudio(s){
@@ -1613,7 +1523,6 @@ async function replaceAudio(s){
     document.createElement(
       'input'
     );
-
 
   input.type='file';
 
@@ -1627,7 +1536,6 @@ async function replaceAudio(s){
       const file=
         input.files?.[0];
 
-
       if(!file){
         return;
       }
@@ -1637,9 +1545,7 @@ async function replaceAudio(s){
         !file.name
           .toLowerCase()
           .endsWith('.mp3')||
-
         !file.size||
-
         file.size>
           100*1024*1024
       ){
@@ -1695,23 +1601,16 @@ async function replaceAudio(s){
           ticket.pathname,
           file,
           {
-            access:
-              'private',
-
-            contentType:
-              'audio/mpeg',
-
+            access:'private',
+            contentType:'audio/mpeg',
             handleUploadUrl:
               '/api/blob/upload',
-
             clientPayload:
               ticket.id,
-
             multipart:true,
 
             onUploadProgress:
               p=>
-
                 message(
                   `Replacing ${s.title}: ${Math.round(p.percentage)}%`
                 )
@@ -1731,31 +1630,20 @@ async function replaceAudio(s){
         await api(
           '/api/admin/songs',
           {
-            id:
-              s.id,
-
-            title:
-              s.title,
-
-            category:
-              s.category,
-
-            names:
-              s.names||'',
-
+            id:s.id,
+            title:s.title,
+            category:s.category,
+            names:s.names||'',
             lyrics:
               embeddedLyrics||
               s.lyrics||
               '',
-
             price:
               Number(
                 s.price||0
               ),
-
             published:
               !!s.published,
-
             duration_seconds:
               durationSeconds
           }
@@ -1789,53 +1677,45 @@ async function replaceAudio(s){
 
 function editSong(s={}){
 
+  editingSong=
+    s&&s.id
+      ?s
+      :null;
+
+
   $('song-form')
     .reset();
 
 
-  $('song-id')
-    .value=
-      s.id||'';
+  $('song-id').value=
+    s.id||'';
 
 
-  $('song-title')
-    .value=
-      s.title||'';
+  $('song-title').value=
+    s.title||'';
 
 
-  $('song-category')
-    .value=
-      s.category||tab;
+  $('song-category').value=
+    s.category||tab;
 
 
-  $('song-names')
-    .value=
-      s.names||'';
+  $('song-names').value=
+    s.names||'';
 
 
-  $('song-lyrics')
-    .value=
-      s.lyrics||'';
+  $('song-lyrics').value=
+    s.lyrics||'';
 
 
-  $('song-price')
-    .value=
-      (s.price||0)/100;
+  $('song-published').checked=
+    !!s.published;
 
 
-  $('song-published')
-    .checked=
-      !!s.published;
+  $('upload-progress').textContent=
 
-
-  $('upload-progress')
-    .textContent=
-
-      s.audio_path
-
-        ?'Existing full audio retained unless you choose a replacement.'
-
-        :'';
+    s.audio_path
+      ?'Existing full audio retained unless you choose a replacement.'
+      :'';
 
 
   $('editor')
@@ -1843,24 +1723,25 @@ function editSong(s={}){
 }
 
 
-$('new-song')
-  .onclick=
+$('new-song').onclick=
   ()=>editSong();
 
 
-$('cancel-editor')
-  .onclick=
-  ()=>
+$('cancel-editor').onclick=
+  ()=>{
+
+    editingSong=null;
+
     $('editor')
       .close();
+  };
 
 
 /* =========================================================
-   AUTO DURATION + AUTO LYRICS WHEN MP3 SELECTED
+   AUTO DURATION + EMBEDDED LYRICS
 ========================================================= */
 
-$('full-file')
-  .onchange=
+$('full-file').onchange=
   async()=>{
 
     const file=
@@ -1881,9 +1762,8 @@ $('full-file')
         );
 
 
-      $('upload-progress')
-        .textContent=
-          `Detected full length: ${formatDuration(seconds)}`;
+      $('upload-progress').textContent=
+        `Detected full length: ${formatDuration(seconds)}`;
 
 
       if(
@@ -1902,24 +1782,20 @@ $('full-file')
           embeddedLyrics
         ){
 
-          $('song-lyrics')
-            .value=
-              embeddedLyrics;
+          $('song-lyrics').value=
+            embeddedLyrics;
 
 
-          $('upload-progress')
-            .textContent+=
-
-              ' · Embedded lyrics found and filled automatically. You can still edit them.';
+          $('upload-progress').textContent+=
+            ' · Embedded lyrics found and filled automatically. You can still edit them.';
         }
       }
 
 
     }catch(e){
 
-      $('upload-progress')
-        .textContent=
-          e.message;
+      $('upload-progress').textContent=
+        e.message;
     }
   };
 
@@ -1928,8 +1804,7 @@ $('full-file')
    SAVE SONG
 ========================================================= */
 
-$('song-form')
-  .onsubmit=
+$('song-form').onsubmit=
   async e=>{
 
     e.preventDefault();
@@ -1953,60 +1828,40 @@ $('song-form')
           .files[0];
 
 
-      const previewFile=
-        $('preview-file')
-          .files[0];
-
-
-      const files=[
-        [
-          'audio',
-          fullFile
-        ],
-
-        [
-          'preview',
-          previewFile
-        ]
-      ];
-
-
-      for(
-        const [,file]
-        of files
+      /*
+        We now have ONLY ONE audio upload:
+        the full MP3.
+      */
+      if(
+        fullFile&&
+        (
+          !fullFile.name
+            .toLowerCase()
+            .endsWith('.mp3')||
+          !fullFile.size||
+          fullFile.size>
+            100*1024*1024
+        )
       ){
 
-        if(
-          file&&
-          (
-            !file.name
-              .toLowerCase()
-              .endsWith('.mp3')||
-
-            !file.size||
-
-            file.size>
-              100*1024*1024
-          )
-        ){
-
-          throw Error(
-            'Choose a non-empty MP3 smaller than 100 MB.'
-          );
-        }
+        throw Error(
+          'Choose a non-empty MP3 smaller than 100 MB.'
+        );
       }
 
 
       const durationSeconds=
         fullFile
-
           ?await readAudioDuration(
               fullFile
             )
-
           :null;
 
 
+      /*
+        If the Lyrics field is empty,
+        try embedded MP3 lyrics automatically.
+      */
       if(
         fullFile&&
         !$('song-lyrics')
@@ -2024,46 +1879,56 @@ $('song-form')
           embeddedLyrics
         ){
 
-          $('song-lyrics')
-            .value=
-              embeddedLyrics;
+          $('song-lyrics').value=
+            embeddedLyrics;
         }
       }
+
+
+      /*
+        Price is no longer visible in the admin form.
+
+        New songs = free (0).
+
+        When editing an old song, preserve its existing
+        database price so editing lyrics does not
+        unexpectedly change older records.
+      */
+      const preservedPrice=
+        editingSong
+          ?Number(
+              editingSong.price||0
+            )
+          :0;
 
 
       const data={
 
         id:
-          $('song-id')
-            .value||
+          $('song-id').value||
           undefined,
 
         title:
-          $('song-title')
-            .value,
+          $('song-title').value,
 
         category:
-          $('song-category')
-            .value,
+          $('song-category').value,
 
         names:
-          $('song-names')
-            .value,
+          $('song-names').value,
 
         lyrics:
-          $('song-lyrics')
-            .value,
+          $('song-lyrics').value,
 
         price:
-          Math.round(
-            Number(
-              $('song-price')
-                .value
-            )*100
-          ),
+          preservedPrice,
 
-        published:
-          false,
+        /*
+          First save as draft.
+          This prevents an incomplete upload from
+          appearing in the public app.
+        */
+        published:false,
 
         duration_seconds:
           durationSeconds
@@ -2077,29 +1942,18 @@ $('song-form')
         );
 
 
-      $('song-id')
-        .value=
-          saved.id;
+      $('song-id').value=
+        saved.id;
 
 
       data.id=
         saved.id;
 
 
-      for(
-        const [
-          kind,
-          file
-        ]
-        of files
-      ){
-
-        if(
-          !file
-        ){
-          continue;
-        }
-
+      /*
+        Upload ONLY the full MP3.
+      */
+      if(fullFile){
 
         const ticket=
           await api(
@@ -2108,17 +1962,16 @@ $('song-form')
               songId:
                 saved.id,
 
-              kind
+              kind:'audio'
             }
           );
 
 
         await upload(
           ticket.pathname,
-          file,
+          fullFile,
           {
-            access:
-              'private',
+            access:'private',
 
             contentType:
               'audio/mpeg',
@@ -2134,10 +1987,8 @@ $('song-form')
             onUploadProgress:
               p=>{
 
-                $('upload-progress')
-                  .textContent=
-
-                    `Uploading ${kind}: ${Math.round(p.percentage)}%`;
+                $('upload-progress').textContent=
+                  `Uploading audio: ${Math.round(p.percentage)}%`;
               }
           }
         );
@@ -2153,6 +2004,10 @@ $('song-form')
       }
 
 
+      /*
+        After successful upload, apply the public
+        visibility checkbox.
+      */
       await api(
         '/api/admin/songs',
         {
@@ -2163,6 +2018,9 @@ $('song-form')
               .checked
         }
       );
+
+
+      editingSong=null;
 
 
       $('editor')
@@ -2179,12 +2037,10 @@ $('song-form')
 
     }catch(e){
 
-      $('upload-progress')
-        .textContent=
+      $('upload-progress').textContent=
 
-          e.message+
-
-          ' Saved metadata remains as a draft. Retry or edit it from its category.';
+        e.message+
+        ' Saved metadata remains as a draft. Retry or edit it from its category.';
 
 
       message(
@@ -2205,25 +2061,19 @@ $('song-form')
 
 /* =========================================================
    OLD REQUEST EDITOR
-   Retained so existing HTML continues to work.
 ========================================================= */
 
 function editRequest(r){
 
-  $('request-id')
-    .value=
-      r.id;
+  $('request-id').value=
+    r.id;
 
 
-  $('request-status')
-    .value=
+  $('request-status').value=
 
-      r.status===
-      'notified'
-
-        ?'available'
-
-        :r.status;
+    r.status==='notified'
+      ?'available'
+      :r.status;
 
 
   $('request-song')
@@ -2248,12 +2098,8 @@ function editRequest(r){
 
     .filter(
       s=>
-
-        s.category===
-          'NAME SONGS'&&
-
+        s.category==='NAME SONGS'&&
         s.published&&
-
         s.audio_path
     )
 
@@ -2263,17 +2109,13 @@ function editRequest(r){
         String(
           a.title
         )
-
           .localeCompare(
             String(
               b.title
             ),
-
             undefined,
-
             {
-              sensitivity:
-                'base'
+              sensitivity:'base'
             }
           )
     )
@@ -2298,9 +2140,8 @@ function editRequest(r){
     );
 
 
-  $('request-song')
-    .value=
-      r.song_id||'';
+  $('request-song').value=
+    r.song_id||'';
 
 
   $('request-editor')
@@ -2308,15 +2149,13 @@ function editRequest(r){
 }
 
 
-$('cancel-request')
-  .onclick=
+$('cancel-request').onclick=
   ()=>
     $('request-editor')
       .close();
 
 
-$('request-form')
-  .onsubmit=
+$('request-form').onsubmit=
   async e=>{
 
     e.preventDefault();
@@ -2326,16 +2165,13 @@ $('request-form')
 
       await api(
         '/api/admin/requests/'+
-        $('request-id')
-          .value,
+        $('request-id').value,
         {
           status:
-            $('request-status')
-              .value,
+            $('request-status').value,
 
           songId:
-            $('request-song')
-              .value
+            $('request-song').value
         }
       );
 
@@ -2360,8 +2196,7 @@ $('request-form')
    METADATA BACKUP
 ========================================================= */
 
-$('backup')
-  .onclick=
+$('backup').onclick=
   ()=>{
 
     const url=
@@ -2380,9 +2215,7 @@ $('backup')
 
                 orders
               },
-
               null,
-
               2
             )
           ],
@@ -2414,7 +2247,6 @@ $('backup')
         URL.revokeObjectURL(
           url
         ),
-
       1000
     );
 
