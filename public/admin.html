@@ -1,6 +1,427 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MQ3 Admin Dashboard</title><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/admin.css"><script type="module" src="/admin.bundle.js"></script></head><body>
-<section id="login-panel" class="login-panel"><img src="/logo.png" alt="MQ3" width="100"><h1>Admin dashboard</h1><form id="login"><label for="password">Admin password</label><input id="password" type="password" autocomplete="current-password" required><button class="button primary">Log in</button></form><a href="/">Back to music</a></section>
-<main id="dashboard" class="hidden"><header class="admin-head"><div><div class="eyebrow">MQ3 · YOUR MUSIC SPACE</div><h1>Music dashboard</h1><p id="summary"></p></div><div><a class="button" href="/">View public app</a> <button class="button" id="logout">Log out</button></div></header><div id="setup" class="notice"></div><nav id="tabs" class="tabs" aria-label="Admin sections"></nav><section class="admin-tools"><input id="admin-search" type="search" placeholder="Search this tab…" aria-label="Search dashboard"><button id="new-song" class="button primary hidden">+ Upload a song</button><button id="backup" class="button">Download metadata backup</button></section><div id="tab-note" class="notice"></div><div id="records" class="table-wrap"></div></main>
-<dialog id="editor"><form id="song-form"><h2 id="editor-title">Upload a song</h2><input id="song-id" type="hidden"><label>Title<input id="song-title" required maxlength="150"></label><label>Category<select id="song-category"></select></label><label>Matching names (comma-separated)<input id="song-names" maxlength="500" placeholder="e.g. Anne, Ann, Annie"></label><label>Price in Philippine pesos (0 = free)<input id="song-price" type="number" min="0" max="100000" step="0.01" value="0" required></label><label>Lyrics<textarea id="song-lyrics" maxlength="30000" rows="5"></textarea></label><label>Full MP3 (max 100 MB)<input id="full-file" type="file" accept="audio/mpeg,.mp3"></label><label>Optional separate preview MP3<input id="preview-file" type="file" accept="audio/mpeg,.mp3"></label><p>Paid songs play only the preview until payment is verified. Upload a short separate preview; the full file stays private.</p><label class="check"><input id="song-published" type="checkbox"> Publish after saving and uploading</label><p id="upload-progress" role="status"></p><div class="actions"><button type="button" class="button" id="cancel-editor">Cancel</button><button class="button primary" id="save-song">Save song</button></div></form></dialog>
-<dialog id="request-editor"><form id="request-form"><h2>Update name request</h2><input id="request-id" type="hidden"><label>Status<select id="request-status"><option value="pending">Pending</option><option value="working">Working on it</option><option value="available">Available</option></select></label><label>Matching published Name Song<select id="request-song"></select></label><div class="actions"><button type="button" class="button" id="cancel-request">Cancel</button><button class="button primary">Save</button></div></form></dialog>
-<p id="admin-message" class="admin-message" role="status"></p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MQ3 Dashboard</title>
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/admin.css">
+
+  <script type="module" src="/admin.bundle.js"></script>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <section id="login-panel" class="login-panel">
+    <img src="/logo.png" alt="MQ3" width="100">
+
+    <div class="eyebrow">MQ3 · YOUR MUSIC SPACE</div>
+
+    <h1>DASHBOARD</h1>
+
+    <form id="login">
+      <label for="password">Admin password</label>
+
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button class="button primary">
+        Log in
+      </button>
+    </form>
+
+    <a href="/">Back to music</a>
+  </section>
+
+
+  <!-- DASHBOARD -->
+  <main id="dashboard" class="hidden">
+
+    <!-- HEADER -->
+    <header class="admin-head">
+
+      <div class="admin-brand">
+
+        <div class="eyebrow">
+          MQ3 · YOUR MUSIC SPACE
+        </div>
+
+        <h1>DASHBOARD</h1>
+
+        <div class="admin-tagline">
+          Manage songs. Connect with listeners. Share music.
+        </div>
+
+      </div>
+
+
+      <div class="admin-head-actions">
+
+        <a class="button" href="/">
+          View public app
+        </a>
+
+        <button class="button" id="logout">
+          Log out
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- SUMMARY -->
+    <section class="dashboard-summary">
+
+      <div class="summary-label">
+        OVERVIEW
+      </div>
+
+      <p id="summary"></p>
+
+    </section>
+
+
+    <!-- CONNECTION STATUS -->
+    <div class="connection-panel">
+
+      <span class="connection-title">
+        Connections
+      </span>
+
+      <div id="setup" class="notice"></div>
+
+    </div>
+
+
+    <!-- TABS -->
+    <nav
+      id="tabs"
+      class="tabs"
+      aria-label="Admin sections"
+    ></nav>
+
+
+    <!-- TOOLS -->
+    <section class="admin-tools">
+
+      <div class="admin-search-wrap">
+
+        <span class="search-icon" aria-hidden="true">
+          ⌕
+        </span>
+
+        <input
+          id="admin-search"
+          type="search"
+          placeholder="Search name, email or date..."
+          aria-label="Search dashboard"
+        >
+
+      </div>
+
+
+      <div class="admin-tool-actions">
+
+        <button
+          id="new-song"
+          class="button primary hidden"
+        >
+          + Upload a song
+        </button>
+
+        <button
+          id="backup"
+          class="button backup-button"
+        >
+          ↓ &nbsp; Download metadata backup
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- TAB NOTE -->
+    <div
+      id="tab-note"
+      class="notice tab-note"
+    ></div>
+
+
+    <!-- RECORD PANEL -->
+    <section class="records-panel">
+
+      <div class="records-heading">
+
+        <div>
+          <div class="records-kicker">
+            MQ3 MANAGEMENT
+          </div>
+
+          <h2 id="records-title">
+            Name Requests
+          </h2>
+        </div>
+
+      </div>
+
+
+      <div
+        id="records"
+        class="table-wrap"
+      ></div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="admin-footer">
+
+      <div>
+        <strong>
+          MQ3 · YOUR MUSIC SPACE
+        </strong>
+
+        <span>
+          Music brings people together.
+        </span>
+      </div>
+
+      <div class="footer-motto">
+        CREATE · SHARE · INSPIRE
+      </div>
+
+    </footer>
+
+  </main>
+
+
+  <!-- SONG EDITOR -->
+  <dialog id="editor">
+
+    <form id="song-form">
+
+      <div class="eyebrow">
+        MQ3 MUSIC
+      </div>
+
+      <h2 id="editor-title">
+        Upload a song
+      </h2>
+
+      <input
+        id="song-id"
+        type="hidden"
+      >
+
+
+      <label>
+        Title
+
+        <input
+          id="song-title"
+          required
+          maxlength="150"
+        >
+      </label>
+
+
+      <label>
+        Category
+
+        <select
+          id="song-category"
+        ></select>
+      </label>
+
+
+      <label>
+        Matching names (comma-separated)
+
+        <input
+          id="song-names"
+          maxlength="500"
+          placeholder="e.g. Anne, Ann, Annie"
+        >
+      </label>
+
+
+      <label>
+        Price in Philippine pesos (0 = free)
+
+        <input
+          id="song-price"
+          type="number"
+          min="0"
+          max="100000"
+          step="0.01"
+          value="0"
+          required
+        >
+      </label>
+
+
+      <label>
+        Lyrics
+
+        <textarea
+          id="song-lyrics"
+          maxlength="30000"
+          rows="5"
+        ></textarea>
+      </label>
+
+
+      <label>
+        Full MP3 (max 100 MB)
+
+        <input
+          id="full-file"
+          type="file"
+          accept="audio/mpeg,.mp3"
+        >
+      </label>
+
+
+      <label>
+        Optional separate preview MP3
+
+        <input
+          id="preview-file"
+          type="file"
+          accept="audio/mpeg,.mp3"
+        >
+      </label>
+
+
+      <p>
+        Paid songs play only the preview until payment
+        is verified. Upload a short separate preview;
+        the full file stays private.
+      </p>
+
+
+      <label class="check">
+
+        <input
+          id="song-published"
+          type="checkbox"
+        >
+
+        Publish after saving and uploading
+
+      </label>
+
+
+      <p
+        id="upload-progress"
+        role="status"
+      ></p>
+
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="cancel-editor"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="button primary"
+          id="save-song"
+        >
+          Save song
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <!-- OLD REQUEST EDITOR -->
+  <dialog id="request-editor">
+
+    <form id="request-form">
+
+      <h2>
+        Update name request
+      </h2>
+
+      <input
+        id="request-id"
+        type="hidden"
+      >
+
+
+      <label>
+        Status
+
+        <select id="request-status">
+
+          <option value="pending">
+            Pending
+          </option>
+
+          <option value="working">
+            Working on it
+          </option>
+
+          <option value="available">
+            Available
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+        Matching published Name Song
+
+        <select
+          id="request-song"
+        ></select>
+      </label>
+
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="cancel-request"
+        >
+          Cancel
+        </button>
+
+        <button class="button primary">
+          Save
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <p
+    id="admin-message"
+    class="admin-message"
+    role="status"
+  ></p>
+
+</body>
+</html>
