@@ -9,10 +9,12 @@ const cats=[
   'ORIGINAL SONGS'
 ];
 
+
 let tab='Name Request';
 let songs=[];
 let requests=[];
 let orders=[];
+
 
 /*
   Keeps the currently edited song.
@@ -27,10 +29,14 @@ const message=t=>{
 };
 
 
-async function api(path,body){
+async function api(path,body,method){
+
+  const resolvedMethod=
+    method||
+    (body?'POST':'GET');
 
   const r=await fetch(path,{
-    method:body?'POST':'GET',
+    method:resolvedMethod,
     headers:body
       ?{'Content-Type':'application/json'}
       :{},
@@ -466,7 +472,7 @@ function lyricsFromFrame(
       Math.min(
         data.length,
         end+
-        termLen(encoding)
+          termLen(encoding)
       );
 
     return decodeId3Text(
@@ -501,7 +507,7 @@ function lyricsFromFrame(
       Math.min(
         data.length,
         end+
-        termLen(encoding)
+          termLen(encoding)
       );
 
     if(
@@ -605,7 +611,7 @@ async function readEmbeddedLyrics(file){
       if(
         !size||
         pos+10+size>
-        bytes.length
+          bytes.length
       ){
         break;
       }
@@ -1011,14 +1017,14 @@ function categoryLabel(category){
 
   if(
     category===
-    'INSPIRATIONAL SONGS'
+      'INSPIRATIONAL SONGS'
   ){
     return 'Inspirational Songs';
   }
 
   if(
     category===
-    'ORIGINAL SONGS'
+      'ORIGINAL SONGS'
   ){
     return 'Original Songs';
   }
@@ -1167,7 +1173,8 @@ function render(){
         'Lyrics',
         'Full Length',
         'Views',
-        'Audio'
+        'Audio',
+        'Actions'
       ]);
 
 
@@ -1224,6 +1231,11 @@ function render(){
             button(
               'Replace',
               ()=>replaceAudio(s)
+            ),
+
+            button(
+              'Delete',
+              ()=>deleteSong(s)
             )
           ]
         );
@@ -1510,6 +1522,39 @@ function render(){
 
     tbody.append(tr);
   }
+}
+
+
+/* =========================================================
+   DELETE SONG
+========================================================= */
+
+async function deleteSong(s){
+
+  if(
+    !confirm(
+      `Delete "${s.title}" permanently?\n\nThis will remove the song and its stored audio. This cannot be undone.`
+    )
+  ){
+    return;
+  }
+
+
+  const result=
+    await api(
+      `/api/admin/songs/${s.id}`,
+      undefined,
+      'DELETE'
+    );
+
+
+  message(
+    result.warning||
+    `${s.title} deleted.`
+  );
+
+
+  await load();
 }
 
 
