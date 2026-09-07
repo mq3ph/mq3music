@@ -578,8 +578,7 @@ export function createApp(s=services()){
           setup:{
 
             blob:
-              !!env.BLOB_READ_WRITE_TOKEN&&
-              !!env.BLOB_HOST,
+              !!env.BLOB_STORE_ID,
 
             email:
               !!env.RESEND_API_KEY&&
@@ -831,8 +830,7 @@ export function createApp(s=services()){
       async(req,res)=>{
 
         if(
-          !env.BLOB_READ_WRITE_TOKEN||
-          !env.BLOB_HOST
+          !env.BLOB_STORE_ID
         ){
           fail(
             503,
