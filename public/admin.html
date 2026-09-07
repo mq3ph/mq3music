@@ -254,27 +254,12 @@
 
 
       <label>
-        Price in Philippine pesos (0 = free)
-
-        <input
-          id="song-price"
-          type="number"
-          min="0"
-          max="100000"
-          step="0.01"
-          value="0"
-          required
-        >
-      </label>
-
-
-      <label>
         Lyrics
 
         <textarea
           id="song-lyrics"
           maxlength="30000"
-          rows="5"
+          rows="8"
         ></textarea>
       </label>
 
@@ -290,24 +275,6 @@
       </label>
 
 
-      <label>
-        Optional separate preview MP3
-
-        <input
-          id="preview-file"
-          type="file"
-          accept="audio/mpeg,.mp3"
-        >
-      </label>
-
-
-      <p>
-        Paid songs play only the preview until payment
-        is verified. Upload a short separate preview;
-        the full file stays private.
-      </p>
-
-
       <label class="check">
 
         <input
@@ -315,7 +282,7 @@
           type="checkbox"
         >
 
-        Publish after saving and uploading
+        Show this song in the public app
 
       </label>
 
