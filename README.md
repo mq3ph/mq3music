@@ -1,21 +1,22 @@
-# MQ3 Music - Working App
-Exact clone of your MQ3 template - now working!
+# MQ3 Music App
 
-## Paano i-deploy sa Vercel (2 minutes):
-1. Pumunta sa github.com > New Repository > mq3-music-app > Create
-2. Upload lahat ng files na nasa zip na to
-3. Pumunta sa vercel.com > Add New Project > Import yung mq3-music-app repo
-4. Click Deploy - Live na agad!
+Public music catalog + private owner dashboard, prepared for GitHub and Vercel.
 
-## Features:
-- Search na gumagana
-- Play / Pause / Next / Prev
-- Category filters (NAME SONGS, INSPIRATIONAL, OPM, ORIGINAL)
-- Library with liked songs
-- Mini-player with progress bar
+**Start with [SETUP.md](SETUP.md).** It explains the environment variables, database creation, private MP3 storage, admin password, email, and deployment steps.
 
-## Paano palitan ng sarili mong kanta:
-- Palitan mo lang yung mp3 links sa loob ng index.html
-- Hanapin mo: SoundHelix-Song-1.mp3 at palitan ng link ng kanta mo
+- Preserves the MQ3 black/burgundy/gold design and original logo lettering.
+- Public visitors search/listen and request missing name songs; they cannot upload or edit songs.
+- Admin tabs: Name Request, Name Songs, Inspirational Songs, OPM, Original Songs, GCash, PayPal.
+- MP3 uploads, previews, lyrics, prices, drafts and publishing; private Vercel Blob storage.
+- Server-side admin sessions and protected write APIs.
+- Neon Postgres stores catalog, requests, order status, and access records.
+- Availability emails and one-time purchase access emails via Resend.
+- Manual GCash/PayPal payment verification and fixed-term membership access. **No automatic recurring billing.**
 
-Built with exact design from your template.
+```sh
+npm install
+npm run build
+npm test
+```
+
+No secrets, real music, or real customer records are included. Live integrations require your environment settings and post-deployment checks.
