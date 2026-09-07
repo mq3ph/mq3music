@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS songs (
  id uuid PRIMARY KEY, title text NOT NULL, category text NOT NULL CHECK(category IN ('NAME SONGS','INSPIRATIONAL SONGS','OPM','ORIGINAL SONGS')),
  names text NOT NULL DEFAULT '', lyrics text NOT NULL DEFAULT '', price integer NOT NULL DEFAULT 0 CHECK(price>=0),
- published boolean NOT NULL DEFAULT false, audio_path text, preview_path text, created_at timestamptz NOT NULL DEFAULT now()
+ published boolean NOT NULL DEFAULT false, audio_path text, preview_path text, duration_seconds integer, views integer NOT NULL DEFAULT 0, created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS sessions (token_hash text PRIMARY KEY, expires_at timestamptz NOT NULL);
 CREATE TABLE IF NOT EXISTS limits (key text PRIMARY KEY, hits integer NOT NULL DEFAULT 1, expires_at timestamptz NOT NULL);
@@ -23,3 +23,7 @@ CREATE TABLE IF NOT EXISTS upload_tickets (
  id uuid PRIMARY KEY, song_id uuid NOT NULL REFERENCES songs(id), kind text NOT NULL CHECK(kind IN ('audio','preview')),
  pathname text NOT NULL UNIQUE, created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Run these two lines once on an existing MQ3 database:
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS duration_seconds integer;
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
