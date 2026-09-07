@@ -1,6 +1,9 @@
 import {neon} from '@neondatabase/serverless';
 import {handleUpload} from '@vercel/blob/client';
-import {get} from '@vercel/blob';
+import {
+  get,
+  del
+} from '@vercel/blob';
 
 
 export function services(env=process.env){
@@ -138,16 +141,6 @@ export function services(env=process.env){
       _range
     ){
 
-      /*
-        New private Vercel Blob connections use
-        BLOB_STORE_ID / OIDC.
-
-        A BLOB_READ_WRITE_TOKEN may also exist
-        for the current connected project.
-
-        BLOB_HOST is NOT required.
-      */
-
       if(
         !env.BLOB_STORE_ID&&
         !env.BLOB_READ_WRITE_TOKEN
@@ -180,18 +173,6 @@ export function services(env=process.env){
         );
       }
 
-
-      /*
-        get() is the supported way to retrieve
-        files from a PRIVATE Vercel Blob store.
-
-        The SDK automatically uses the connected
-        Vercel project credentials.
-
-        We still pass the existing token when
-        available so this works with the current
-        project configuration as well.
-      */
 
       const result=
         await get(
@@ -275,6 +256,44 @@ export function services(env=process.env){
             200,
 
           headers
+        }
+      );
+    },
+
+
+    /* =========================================================
+       DELETE PRIVATE BLOB
+    ========================================================= */
+
+    async deleteBlob(path){
+
+      if(!path){
+        return;
+      }
+
+
+      if(
+        typeof path!=='string'||
+        !path.startsWith('songs/')
+      ){
+
+        throw Object.assign(
+          new Error(
+            'Invalid audio path.'
+          ),
+          {
+            status:400
+          }
+        );
+      }
+
+
+      await del(
+        path,
+        {
+          token:
+            env.BLOB_READ_WRITE_TOKEN||
+            undefined
         }
       );
     }
