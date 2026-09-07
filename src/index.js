@@ -679,11 +679,6 @@ export function createApp(s=services()){
           );
 
 
-        /*
-          Duration is supplied by the
-          browser after reading MP3 metadata.
-        */
-
         const durationRaw=
           req.body.duration_seconds;
 
@@ -759,13 +754,6 @@ export function createApp(s=services()){
           }
 
 
-          /*
-            Existing view count is preserved.
-
-            Existing duration is also retained
-            when no new duration was submitted.
-          */
-
           await q(
             'UPDATE songs SET title=$2,category=$3,names=$4,lyrics=$5,price=$6,published=$7,duration_seconds=COALESCE($8,duration_seconds) WHERE id=$1',
             [
@@ -814,6 +802,120 @@ export function createApp(s=services()){
 
         res.json({
           id
+        });
+      }
+    )
+  );
+
+
+  /* =========================================================
+     DELETE SONG
+  ========================================================= */
+
+  app.delete(
+    '/api/admin/songs/:id',
+    wrap(
+      async(req,res)=>{
+
+        const id=
+          uuid(
+            req.params.id
+          );
+
+
+        const [song]=
+          await q(
+            'SELECT * FROM songs WHERE id=$1',
+            [
+              id
+            ]
+          );
+
+
+        if(!song){
+
+          fail(
+            404,
+            'Song not found.'
+          );
+        }
+
+
+        const orderRows=
+          await q(
+            'SELECT id FROM orders WHERE song_id=$1 LIMIT 1',
+            [
+              id
+            ]
+          );
+
+
+        if(orderRows.length){
+
+          fail(
+            409,
+            'This song has payment/order history and cannot be deleted.'
+          );
+        }
+
+
+        await q(
+          "UPDATE requests SET song_id=NULL,status='pending',notified_at=NULL WHERE song_id=$1",
+          [
+            id
+          ]
+        );
+
+
+        await q(
+          'DELETE FROM upload_tickets WHERE song_id=$1',
+          [
+            id
+          ]
+        );
+
+
+        await q(
+          'DELETE FROM songs WHERE id=$1',
+          [
+            id
+          ]
+        );
+
+
+        const cleanupErrors=[];
+
+
+        for(
+          const path of [
+            song.audio_path,
+            song.preview_path
+          ].filter(Boolean)
+        ){
+
+          try{
+
+            await s.deleteBlob(
+              path
+            );
+
+          }catch(e){
+
+            cleanupErrors.push(
+              e.message||
+              'Blob cleanup failed.'
+            );
+          }
+        }
+
+
+        res.json({
+          ok:true,
+
+          warning:
+            cleanupErrors.length
+              ?'Song deleted, but one or more stored audio files could not be cleaned up automatically.'
+              :null
         });
       }
     )
@@ -882,11 +984,6 @@ export function createApp(s=services()){
         const id=
           randomUUID();
 
-
-        /*
-          Every replacement receives
-          a new unique Blob path.
-        */
 
         const pathname=
           `songs/${songId}/${kind}-${id}.mp3`;
@@ -1159,7 +1256,6 @@ export function createApp(s=services()){
 
   /* =========================================================
      DELETE REQUEST
-     Existing endpoint retained for compatibility.
   ========================================================= */
 
   app.delete(
@@ -1983,13 +2079,6 @@ Keep this link private. Memberships expire on the stated access date.`,
 
   /* =========================================================
      SONG VIEW COUNTER
-
-     Called by the public player when a listener
-     actually starts a song.
-
-     We intentionally DO NOT count views from
-     the /audio endpoint because browsers may
-     request multiple byte ranges for one play.
   ========================================================= */
 
   app.post(
@@ -2281,10 +2370,14 @@ Keep this link private. Memberships expire on the stated access date.`,
       }
 
 
+      const duplicate=
+        err.code==='23505';
+
+
       const status=
         err.status||
         (
-          err.code==='23505'
+          duplicate
             ?409
             :500
         );
@@ -2294,7 +2387,7 @@ Keep this link private. Memberships expire on the stated access date.`,
         .json({
 
           error:
-            status===409
+            duplicate
               ?'This reference is already recorded. Check the existing order.'
               :status>=500&&
                 !err.status
