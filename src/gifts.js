@@ -139,6 +139,100 @@ export function giftRoutes({
 
 
   /* =========================================================
+     PUBLIC GIFT COUNTS BY SONG
+  ========================================================= */
+
+  app.get(
+    '/api/gifts/song-stats',
+    async(_req,res,next)=>{
+
+      try{
+
+        const rows=
+          await q(
+            `
+              SELECT
+                song_id,
+                gift_type,
+                COUNT(*)::integer AS gift_count,
+                COALESCE(SUM(credits),0)::integer AS credits_gifted
+              FROM gifts
+              GROUP BY
+                song_id,
+                gift_type
+              ORDER BY
+                song_id,
+                gift_type
+            `
+          );
+
+
+        const songs={};
+
+
+        for(const row of rows){
+
+          const songId=
+            row.song_id;
+
+
+          if(!songs[songId]){
+
+            songs[songId]={
+              totalGifts:0,
+              totalCredits:0,
+              gifts:{}
+            };
+          }
+
+
+          const giftCount=
+            Number(
+              row.gift_count||
+              0
+            );
+
+
+          const creditsGifted=
+            Number(
+              row.credits_gifted||
+              0
+            );
+
+
+          songs[songId].gifts[
+            row.gift_type
+          ]={
+            count:
+              giftCount,
+
+            credits:
+              creditsGifted
+          };
+
+
+          songs[songId].totalGifts+=
+            giftCount;
+
+
+          songs[songId].totalCredits+=
+            creditsGifted;
+        }
+
+
+        res.json({
+          songs
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
      SEND GIFT
   ========================================================= */
 
