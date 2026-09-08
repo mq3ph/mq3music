@@ -5,6 +5,7 @@ import {Readable} from 'node:stream';
 import {fileURLToPath} from 'node:url';
 import {services} from './services.js';
 import {accountRoutes} from './account.js';
+import {giftRoutes} from './gifts.js';
 import {
   token,
   digest,
@@ -208,6 +209,19 @@ export function createApp(s=services()){
     sameOrigin,
     limit,
     cookieOptions
+  });
+
+
+  /* =========================================================
+     VIRTUAL GIFTS
+  ========================================================= */
+
+  giftRoutes({
+    app,
+    env,
+    query:q,
+    sameOrigin,
+    limit
   });
 
   /* =========================================================
