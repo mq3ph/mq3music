@@ -1385,7 +1385,7 @@ function setRecordsTitle(){
     const pending=
       creditLoads.filter(
         load=>
-          load.status==='pending'
+          creditLoad.status==='pending'
       ).length;
 
     title.textContent=
@@ -1681,13 +1681,13 @@ function render(){
       .filter(match)
 
       .forEach(
-        load=>{
+        creditLoad=>{
 
           const buttons=[];
 
 
           if(
-            load.status==='pending'
+            creditLoad.status==='pending'
           ){
 
             buttons.push(
@@ -1698,7 +1698,7 @@ function render(){
 
                   if(
                     !confirm(
-                      `Have you independently verified ₱${Number(load.amountPesos||0).toLocaleString()} and reference ${load.paymentReference||'—'} in your ${String(load.paymentProvider||'payment').toUpperCase()} account?\n\nApprove ${Number(load.credits||0).toLocaleString()} Credits for ${load.displayName||load.email}?`
+                      `Have you independently verified ₱${Number(creditLoad.amountPesos||0).toLocaleString()} and reference ${creditLoad.paymentReference||'—'} in your ${String(creditLoad.paymentProvider||'payment').toUpperCase()} account?\n\nApprove ${Number(creditLoad.credits||0).toLocaleString()} Credits for ${creditLoad.displayName||creditLoad.email}?`
                     )
                   ){
                     return;
@@ -1707,7 +1707,7 @@ function render(){
 
                   const result=
                     await api(
-                      `/api/admin/credit-loads/${load.id}/review`,
+                      `/api/admin/credit-loads/${creditLoad.id}/review`,
                       {
                         status:'approved',
                         verified:true
@@ -1716,7 +1716,7 @@ function render(){
 
 
                   message(
-                    `${Number(result.creditsAdded||load.credits||0).toLocaleString()} Credits approved for ${load.displayName||load.email}.`
+                    `${Number(result.creditsAdded||creditLoad.credits||0).toLocaleString()} Credits approved for ${creditLoad.displayName||creditLoad.email}.`
                   );
 
 
@@ -1731,7 +1731,7 @@ function render(){
 
                   if(
                     !confirm(
-                      `Reject this Credit Load?\n\n${load.displayName||load.email} · ₱${Number(load.amountPesos||0).toLocaleString()} · ${load.paymentReference||'No reference'}`
+                      `Reject this Credit Load?\n\n${creditLoad.displayName||creditLoad.email} · ₱${Number(creditLoad.amountPesos||0).toLocaleString()} · ${creditLoad.paymentReference||'No reference'}`
                     )
                   ){
                     return;
@@ -1739,7 +1739,7 @@ function render(){
 
 
                   await api(
-                    `/api/admin/credit-loads/${load.id}/review`,
+                    `/api/admin/credit-loads/${creditLoad.id}/review`,
                     {
                       status:'rejected'
                     }
@@ -1747,7 +1747,7 @@ function render(){
 
 
                   message(
-                    `Credit Load rejected for ${load.displayName||load.email}.`
+                    `Credit Load rejected for ${creditLoad.displayName||creditLoad.email}.`
                   );
 
 
@@ -1762,36 +1762,36 @@ function render(){
             body,
             [
               date(
-                load.createdAt
+                creditLoad.createdAt
               ),
 
-              load.displayName||
+              creditLoad.displayName||
                 '—',
 
-              load.email,
+              creditLoad.email,
 
               '₱'+
                 Number(
-                  load.amountPesos||
+                  creditLoad.amountPesos||
                   0
                 ).toLocaleString(),
 
               Number(
-                load.credits||
+                creditLoad.credits||
                 0
               ).toLocaleString(),
 
               String(
-                load.paymentProvider||
+                creditLoad.paymentProvider||
                 ''
               ).toUpperCase()||
                 '—',
 
-              load.paymentReference||
+              creditLoad.paymentReference||
                 '—',
 
               badge(
-                load.status
+                creditLoad.status
               ),
 
               actions(
