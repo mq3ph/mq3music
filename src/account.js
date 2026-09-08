@@ -1164,11 +1164,32 @@ Music. Quality. 3rd Gen.`,
         );
 
 
+        const approvalUrl=
+          String(
+            paypalOrder?.links?.find(
+              link=>
+                link?.rel==='payer-action'||
+                link?.rel==='approve'
+            )?.href||
+            ''
+          ).trim();
+
+
+        if(!approvalUrl){
+
+          fail(
+            502,
+            'PayPal did not return an approval link.'
+          );
+        }
+
+
         res.status(
           201
         ).json({
           ok:true,
           orderId,
+          approvalUrl,
           creditLoadOrderId:
             id,
           amountPesos,
