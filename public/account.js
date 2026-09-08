@@ -22,6 +22,10 @@
   const creditBalance = $('account-credit-balance');
   const welcomeBonus = $('account-welcome-bonus');
 
+  const profileForm = $('account-profile-form');
+  const displayNameInput = $('account-display-name');
+  const profileMessage = $('account-profile-message');
+
   let pendingEmail = '';
   let currentAccount = null;
 
@@ -150,7 +154,11 @@
       Number(account.lifetimeGifted || 0);
 
     lifetime.textContent =
-      `${lifetimeGifted.toLocaleString()} lifetime Credits`;
+      `${lifetimeGifted.toLocaleString()} lifetime ${
+        lifetimeGifted === 1
+          ? 'Credit'
+          : 'Credits'
+      }`;
 
     const gifts =
       Array.isArray(account.giftHistory)
@@ -247,6 +255,12 @@
         : 'Welcome to MQ3!';
 
     userEmail.textContent = account.email || '';
+
+    if (displayNameInput) {
+      displayNameInput.value = displayName;
+    }
+
+    setMessage(profileMessage, '');
 
     const promo = Number(account.credits?.promo || 0);
     const purchased = Number(account.credits?.purchased || 0);
@@ -498,6 +512,74 @@
       codeInput.value
         .replace(/\D/g, '')
         .slice(0, 6);
+  });
+
+
+  /* =========================================================
+     SAVE DISPLAY NAME
+  ========================================================= */
+
+  profileForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const displayName =
+      displayNameInput?.value.trim() || '';
+
+    if (!displayName) {
+      setMessage(
+        profileMessage,
+        'Enter the display name you want other listeners to see.',
+        true
+      );
+      displayNameInput?.focus();
+      return;
+    }
+
+    const button = $('account-save-profile');
+
+    button.disabled = true;
+    button.textContent = 'Saving…';
+
+    setMessage(
+      profileMessage,
+      'Saving your display name…'
+    );
+
+    try {
+      const data = await api(
+        '/api/account/profile',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            displayName
+          })
+        }
+      );
+
+      if (!data.account) {
+        throw new Error(
+          'Display name was saved, but account information was not returned.'
+        );
+      }
+
+      displayAccount(data.account);
+
+      setMessage(
+        profileMessage,
+        'Display name saved. ✓'
+      );
+
+    } catch (error) {
+      setMessage(
+        profileMessage,
+        error.message,
+        true
+      );
+
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Save Display Name';
+    }
   });
 
 
