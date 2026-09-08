@@ -5,7 +5,176 @@ const cats=['NAME SONGS','INSPIRATIONAL SONGS','OPM','ORIGINAL SONGS'];
 const subs=['Personalized songs. Made for you.','A little hope. A little light.','Filipino heart. Familiar feeling.','My words. My melodies.'];
 const artwork=['assets/name-series.png','assets/inspirational.png','assets/opm.png','assets/original.png'];
 const symbols=['heart','sun','music','pen'];
-const artFor=t=>artwork[cats.indexOf(t.category)]||'logo.png';
+const mq3CoverStyles=[
+  'moon',
+  'mountain',
+  'ocean',
+  'forest',
+  'sunset',
+  'city',
+  'guitar',
+  'gold',
+  'flowers',
+  'stars'
+];
+
+function mq3CoverIndex(t){
+  const seed=
+    String(
+      t?.id||
+      t?.title||
+      ''
+    );
+
+  let hash=0;
+
+  for(
+    let i=0;
+    i<seed.length;
+    i++
+  ){
+    hash=
+      (
+        hash*31+
+        seed.charCodeAt(i)
+      )>>>0;
+  }
+
+  return hash%
+    mq3CoverStyles.length;
+}
+
+function mq3CoverSvg(style){
+  const common=
+    `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"`;
+
+  const svg={
+    moon:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#07152f"/><stop offset="1" stop-color="#02050b"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="214" cy="72" r="42" fill="#f5df9a"/>
+        <path d="M0 185 70 120 118 164 166 108 238 174 300 126V300H0Z" fill="#101a30"/>
+        <path d="M0 222 Q75 197 150 222T300 218V300H0Z" fill="#07101d"/>
+        <ellipse cx="214" cy="236" rx="45" ry="7" fill="#d5b45a" opacity=".34"/>
+      </svg>`,
+    mountain:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#f0a14a"/><stop offset=".48" stop-color="#75453d"/><stop offset="1" stop-color="#16121b"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="230" cy="86" r="34" fill="#ffd27a" opacity=".9"/>
+        <path d="M0 230 72 151 111 194 173 99 300 236V300H0Z" fill="#251d27"/>
+        <path d="M131 300 Q142 230 172 176 Q186 149 196 121" fill="none" stroke="#d9b15c" stroke-width="8" opacity=".75"/>
+      </svg>`,
+    ocean:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#f18f72"/><stop offset=".45" stop-color="#35546c"/><stop offset="1" stop-color="#07141c"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="82" cy="105" r="30" fill="#ffd88a" opacity=".9"/>
+        <path d="M0 184 Q42 166 83 184T167 184T251 184T335 184V300H0Z" fill="#123344"/>
+        <path d="M0 215 Q52 196 104 215T208 215T312 215" fill="none" stroke="#f8dfb0" stroke-width="6" opacity=".75"/>
+        <path d="M220 160 300 126V300H258Z" fill="#12181d"/>
+      </svg>`,
+    forest:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#243c2d"/><stop offset="1" stop-color="#08110b"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="157" cy="79" r="54" fill="#e6c56e" opacity=".33"/>
+        <g fill="#0d2114">
+          <path d="M45 0h28l-9 300H53Z"/><path d="M108 0h24l-6 300h-22Z"/><path d="M205 0h28l7 300h-31Z"/><path d="M258 0h19l13 300h-25Z"/>
+        </g>
+        <rect x="90" y="205" width="118" height="10" rx="4" fill="#5b3f27"/>
+        <rect x="103" y="216" width="8" height="42" fill="#4a321f"/><rect x="188" y="216" width="8" height="42" fill="#4a321f"/>
+      </svg>`,
+    sunset:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#f67f62"/><stop offset=".5" stop-color="#6f354c"/><stop offset="1" stop-color="#160e19"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="150" cy="112" r="38" fill="#ffd180"/>
+        <path d="M0 210 Q66 178 132 210T264 207T396 208V300H0Z" fill="#261826"/>
+        <path d="M78 235 C108 201 137 201 151 224 C165 201 194 201 224 235 C190 264 167 273 151 281 C135 273 112 264 78 235Z" fill="none" stroke="#e5bd69" stroke-width="7"/>
+      </svg>`,
+    city:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#10213d"/><stop offset="1" stop-color="#05070d"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <g fill="#101522">
+          <rect x="18" y="126" width="46" height="174"/><rect x="71" y="91" width="53" height="209"/><rect x="132" y="142" width="44" height="158"/><rect x="184" y="72" width="58" height="228"/><rect x="248" y="116" width="42" height="184"/>
+        </g>
+        <g fill="#d6a84f">
+          <circle cx="42" cy="157" r="5"/><circle cx="97" cy="119" r="5"/><circle cx="215" cy="104" r="5"/><circle cx="271" cy="150" r="5"/><circle cx="159" cy="176" r="5"/>
+        </g>
+        <path d="M0 245 Q80 218 150 248T300 242" fill="none" stroke="#b57c38" stroke-width="7" opacity=".45"/>
+      </svg>`,
+    guitar:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#522b24"/><stop offset="1" stop-color="#0b0707"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="118" cy="184" r="64" fill="#c8853c"/>
+        <circle cx="118" cy="184" r="24" fill="#24120c"/>
+        <rect x="151" y="55" width="25" height="172" rx="10" transform="rotate(24 151 55)" fill="#8c5128"/>
+        <path d="M74 183h91" stroke="#f0cf86" stroke-width="4"/>
+        <circle cx="225" cy="62" r="28" fill="#d8a95c" opacity=".18"/>
+      </svg>`,
+    gold:`
+      <svg ${common}>
+        <defs><radialGradient id="g"><stop stop-color="#6b4a22"/><stop offset=".55" stop-color="#21150d"/><stop offset="1" stop-color="#070505"/></radialGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <circle cx="150" cy="150" r="98" fill="none" stroke="#d4af37" stroke-width="3" opacity=".7"/>
+        <circle cx="150" cy="150" r="72" fill="none" stroke="#d4af37" stroke-width="2" opacity=".45"/>
+        <path d="M76 184 150 76l74 108-74 42Z" fill="none" stroke="#f0cf74" stroke-width="5" opacity=".72"/>
+        <circle cx="150" cy="150" r="11" fill="#f6d777"/>
+      </svg>`,
+    flowers:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#4c2c3e"/><stop offset="1" stop-color="#120a10"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <g fill="#f0bdc9" opacity=".9">
+          <circle cx="90" cy="115" r="22"/><circle cx="115" cy="95" r="22"/><circle cx="131" cy="124" r="22"/><circle cx="104" cy="139" r="22"/>
+          <circle cx="207" cy="180" r="20"/><circle cx="229" cy="162" r="20"/><circle cx="243" cy="187" r="20"/><circle cx="218" cy="202" r="20"/>
+        </g>
+        <g fill="#d3a640"><circle cx="110" cy="119" r="9"/><circle cx="226" cy="183" r="8"/></g>
+        <path d="M109 139 Q130 198 163 254M226 202 Q201 225 164 255" fill="none" stroke="#56724d" stroke-width="8"/>
+      </svg>`,
+    stars:`
+      <svg ${common}>
+        <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#15133c"/><stop offset="1" stop-color="#04050d"/></linearGradient></defs>
+        <rect width="300" height="300" fill="url(#g)"/>
+        <g fill="#f6df94">
+          <circle cx="44" cy="51" r="3"/><circle cx="82" cy="93" r="2"/><circle cx="134" cy="46" r="4"/><circle cx="181" cy="77" r="2"/><circle cx="243" cy="43" r="3"/><circle cx="264" cy="118" r="2"/><circle cx="205" cy="139" r="3"/><circle cx="62" cy="158" r="2"/>
+        </g>
+        <path d="M0 235 72 178 121 216 174 148 235 204 300 168V300H0Z" fill="#0b1023"/>
+        <path d="M148 63 154 79l17 1-13 10 4 17-14-9-14 9 4-17-13-10 17-1Z" fill="#e5c15e"/>
+      </svg>`
+  }[style]||'';
+
+  return 'data:image/svg+xml;charset=UTF-8,'+
+    encodeURIComponent(
+      svg.replace(
+        /\s+/g,
+        ' '
+      ).trim()
+    );
+}
+
+const artFor=t=>
+  t?.artwork||
+  t?.artworkUrl||
+  t?.image||
+  t?.imageUrl||
+  t?.cover||
+  t?.coverUrl||
+  mq3CoverSvg(
+    mq3CoverStyles[
+      mq3CoverIndex(t)
+    ]
+  )||
+  artwork[
+    cats.indexOf(
+      t?.category
+    )
+  ]||
+  'logo.png';
 
 const icons={
   home:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
