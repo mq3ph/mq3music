@@ -25,7 +25,9 @@ export function giftRoutes({
     const raw=
       req.cookies?.mq3_user;
 
+
     if(!raw){
+
       fail(
         401,
         'Sign in to send a gift.'
@@ -47,12 +49,16 @@ export function giftRoutes({
           u.id,
           u.email,
           u.display_name
+
         FROM user_sessions s
+
         JOIN users u
           ON u.id=s.user_id
+
         WHERE
           s.token_hash=$1
           AND s.expires_at>now()
+
         LIMIT 1
         `,
         [
@@ -62,6 +68,7 @@ export function giftRoutes({
 
 
     if(!rows.length){
+
       fail(
         401,
         'Your session has expired. Sign in again.'
@@ -73,11 +80,16 @@ export function giftRoutes({
   }
 
 
+  /* =========================================================
+     AVAILABLE GIFTS
+  ========================================================= */
+
   app.get(
     '/api/gifts',
     (_req,res)=>{
 
       res.json({
+
         gifts:[
           {
             type:'heart',
@@ -85,30 +97,35 @@ export function giftRoutes({
             emoji:'❤️',
             credits:1
           },
+
           {
             type:'rose',
             name:'Rose',
             emoji:'🌹',
             credits:5
           },
+
           {
             type:'star',
             name:'Star',
             emoji:'⭐',
             credits:10
           },
+
           {
             type:'music_note',
             name:'Music Note',
             emoji:'🎵',
             credits:25
           },
+
           {
             type:'crown',
             name:'Crown',
             emoji:'👑',
             credits:50
           },
+
           {
             type:'shoutout',
             name:'Shout-out',
@@ -121,15 +138,23 @@ export function giftRoutes({
   );
 
 
+  /* =========================================================
+     SEND GIFT
+  ========================================================= */
+
   app.post(
     '/api/gifts/send',
-    sameOrigin,
-    limit(
-      'gift-send',
-      30,
-      60_000
-    ),
     async(req,res)=>{
+
+      sameOrigin(req);
+
+
+      await limit(
+        req,
+        'gift-send',
+        30
+      );
+
 
       const user=
         await listener(req);
@@ -146,8 +171,8 @@ export function giftRoutes({
           req.body?.giftType||
           ''
         )
-        .trim()
-        .toLowerCase();
+          .trim()
+          .toLowerCase();
 
 
       const credits=
@@ -157,6 +182,7 @@ export function giftRoutes({
 
 
       if(!credits){
+
         fail(
           400,
           'Choose a valid gift.'
@@ -169,11 +195,11 @@ export function giftRoutes({
           req.body?.message||
           ''
         )
-        .trim()
-        .slice(
-          0,
-          200
-        );
+          .trim()
+          .slice(
+            0,
+            200
+          );
 
 
       const giftId=
@@ -188,16 +214,23 @@ export function giftRoutes({
         await q(
           `
           WITH locked_wallet AS (
+
             SELECT
               user_id,
               promo_credits,
               purchased_credits
+
             FROM wallets
-            WHERE user_id=$1
+
+            WHERE
+              user_id=$1
+
             FOR UPDATE
           ),
 
+
           amounts AS (
+
             SELECT
               user_id,
               promo_credits,
@@ -222,8 +255,11 @@ export function giftRoutes({
               >=$2::integer
           ),
 
+
           updated_wallet AS (
+
             UPDATE wallets w
+
             SET
               promo_credits=
                 w.promo_credits-
@@ -255,7 +291,9 @@ export function giftRoutes({
               a.purchased_used
           ),
 
+
           inserted_gift AS (
+
             INSERT INTO gifts(
               id,
               user_id,
@@ -274,10 +312,13 @@ export function giftRoutes({
 
             FROM updated_wallet
 
-            RETURNING id
+            RETURNING
+              id
           ),
 
+
           inserted_transaction AS (
+
             INSERT INTO credit_transactions(
               id,
               user_id,
@@ -299,8 +340,10 @@ export function giftRoutes({
 
             FROM updated_wallet
 
-            RETURNING id
+            RETURNING
+              id
           )
+
 
           SELECT
             uw.promo_credits,
@@ -309,8 +352,10 @@ export function giftRoutes({
             ig.id AS gift_id
 
           FROM updated_wallet uw
+
           JOIN inserted_gift ig
             ON true
+
           JOIN inserted_transaction it
             ON true
           `,
@@ -340,7 +385,9 @@ export function giftRoutes({
 
 
       res.json({
+
         ok:true,
+
 
         gift:{
           id:
@@ -351,6 +398,7 @@ export function giftRoutes({
 
           credits
         },
+
 
         wallet:{
           promoCredits:
