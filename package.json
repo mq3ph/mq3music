@@ -17,7 +17,8 @@
     "@neondatabase/serverless": "^1.0.0",
     "@vercel/blob": "^2.0.0",
     "cookie-parser": "^1.4.7",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "nodemailer": "^7.0.0"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
