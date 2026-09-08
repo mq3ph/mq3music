@@ -87,14 +87,15 @@
       </div>
 
 
-      <!-- Existing button kept for old shop.js compatibility -->
+      <!-- Hidden legacy hook kept temporarily for shop.js compatibility -->
 
       <button
-        class="button primary"
         id="membership"
-      >
-        Membership
-      </button>
+        type="button"
+        hidden
+        aria-hidden="true"
+        tabindex="-1"
+      ></button>
 
 
       <!-- New MQ3 Listener Account button -->
@@ -672,7 +673,6 @@
       <p>
         Payments are checked manually by MQ3.
         Access starts after verification.
-        Membership is fixed-term, with no automatic renewal.
       </p>
 
       <p
