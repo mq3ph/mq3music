@@ -1461,16 +1461,24 @@ export function createApp(s=services()){
         }
 
 
+        const subject=
+          text(
+            req.body.subject,
+            160
+          );
+
+        const messageBody=
+          text(
+            req.body.message,
+            5000
+          );
+
         await s.mail(
           r.email,
 
-          'Your MQ3 name song is available',
+          subject,
 
-          `Hello ${r.name},
-
-Your requested song, ${song.title}, is available at ${origin()}/?song=${song.id}
-
-Music. Quality. 3rd Gen.`,
+          messageBody,
 
           `name-request-${r.id}-${song.id}`
         );
