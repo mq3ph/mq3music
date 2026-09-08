@@ -1,1012 +1,1945 @@
-(() => {
-  'use strict';
-
-  const $ = id => document.getElementById(id);
-
-  const dialog = $('account-dialog');
-  const accountButton = $('account-button');
-
-  const emailForm = $('account-email-form');
-  const codeForm = $('account-code-form');
-  const accountPanel = $('account-panel');
-
-  const emailInput = $('account-email');
-  const emailMessage = $('account-email-message');
-
-  const codeEmail = $('account-code-email');
-  const codeInput = $('account-code');
-  const codeMessage = $('account-code-message');
-
-  const welcome = $('account-welcome');
-  const userEmail = $('account-user-email');
-  const creditBalance = $('account-credit-balance');
-  const welcomeBonus = $('account-welcome-bonus');
-
-  const profileForm = $('account-profile-form');
-  const displayNameInput = $('account-display-name');
-  const profileMessage = $('account-profile-message');
-
-  let pendingEmail = '';
-  let currentAccount = null;
-
-  const giftMeta = {
-    heart: {emoji: '❤️', name: 'Heart'},
-    rose: {emoji: '🌹', name: 'Rose'},
-    star: {emoji: '⭐', name: 'Star'},
-    music_note: {emoji: '🎵', name: 'Music Note'},
-    crown: {emoji: '👑', name: 'Crown'},
-    shoutout: {emoji: '📣', name: 'Shout-out'}
-  };
+import {randomInt,randomUUID} from 'node:crypto';
+import {
+  token,
+  digest,
+  email,
+  fail
+} from './security.js';
 
 
-  /* =========================================================
-     HELPERS
-  ========================================================= */
+const OTP_LIFETIME_MS=
+  10*60*1000;
 
-  function show(element) {
-    element?.classList.remove('hidden');
-  }
+const SESSION_LIFETIME_MS=
+  30*24*60*60*1000;
 
-  function hide(element) {
-    element?.classList.add('hidden');
-  }
+const WELCOME_CREDITS=
+  25;
 
-  function setMessage(element, message, isError = false) {
-    if (!element) return;
+const DISPLAY_NAME_CHANGE_MS=
+  30*24*60*60*1000;
 
-    element.textContent = message || '';
-    element.style.color = isError ? '#ff9b9b' : '';
-  }
 
-  async function api(url, options = {}) {
-    const response = await fetch(url, {
-      credentials: 'same-origin',
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {})
-      }
-    });
+const CREDIT_LOAD_PACKAGES={
+  50:50,
+  100:105,
+  250:275,
+  500:575,
+  1000:1200
+};
 
-    let data = {};
 
-    try {
-      data = await response.json();
-    } catch {
-      data = {};
-    }
+/* =========================================================
+   MQ3 LISTENER ACCOUNT ROUTES
+========================================================= */
 
-    if (!response.ok) {
-      throw new Error(
-        data.error ||
-        data.message ||
-        'Something went wrong. Please try again.'
+export function accountRoutes({
+  app,
+  env,
+  query:q,
+  mail,
+  sameOrigin,
+  limit,
+  cookieOptions
+}){
+
+  const hash=value=>
+    digest(
+      value,
+      env.SESSION_SECRET
+    );
+
+
+  const paypalBaseUrl=()=>
+    String(env.PAYPAL_ENV||'').toLowerCase()==='live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+
+  async function paypalAccessToken(){
+
+    const clientId=
+      String(env.PAYPAL_CLIENT_ID||'').trim();
+
+    const secret=
+      String(env.PAYPAL_SECRET||'').trim();
+
+
+    if(!clientId||!secret){
+
+      fail(
+        503,
+        'PayPal automatic payments are not configured yet.'
       );
     }
+
+
+    const basicAuth=
+      Buffer.from(
+        `${clientId}:${secret}`
+      ).toString('base64');
+
+
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v1/oauth2/token`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Basic ${basicAuth}`,
+            'Content-Type':
+              'application/x-www-form-urlencoded'
+          },
+          body:
+            'grant_type=client_credentials'
+        }
+      );
+
+
+    if(!response.ok){
+
+      const detail=
+        await response.text();
+
+      console.error(
+        '[mq3/paypal/auth]',
+        response.status,
+        detail
+      );
+
+      fail(
+        502,
+        'PayPal authentication failed.'
+      );
+    }
+
+
+    const data=
+      await response.json();
+
+    return data.access_token;
+  }
+
+
+  async function createPaypalCreditOrder(
+    amountPesos,
+    credits
+  ){
+
+    const accessToken=
+      await paypalAccessToken();
+
+
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v2/checkout/orders`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Bearer ${accessToken}`,
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify({
+              intent:'CAPTURE',
+              purchase_units:[
+                {
+                  description:
+                    `MQ3 ${credits} Credits`,
+                  amount:{
+                    currency_code:'PHP',
+                    value:
+                      Number(
+                        amountPesos
+                      ).toFixed(2)
+                  }
+                }
+              ]
+            })
+        }
+      );
+
+
+    const data=
+      await response.json();
+
+
+    if(!response.ok){
+
+      console.error(
+        '[mq3/paypal/create-order]',
+        response.status,
+        data
+      );
+
+      fail(
+        502,
+        'PayPal could not create the payment.'
+      );
+    }
+
 
     return data;
   }
 
-  function resetViews() {
-    show(emailForm);
-    hide(codeForm);
-    hide(accountPanel);
 
-    setMessage(emailMessage, '');
-    setMessage(codeMessage, '');
+  async function capturePaypalCreditOrder(
+    orderId
+  ){
 
-    codeInput.value = '';
-  }
+    const accessToken=
+      await paypalAccessToken();
 
 
-  /* =========================================================
-     GIFT HISTORY DISPLAY
-  ========================================================= */
-
-  function ensureGiftHistory() {
-    let section = $('account-gift-history');
-
-    if (section) return section;
-
-    section = document.createElement('section');
-    section.id = 'account-gift-history';
-    section.style.marginTop = '18px';
-    section.style.paddingTop = '16px';
-    section.style.borderTop = '1px solid rgba(212,175,55,.28)';
-
-    const heading = document.createElement('div');
-    heading.style.display = 'flex';
-    heading.style.justifyContent = 'space-between';
-    heading.style.alignItems = 'center';
-    heading.style.gap = '12px';
-    heading.style.marginBottom = '10px';
-
-    const title = document.createElement('strong');
-    title.textContent = '🎁 Recent Gifts';
-
-    const lifetime = document.createElement('span');
-    lifetime.id = 'account-lifetime-gifted';
-    lifetime.style.fontSize = '.9rem';
-    lifetime.style.opacity = '.86';
-
-    const list = document.createElement('div');
-    list.id = 'account-gift-list';
-
-    heading.append(title, lifetime);
-    section.append(heading, list);
-
-    const doneButton = $('account-done');
-    if (doneButton && doneButton.parentNode === accountPanel) {
-      accountPanel.insertBefore(section, doneButton);
-    } else {
-      accountPanel.append(section);
-    }
-
-    return section;
-  }
-
-  function displayGiftHistory(account) {
-    const section = ensureGiftHistory();
-    const lifetime = $('account-lifetime-gifted');
-    const list = $('account-gift-list');
-
-    const lifetimeGifted =
-      Number(account.lifetimeGifted || 0);
-
-    lifetime.textContent =
-      `${lifetimeGifted.toLocaleString()} lifetime ${
-        lifetimeGifted === 1
-          ? 'Credit'
-          : 'Credits'
-      }`;
-
-    const gifts =
-      Array.isArray(account.giftHistory)
-        ? account.giftHistory
-        : [];
-
-    list.replaceChildren();
-
-    if (!gifts.length) {
-      const empty = document.createElement('div');
-      empty.textContent =
-        'No gifts sent yet. Support a song you love with your first gift. ❤️';
-      empty.style.opacity = '.78';
-      empty.style.fontSize = '.92rem';
-      empty.style.lineHeight = '1.45';
-      list.append(empty);
-      return;
-    }
-
-    for (const gift of gifts) {
-      const meta =
-        giftMeta[gift.type] ||
-        {emoji: '🎁', name: 'Gift'};
-
-      const item = document.createElement('div');
-      item.style.padding = '10px 0';
-      item.style.borderBottom =
-        '1px solid rgba(255,255,255,.08)';
-
-      const top = document.createElement('div');
-      top.style.display = 'flex';
-      top.style.justifyContent = 'space-between';
-      top.style.gap = '12px';
-
-      const label = document.createElement('strong');
-      label.textContent =
-        `${meta.emoji} ${meta.name}`;
-
-      const credits = document.createElement('span');
-      const amount = Number(gift.credits || 0);
-      credits.textContent =
-        `${amount.toLocaleString()} ${amount === 1 ? 'Credit' : 'Credits'}`;
-
-      const song = document.createElement('div');
-      song.textContent = gift.songTitle || 'MQ3 Song';
-      song.style.marginTop = '3px';
-      song.style.fontSize = '.92rem';
-      song.style.opacity = '.86';
-
-      const date = document.createElement('div');
-      date.style.marginTop = '3px';
-      date.style.fontSize = '.8rem';
-      date.style.opacity = '.62';
-
-      const parsedDate = new Date(gift.createdAt);
-      date.textContent =
-        Number.isNaN(parsedDate.getTime())
-          ? ''
-          : parsedDate.toLocaleString();
-
-      top.append(label, credits);
-      item.append(top, song);
-
-      if (date.textContent) {
-        item.append(date);
-      }
-
-      list.append(item);
-    }
-
-    show(section);
-  }
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Bearer ${accessToken}`,
+            'Content-Type':
+              'application/json'
+          }
+        }
+      );
 
 
-  /* =========================================================
-     SUPPORTER RANK
-  ========================================================= */
+    const data=
+      await response.json();
 
-  async function displaySupporterRank(account) {
-    let rankBox = $('account-supporter-rank');
 
-    if (!rankBox) {
-      rankBox = document.createElement('div');
-      rankBox.id = 'account-supporter-rank';
-      rankBox.style.margin = '14px 0';
-      rankBox.style.padding = '12px 14px';
-      rankBox.style.border = '1px solid rgba(212,175,55,.28)';
-      rankBox.style.borderRadius = '12px';
-      rankBox.style.textAlign = 'center';
+    if(!response.ok){
 
-      const profile =
-        $('account-profile-form');
-
-      if (
-        profile &&
-        profile.parentNode === accountPanel
-      ) {
-        profile.insertAdjacentElement(
-          'afterend',
-          rankBox
-        );
-      } else {
-        accountPanel.prepend(rankBox);
-      }
-    }
-
-    const displayName =
-      account.displayName?.trim() || '';
-
-    const lifetimeGifted =
-      Number(account.lifetimeGifted || 0);
-
-    if (!displayName || lifetimeGifted <= 0) {
-      rankBox.textContent =
-        '🏆 Send gifts to join the Top Supporters leaderboard.';
-      rankBox.style.opacity = '.78';
-      show(rankBox);
-      return;
-    }
-
-    rankBox.textContent =
-      '🏆 Checking your Supporter Rank…';
-    rankBox.style.opacity = '.86';
-    show(rankBox);
-
-    try {
-      const data =
-        await api('/api/gifts/leaderboard');
-
-      const supporters =
-        Array.isArray(data.supporters)
-          ? data.supporters
-          : [];
-
-      const match =
-        supporters.find(
-          supporter =>
-            supporter.displayName === displayName &&
-            Number(supporter.lifetimeGifted || 0) === lifetimeGifted
-        ) ||
-        supporters.find(
-          supporter =>
-            supporter.displayName === displayName
-        );
-
-      if (match) {
-        const rank = Number(match.rank || 0);
-
-        rankBox.textContent =
-          `🏆 Supporter Rank: #${rank} · ` +
-          `${lifetimeGifted.toLocaleString()} lifetime ${
-            lifetimeGifted === 1
-              ? 'Credit'
-              : 'Credits'
-          } gifted`;
-
-        rankBox.style.opacity = '1';
-      } else {
-        rankBox.textContent =
-          '🏆 You are supporting MQ3! Keep gifting to reach the Top 25.';
-        rankBox.style.opacity = '.82';
-      }
-
-    } catch (error) {
       console.error(
-        'MQ3 supporter rank failed:',
-        error
+        '[mq3/paypal/capture-order]',
+        response.status,
+        data
       );
 
-      rankBox.textContent =
-        '🏆 Supporter Rank is temporarily unavailable.';
-      rankBox.style.opacity = '.78';
+      fail(
+        502,
+        'PayPal could not capture the payment.'
+      );
     }
+
+
+    return data;
   }
 
 
   /* =========================================================
-     LOAD CREDITS
+     ACCOUNT RESPONSE
   ========================================================= */
 
-  const creditPackages = {
-    50: 50,
-    100: 105,
-    250: 275,
-    500: 575,
-    1000: 1200
-  };
+  async function accountData(userId){
 
-  function ensureCreditLoadDialog() {
-    let loadDialog = $('mq3-credit-load-dialog');
+    const [row]=
+      await q(
+        `SELECT
+           u.id,
+           u.email,
+           u.display_name,
+           u.display_name_changed_at,
+           u.created_at,
+           u.last_login_at,
+           COALESCE(w.promo_credits,0) AS promo_credits,
+           COALESCE(w.purchased_credits,0) AS purchased_credits,
+           COALESCE(w.lifetime_gifted,0) AS lifetime_gifted,
+           COALESCE(w.welcome_bonus_claimed,false) AS welcome_bonus_claimed
+         FROM users u
+         LEFT JOIN wallets w
+           ON w.user_id=u.id
+         WHERE u.id=$1`,
+        [
+          userId
+        ]
+      );
 
-    if (loadDialog) return loadDialog;
 
-    loadDialog = document.createElement('dialog');
-    loadDialog.id = 'mq3-credit-load-dialog';
-
-    loadDialog.innerHTML = `
-      <form id="mq3-credit-load-form">
-        <div class="eyebrow">MQ3 LOAD CREDITS</div>
-        <h2 style="margin-bottom:6px;">🪙 Complete Credit Load</h2>
-
-        <p id="mq3-credit-load-package"
-           style="margin-top:0;font-weight:700;"></p>
-
-        <label>
-          Payment method
-          <select id="mq3-credit-load-provider" required>
-            <option value="gcash">GCash</option>
-            <option value="paypal">PayPal</option>
-          </select>
-        </label>
-
-        <label>
-          Payment reference
-          <input
-            id="mq3-credit-load-reference"
-            type="text"
-            maxlength="100"
-            autocomplete="off"
-            placeholder="Enter transaction/reference number"
-            required
-          >
-        </label>
-
-        <div id="mq3-credit-payment-instructions"
-             style="margin:12px 0;padding:12px 14px;border:1px solid rgba(212,175,55,.28);border-radius:12px;line-height:1.5;"></div>
-
-        <p style="font-size:.88rem;opacity:.76;line-height:1.45;">
-          Pay the exact amount first, then submit your transaction/reference number.
-          Your Credits will remain pending until MQ3 verifies the payment.
-        </p>
-
-        <p
-          id="mq3-credit-load-message"
-          role="status"
-        ></p>
-
-        <div class="actions">
-          <button
-            type="button"
-            class="button"
-            id="mq3-credit-load-cancel"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            class="button primary"
-            id="mq3-credit-load-submit"
-          >
-            Submit for Verification
-          </button>
-        </div>
-      </form>
-    `;
-
-    document.body.append(loadDialog);
-
-    $('mq3-credit-load-cancel')
-      ?.addEventListener('click', () => {
-        loadDialog.close();
-      });
-
-    $('mq3-credit-load-provider')
-      ?.addEventListener('change', updateCreditPaymentInstructions);
-
-    $('mq3-credit-load-form')
-      ?.addEventListener('submit', submitCreditLoad);
-
-    return loadDialog;
-  }
-
-  function updateCreditPaymentInstructions() {
-    const provider = $('mq3-credit-load-provider')?.value || 'gcash';
-    const box = $('mq3-credit-payment-instructions');
-
-    if (!box || !selectedCreditAmount) return;
-
-    const amount = `₱${selectedCreditAmount.toLocaleString()}`;
-
-    if (provider === 'paypal') {
-      box.innerHTML = `
-        <strong>Pay via PayPal</strong><br>
-        Send <strong>${amount}</strong> to:<br>
-        <strong>manferquim3@gmail.com</strong>
-      `;
-      return;
+    if(!row){
+      fail(
+        404,
+        'MQ3 account not found.'
+      );
     }
 
-    box.innerHTML = `
-      <strong>Pay via GCash</strong><br>
-      Send <strong>${amount}</strong> to:<br>
-      <strong>+63 966 648 15330</strong>
-    `;
+
+    const promo=
+      Number(
+        row.promo_credits||
+        0
+      );
+
+    const purchased=
+      Number(
+        row.purchased_credits||
+        0
+      );
+
+
+    const giftHistory=
+      await q(
+        `SELECT
+           g.id,
+           g.gift_type,
+           g.credits,
+           g.message,
+           g.created_at,
+           s.id AS song_id,
+           s.title AS song_title
+         FROM gifts g
+         JOIN songs s
+           ON s.id=g.song_id
+         WHERE g.user_id=$1
+         ORDER BY g.created_at DESC
+         LIMIT 50`,
+        [
+          userId
+        ]
+      );
+
+
+    const creditLoadOrders=
+      await q(
+        `SELECT
+           id,
+           amount_pesos,
+           credits,
+           payment_provider,
+           payment_reference,
+           status,
+           created_at,
+           reviewed_at
+         FROM credit_load_orders
+         WHERE user_id=$1
+         ORDER BY created_at DESC
+         LIMIT 25`,
+        [
+          userId
+        ]
+      );
+
+
+    return {
+
+      id:
+        row.id,
+
+      email:
+        row.email,
+
+      displayName:
+        row.display_name||
+        '',
+
+      displayNameChangedAt:
+        row.display_name_changed_at,
+
+      displayNameCanChangeAt:
+        row.display_name_changed_at
+          ?new Date(
+              new Date(
+                row.display_name_changed_at
+              ).getTime()+
+              DISPLAY_NAME_CHANGE_MS
+            )
+          :null,
+
+      credits:{
+        promo,
+        purchased,
+        total:
+          promo+
+          purchased
+      },
+
+      lifetimeGifted:
+        Number(
+          row.lifetime_gifted||
+          0
+        ),
+
+      giftHistory:
+        giftHistory.map(
+          gift=>({
+            id:
+              gift.id,
+
+            type:
+              gift.gift_type,
+
+            credits:
+              Number(
+                gift.credits||
+                0
+              ),
+
+            message:
+              gift.message||
+              '',
+
+            songId:
+              gift.song_id,
+
+            songTitle:
+              gift.song_title,
+
+            createdAt:
+              gift.created_at
+          })
+        ),
+
+      creditLoadOrders:
+        creditLoadOrders.map(
+          order=>({
+            id:
+              order.id,
+
+            amountPesos:
+              Number(
+                order.amount_pesos||
+                0
+              ),
+
+            credits:
+              Number(
+                order.credits||
+                0
+              ),
+
+            paymentProvider:
+              order.payment_provider,
+
+            paymentReference:
+              order.payment_reference||
+              '',
+
+            status:
+              order.status,
+
+            createdAt:
+              order.created_at,
+
+            reviewedAt:
+              order.reviewed_at
+          })
+        ),
+
+      welcomeBonusClaimed:
+        row.welcome_bonus_claimed===true,
+
+      createdAt:
+        row.created_at,
+
+      lastLoginAt:
+        row.last_login_at
+    };
   }
 
-  let selectedCreditAmount = 0;
 
-  function openCreditLoad(amountPesos) {
-    const credits = creditPackages[amountPesos];
+  /* =========================================================
+     CURRENT LISTENER SESSION
+  ========================================================= */
 
-    if (!currentAccount) {
-      alert('Sign in to your MQ3 account first.');
-      return;
+  async function currentUser(req){
+
+    const value=
+      req.cookies.mq3_user;
+
+
+    if(
+      !value||
+      !/^[a-f0-9]{64}$/.test(value)
+    ){
+      return null;
     }
 
-    if (!credits) {
-      alert('Choose a valid MQ3 Credit package.');
-      return;
-    }
 
-    selectedCreditAmount = amountPesos;
+    const [session]=
+      await q(
+        `SELECT
+           us.user_id
+         FROM user_sessions us
+         JOIN users u
+           ON u.id=us.user_id
+         WHERE us.token_hash=$1
+           AND us.expires_at>$2`,
+        [
+          hash(value),
+          new Date()
+        ]
+      );
 
-    const loadDialog = ensureCreditLoadDialog();
-    const packageText = $('mq3-credit-load-package');
-    const reference = $('mq3-credit-load-reference');
-    const provider = $('mq3-credit-load-provider');
-    const message = $('mq3-credit-load-message');
 
-    packageText.textContent =
-      `₱${amountPesos.toLocaleString()} → 🪙 ${credits.toLocaleString()} Credits`;
-
-    reference.value = '';
-    provider.value = 'gcash';
-    setMessage(message, '');
-    updateCreditPaymentInstructions();
-
-    loadDialog.showModal();
-    reference.focus();
+    return session
+      ?session.user_id
+      :null;
   }
 
-  function activateCreditPackages() {
-    const buttons =
-      document.querySelectorAll('.mq3-credit-package');
 
-    for (const button of buttons) {
-      const amountPesos =
-        Number(button.dataset.pesos || 0);
+  /* =========================================================
+     REQUIRE LISTENER LOGIN
+  ========================================================= */
 
-      button.disabled = false;
-      button.style.cursor = 'pointer';
+  async function requireUser(req){
 
-      if (button.dataset.mq3LoadReady === 'true') {
-        continue;
+    const userId=
+      await currentUser(req);
+
+
+    if(!userId){
+      fail(
+        401,
+        'Sign in to your MQ3 account.'
+      );
+    }
+
+
+    return userId;
+  }
+
+
+  /* =========================================================
+     REQUEST 6-DIGIT LOGIN CODE
+  ========================================================= */
+
+  app.post(
+    '/api/account/request-code',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'account-code',
+          5
+        );
+
+
+        const address=
+          email(
+            req.body.email
+          );
+
+
+        /*
+          A second limiter tied to the email address.
+
+          We do not put the raw email in the limiter key.
+        */
+
+        await limit(
+          req,
+          `account-email-${hash(address)}`,
+          5
+        );
+
+
+        const code=
+          String(
+            randomInt(
+              0,
+              1000000
+            )
+          ).padStart(
+            6,
+            '0'
+          );
+
+
+        const id=
+          randomUUID();
+
+
+        const now=
+          new Date();
+
+        const expiresAt=
+          new Date(
+            now.getTime()+
+            OTP_LIFETIME_MS
+          );
+
+
+        /*
+          Invalidate any previous unused code.
+
+          Only the newest code should work.
+        */
+
+        await q(
+          `UPDATE user_login_codes
+           SET used_at=$2
+           WHERE email=$1
+             AND used_at IS NULL`,
+          [
+            address,
+            now
+          ]
+        );
+
+
+        /*
+          Store only the HMAC digest.
+          The six-digit code itself is never stored.
+        */
+
+        await q(
+          `INSERT INTO user_login_codes(
+             id,
+             email,
+             code_hash,
+             expires_at
+           )
+           VALUES($1,$2,$3,$4)`,
+          [
+            id,
+            address,
+            hash(
+              `${address}:${code}`
+            ),
+            expiresAt
+          ]
+        );
+
+
+        try{
+
+          await mail(
+            address,
+
+            'Your MQ3 sign-in code',
+
+            `Your MQ3 sign-in code is:
+
+${code}
+
+This code expires in 10 minutes.
+
+If you did not request this code, you can ignore this email.
+
+MQ3 Music
+Music. Quality. 3rd Gen.`,
+
+            `mq3-login-${id}`
+          );
+
+
+        }catch(error){
+
+          /*
+            If email sending fails, invalidate the code.
+          */
+
+          await q(
+            `UPDATE user_login_codes
+             SET used_at=$2
+             WHERE id=$1
+               AND used_at IS NULL`,
+            [
+              id,
+              new Date()
+            ]
+          );
+
+
+          throw error;
+        }
+
+
+        res.json({
+          ok:true,
+
+          message:
+            'Check your email for your 6-digit MQ3 sign-in code.'
+        });
+
+
+      }catch(error){
+        next(error);
       }
+    }
+  );
 
-      button.dataset.mq3LoadReady = 'true';
 
-      button.addEventListener('click', () => {
-        openCreditLoad(amountPesos);
+  /* =========================================================
+     VERIFY LOGIN CODE
+  ========================================================= */
+
+  app.post(
+    '/api/account/verify-code',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'account-verify',
+          10
+        );
+
+
+        const address=
+          email(
+            req.body.email
+          );
+
+
+        const code=
+          String(
+            req.body.code||
+            ''
+          ).trim();
+
+
+        if(
+          !/^\d{6}$/.test(code)
+        ){
+          fail(
+            400,
+            'Enter the 6-digit code from your email.'
+          );
+        }
+
+
+        const now=
+          new Date();
+
+
+        /*
+          Atomically consume the newest valid code.
+
+          The UPDATE condition means the same OTP cannot
+          successfully be used twice.
+        */
+
+        const usedCodes=
+          await q(
+            `UPDATE user_login_codes
+             SET used_at=$4
+             WHERE id=(
+               SELECT id
+               FROM user_login_codes
+               WHERE email=$1
+                 AND code_hash=$2
+                 AND used_at IS NULL
+                 AND expires_at>$3
+               ORDER BY created_at DESC
+               LIMIT 1
+             )
+             AND used_at IS NULL
+             RETURNING id`,
+            [
+              address,
+
+              hash(
+                `${address}:${code}`
+              ),
+
+              now,
+
+              now
+            ]
+          );
+
+
+        if(!usedCodes.length){
+
+          fail(
+            401,
+            'That code is incorrect or expired. Request a new code.'
+          );
+        }
+
+
+        /*
+          Create the listener account if this email has never
+          signed in before.
+
+          Existing accounts simply get last_login_at updated.
+        */
+
+        const [user]=
+          await q(
+            `INSERT INTO users(
+               id,
+               email,
+               display_name,
+               last_login_at
+             )
+             VALUES($1,$2,$3,$4)
+             ON CONFLICT(email)
+             DO UPDATE SET
+               last_login_at=EXCLUDED.last_login_at
+             RETURNING
+               id,
+               email,
+               display_name`,
+            [
+              randomUUID(),
+              address,
+              '',
+              now
+            ]
+          );
+
+
+        /*
+          Every listener gets one wallet.
+
+          Wallet starts at zero. Welcome Credits are granted
+          separately below.
+        */
+
+        await q(
+          `INSERT INTO wallets(
+             user_id,
+             promo_credits,
+             purchased_credits,
+             lifetime_gifted,
+             welcome_bonus_claimed
+           )
+           VALUES($1,0,0,0,false)
+           ON CONFLICT(user_id)
+           DO NOTHING`,
+          [
+            user.id
+          ]
+        );
+
+
+        /*
+          CLAIM THE WELCOME BONUS
+
+          credit_transactions has a unique partial index for
+          transaction_type='welcome_bonus'.
+
+          The INSERT is therefore the authoritative one-time
+          claim.
+
+          This statement also updates the wallet only when
+          the transaction was actually inserted.
+
+          Both actions happen inside one SQL statement.
+        */
+
+        await q(
+          `WITH bonus AS (
+             INSERT INTO credit_transactions(
+               id,
+               user_id,
+               transaction_type,
+               promo_change,
+               purchased_change,
+               description
+             )
+             VALUES(
+               $1,
+               $2,
+               'welcome_bonus',
+               $3,
+               0,
+               'MQ3 Welcome Credits'
+             )
+             ON CONFLICT DO NOTHING
+             RETURNING user_id
+           )
+           UPDATE wallets
+           SET
+             promo_credits=
+               promo_credits+$3,
+             welcome_bonus_claimed=true,
+             updated_at=$4
+           WHERE user_id IN(
+             SELECT user_id
+             FROM bonus
+           )`,
+          [
+            randomUUID(),
+            user.id,
+            WELCOME_CREDITS,
+            now
+          ]
+        );
+
+
+        /*
+          Defensive repair:
+
+          If the bonus transaction already exists, the account
+          must also be marked as having claimed the bonus.
+
+          This does NOT add credits.
+        */
+
+        await q(
+          `UPDATE wallets
+           SET
+             welcome_bonus_claimed=true,
+             updated_at=$2
+           WHERE user_id=$1
+             AND welcome_bonus_claimed=false
+             AND EXISTS(
+               SELECT 1
+               FROM credit_transactions
+               WHERE user_id=$1
+                 AND transaction_type='welcome_bonus'
+             )`,
+          [
+            user.id,
+            now
+          ]
+        );
+
+
+        /*
+          Create listener session.
+
+          Listener sessions are intentionally separate from
+          admin sessions.
+        */
+
+        const sessionToken=
+          token();
+
+
+        await q(
+          `INSERT INTO user_sessions(
+             token_hash,
+             user_id,
+             expires_at
+           )
+           VALUES($1,$2,$3)`,
+          [
+            hash(sessionToken),
+            user.id,
+
+            new Date(
+              now.getTime()+
+              SESSION_LIFETIME_MS
+            )
+          ]
+        );
+
+
+        res.cookie(
+          'mq3_user',
+          sessionToken,
+          {
+            ...cookieOptions(),
+
+            maxAge:
+              SESSION_LIFETIME_MS
+          }
+        );
+
+
+        /*
+          Opportunistic cleanup.
+          No user data is removed here.
+        */
+
+        await q(
+          `DELETE FROM user_login_codes
+           WHERE expires_at<$1
+              OR (
+                used_at IS NOT NULL
+                AND used_at<$2
+              )`,
+          [
+            now,
+
+            new Date(
+              now.getTime()-
+              24*60*60*1000
+            )
+          ]
+        );
+
+
+        await q(
+          `DELETE FROM user_sessions
+           WHERE expires_at<$1`,
+          [
+            now
+          ]
+        );
+
+
+        res.json({
+          ok:true,
+
+          account:
+            await accountData(
+              user.id
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
+     CURRENT ACCOUNT
+  ========================================================= */
+
+  app.get(
+    '/api/account',
+    async(req,res,next)=>{
+
+      try{
+
+        const userId=
+          await currentUser(req);
+
+
+        if(!userId){
+
+          return res.json({
+            signedIn:false
+          });
+        }
+
+
+        res.json({
+          signedIn:true,
+
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
+     CREDIT LOAD PACKAGES
+  ========================================================= */
+
+  app.get(
+    '/api/account/credit-packages',
+    (_req,res)=>{
+
+      res.json({
+        packages:
+          Object.entries(
+            CREDIT_LOAD_PACKAGES
+          ).map(
+            ([amountPesos,credits])=>({
+              amountPesos:
+                Number(
+                  amountPesos
+                ),
+
+              credits
+            })
+          )
       });
     }
-  }
+  );
 
-  async function submitCreditLoad(event) {
-    event.preventDefault();
 
-    const amountPesos = selectedCreditAmount;
-    const credits = creditPackages[amountPesos];
+  /* =========================================================
+     AUTOMATIC PAYPAL CREDIT LOAD
+  ========================================================= */
 
-    const provider = $('mq3-credit-load-provider');
-    const reference = $('mq3-credit-load-reference');
-    const message = $('mq3-credit-load-message');
-    const button = $('mq3-credit-load-submit');
+  app.post(
+    '/api/account/paypal/create-order',
+    async(req,res,next)=>{
 
-    const paymentProvider =
-      provider?.value || '';
+      try{
 
-    const paymentReference =
-      reference?.value.trim() || '';
+        sameOrigin(req);
 
-    if (!credits) {
-      setMessage(
-        message,
-        'Choose a valid MQ3 Credit package.',
-        true
-      );
-      return;
-    }
 
-    if (!paymentReference) {
-      setMessage(
-        message,
-        'Enter your payment reference.',
-        true
-      );
-      reference?.focus();
-      return;
-    }
+        await limit(
+          req,
+          'paypal-create-order',
+          8
+        );
 
-    button.disabled = true;
-    button.textContent = 'Submitting…';
 
-    setMessage(
-      message,
-      'Submitting your payment for MQ3 verification…'
-    );
+        const userId=
+          await requireUser(req);
 
-    try {
-      const data = await api(
-        '/api/account/credit-load',
-        {
-          method: 'POST',
-          body: JSON.stringify({
+
+        const amountPesos=
+          Number(
+            req.body.amountPesos
+          );
+
+
+        const expectedCredits=
+          CREDIT_LOAD_PACKAGES[
+            amountPesos
+          ];
+
+
+        if(
+          !Number.isInteger(amountPesos)||
+          !expectedCredits
+        ){
+
+          fail(
+            400,
+            'Choose a valid MQ3 Credit package.'
+          );
+        }
+
+
+        const paypalOrder=
+          await createPaypalCreditOrder(
             amountPesos,
-            paymentProvider,
-            paymentReference
-          })
+            expectedCredits
+          );
+
+
+        const orderId=
+          String(
+            paypalOrder?.id||
+            ''
+          ).trim();
+
+
+        if(!orderId){
+
+          fail(
+            502,
+            'PayPal did not return an order ID.'
+          );
         }
-      );
 
-      if (data.account) {
-        displayAccount(data.account);
-      } else {
-        await loadAccount();
-      }
 
-      setMessage(
-        message,
-        data.message ||
-        'Payment submitted for MQ3 verification. ✓'
-      );
-
-      reference.value = '';
-
-      setTimeout(() => {
-        $('mq3-credit-load-dialog')?.close();
-      }, 1200);
-
-    } catch (error) {
-      setMessage(
-        message,
-        error.message,
-        true
-      );
-
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Submit for Verification';
-    }
-  }
-
-
-  /* =========================================================
-     ACCOUNT DISPLAY
-  ========================================================= */
-
-  function displayAccount(account) {
-    currentAccount = account;
-
-    hide(emailForm);
-    hide(codeForm);
-    show(accountPanel);
-
-    const displayName =
-      account.displayName && account.displayName.trim()
-        ? account.displayName.trim()
-        : '';
-
-    welcome.textContent =
-      displayName
-        ? `Welcome, ${displayName}!`
-        : 'Welcome to MQ3!';
-
-    userEmail.textContent = account.email || '';
-
-    if (displayNameInput) {
-      displayNameInput.value = displayName;
-    }
-
-    setMessage(profileMessage, '');
-
-    const promo = Number(account.credits?.promo || 0);
-    const purchased = Number(account.credits?.purchased || 0);
-    const total = Number(
-      account.credits?.total ?? (promo + purchased)
-    );
-
-    creditBalance.textContent = total.toLocaleString();
-
-    displayGiftHistory(account);
-    displaySupporterRank(account);
-    activateCreditPackages();
-
-    if (promo > 0) {
-      welcomeBonus.textContent =
-        `🎁 Your Welcome Credits are ready! ` +
-        `You have ${promo.toLocaleString()} promo Credits. ` +
-        `Send your first gift to a song you love. ❤️`;
-
-      show(welcomeBonus);
-    } else {
-      welcomeBonus.textContent =
-        '❤️ Load Credits to keep supporting the music you love.';
-
-      show(welcomeBonus);
-    }
-
-    accountButton.textContent =
-      `🪙 ${total.toLocaleString()} Credits`;
-  }
-
-
-  /* =========================================================
-     CHECK CURRENT SESSION
-  ========================================================= */
-
-  async function loadAccount() {
-    try {
-      const data = await api('/api/account');
-
-      if (data.signedIn && data.account) {
-        displayAccount(data.account);
-        return;
-      }
-
-      currentAccount = null;
-      accountButton.textContent = '👤 Sign In';
-
-    } catch (error) {
-      console.error('MQ3 account check failed:', error);
-
-      currentAccount = null;
-      accountButton.textContent = '👤 Sign In';
-    }
-  }
-
-
-  /* =========================================================
-     OPEN ACCOUNT
-  ========================================================= */
-
-  accountButton.addEventListener('click', async () => {
-    if (currentAccount) {
-      displayAccount(currentAccount);
-    } else {
-      resetViews();
-    }
-
-    dialog.showModal();
-  });
-
-
-  /* =========================================================
-     CLOSE
-  ========================================================= */
-
-  $('account-close').addEventListener('click', () => {
-    dialog.close();
-  });
-
-  $('account-done').addEventListener('click', () => {
-    dialog.close();
-  });
-
-
-  /* =========================================================
-     SEND OTP
-  ========================================================= */
-
-  emailForm.addEventListener('submit', async event => {
-    event.preventDefault();
-
-    const address = emailInput.value.trim();
-
-    if (!address) {
-      setMessage(
-        emailMessage,
-        'Enter your email address.',
-        true
-      );
-      return;
-    }
-
-    const button = $('account-send-code');
-
-    button.disabled = true;
-    button.textContent = 'Sending…';
-
-    setMessage(
-      emailMessage,
-      'Sending your MQ3 sign-in code…'
-    );
-
-    try {
-      const data = await api(
-        '/api/account/request-code',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            email: address
-          })
-        }
-      );
-
-      pendingEmail = address;
-
-      codeEmail.textContent = address;
-
-      hide(emailForm);
-      show(codeForm);
-
-      setMessage(
-        codeMessage,
-        data.message ||
-        'Check your email for your 6-digit code.'
-      );
-
-      codeInput.focus();
-
-    } catch (error) {
-      setMessage(
-        emailMessage,
-        error.message,
-        true
-      );
-
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Send Code';
-    }
-  });
-
-
-  /* =========================================================
-     BACK TO EMAIL
-  ========================================================= */
-
-  $('account-back').addEventListener('click', () => {
-    hide(codeForm);
-    show(emailForm);
-
-    codeInput.value = '';
-
-    setMessage(codeMessage, '');
-    setMessage(emailMessage, '');
-
-    emailInput.focus();
-  });
-
-
-  /* =========================================================
-     VERIFY OTP
-  ========================================================= */
-
-  codeForm.addEventListener('submit', async event => {
-    event.preventDefault();
-
-    const code = codeInput.value.trim();
-
-    if (!/^\d{6}$/.test(code)) {
-      setMessage(
-        codeMessage,
-        'Enter the 6-digit code from your email.',
-        true
-      );
-      return;
-    }
-
-    if (!pendingEmail) {
-      setMessage(
-        codeMessage,
-        'Please request a new sign-in code.',
-        true
-      );
-      return;
-    }
-
-    const button = $('account-verify');
-
-    button.disabled = true;
-    button.textContent = 'Signing In…';
-
-    setMessage(
-      codeMessage,
-      'Checking your code…'
-    );
-
-    try {
-      const data = await api(
-        '/api/account/verify-code',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            email: pendingEmail,
-            code
-          })
-        }
-      );
-
-      if (!data.account) {
-        throw new Error(
-          'Signed in, but account information was not returned.'
+        const id=
+          randomUUID();
+
+
+        await q(
+          `INSERT INTO credit_load_orders(
+             id,
+             user_id,
+             amount_pesos,
+             credits,
+             payment_provider,
+             payment_reference,
+             status
+           )
+           VALUES(
+             $1,
+             $2,
+             $3,
+             $4,
+             'paypal',
+             $5,
+             'pending'
+           )`,
+          [
+            id,
+            userId,
+            amountPesos,
+            expectedCredits,
+            orderId
+          ]
         );
+
+
+        res.status(
+          201
+        ).json({
+          ok:true,
+          orderId,
+          creditLoadOrderId:
+            id,
+          amountPesos,
+          credits:
+            expectedCredits
+        });
+
+
+      }catch(error){
+        next(error);
       }
-
-      displayAccount(data.account);
-
-      pendingEmail = '';
-      codeInput.value = '';
-
-    } catch (error) {
-      setMessage(
-        codeMessage,
-        error.message,
-        true
-      );
-
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Sign In';
     }
-  });
+  );
 
 
-  /* =========================================================
-     ONLY NUMBERS IN OTP FIELD
-  ========================================================= */
+  app.post(
+    '/api/account/paypal/capture-order',
+    async(req,res,next)=>{
 
-  codeInput.addEventListener('input', () => {
-    codeInput.value =
-      codeInput.value
-        .replace(/\D/g, '')
-        .slice(0, 6);
-  });
+      try{
+
+        sameOrigin(req);
 
 
-  /* =========================================================
-     SAVE DISPLAY NAME
-  ========================================================= */
-
-  profileForm?.addEventListener('submit', async event => {
-    event.preventDefault();
-
-    const displayName =
-      displayNameInput?.value.trim() || '';
-
-    if (!displayName) {
-      setMessage(
-        profileMessage,
-        'Enter the display name you want other listeners to see.',
-        true
-      );
-      displayNameInput?.focus();
-      return;
-    }
-
-    const button = $('account-save-profile');
-
-    button.disabled = true;
-    button.textContent = 'Saving…';
-
-    setMessage(
-      profileMessage,
-      'Saving your display name…'
-    );
-
-    try {
-      const data = await api(
-        '/api/account/profile',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            displayName
-          })
-        }
-      );
-
-      if (!data.account) {
-        throw new Error(
-          'Display name was saved, but account information was not returned.'
+        await limit(
+          req,
+          'paypal-capture-order',
+          12
         );
-      }
-
-      displayAccount(data.account);
-
-      setMessage(
-        profileMessage,
-        'Display name saved. ✓'
-      );
-
-    } catch (error) {
-      setMessage(
-        profileMessage,
-        error.message,
-        true
-      );
-
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Save Display Name';
-    }
-  });
 
 
-  /* =========================================================
-     LOG OUT
-  ========================================================= */
+        const userId=
+          await requireUser(req);
 
-  $('account-logout').addEventListener('click', async () => {
-    const button = $('account-logout');
 
-    button.disabled = true;
-    button.textContent = 'Signing Out…';
+        const orderId=
+          String(
+            req.body.orderId||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
 
-    try {
-      await api(
-        '/api/account/logout',
-        {
-          method: 'POST',
-          body: JSON.stringify({})
+
+        if(
+          orderId.length<6||
+          orderId.length>100
+        ){
+
+          fail(
+            400,
+            'Invalid PayPal order.'
+          );
         }
-      );
 
-      currentAccount = null;
-      pendingEmail = '';
 
-      emailInput.value = '';
-      codeInput.value = '';
+        const [loadOrder]=
+          await q(
+            `SELECT
+               id,
+               amount_pesos,
+               credits,
+               status
+             FROM credit_load_orders
+             WHERE user_id=$1
+               AND payment_provider='paypal'
+               AND payment_reference=$2
+             LIMIT 1`,
+            [
+              userId,
+              orderId
+            ]
+          );
 
-      accountButton.textContent = '👤 Sign In';
 
-      dialog.close();
+        if(!loadOrder){
 
-    } catch (error) {
-      alert(error.message);
+          fail(
+            404,
+            'MQ3 PayPal Credit Load order not found.'
+          );
+        }
 
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Sign Out';
+
+        if(loadOrder.status==='approved'){
+
+          return res.json({
+            ok:true,
+            status:'approved',
+            alreadyCredited:true,
+            account:
+              await accountData(
+                userId
+              )
+          });
+        }
+
+
+        if(loadOrder.status!=='pending'){
+
+          fail(
+            409,
+            'This PayPal Credit Load is no longer pending.'
+          );
+        }
+
+
+        const capture=
+          await capturePaypalCreditOrder(
+            orderId
+          );
+
+
+        const purchaseUnit=
+          capture?.purchase_units?.[0];
+
+        const captured=
+          purchaseUnit?.payments?.captures?.[0];
+
+        const paidAmount=
+          Number(
+            captured?.amount?.value
+          );
+
+        const paidCurrency=
+          String(
+            captured?.amount?.currency_code||
+            ''
+          ).toUpperCase();
+
+
+        const completed=
+          capture?.status==='COMPLETED'&&
+          captured?.status==='COMPLETED';
+
+
+        const expectedAmount=
+          Number(
+            loadOrder.amount_pesos
+          );
+
+
+        if(
+          !completed||
+          paidCurrency!=='PHP'||
+          !Number.isFinite(paidAmount)||
+          paidAmount!==expectedAmount
+        ){
+
+          console.error(
+            '[mq3/paypal/verification-failed]',
+            {
+              orderId,
+              orderStatus:
+                capture?.status,
+              captureStatus:
+                captured?.status,
+              paidAmount,
+              paidCurrency,
+              expectedAmount
+            }
+          );
+
+          fail(
+            400,
+            'PayPal payment could not be verified.'
+          );
+        }
+
+
+        const transactionId=
+          randomUUID();
+
+        const now=
+          new Date();
+
+
+        const rows=
+          await q(
+            `WITH reviewed AS (
+               UPDATE credit_load_orders clo
+               SET
+                 status='approved',
+                 reviewed_at=$2
+               WHERE clo.id=$1
+                 AND clo.user_id=$4
+                 AND clo.status='pending'
+                 AND EXISTS(
+                   SELECT 1
+                   FROM wallets w
+                   WHERE w.user_id=clo.user_id
+                 )
+               RETURNING
+                 clo.id,
+                 clo.user_id,
+                 clo.credits
+             ),
+             purchase AS (
+               INSERT INTO credit_transactions(
+                 id,
+                 user_id,
+                 transaction_type,
+                 promo_change,
+                 purchased_change,
+                 description,
+                 reference_id
+               )
+               SELECT
+                 $3,
+                 r.user_id,
+                 'credit_purchase',
+                 0,
+                 r.credits,
+                 'MQ3 PayPal Credit Load',
+                 r.id
+               FROM reviewed r
+               ON CONFLICT DO NOTHING
+               RETURNING
+                 user_id,
+                 purchased_change
+             ),
+             credited AS (
+               UPDATE wallets w
+               SET
+                 purchased_credits=
+                   w.purchased_credits+
+                   p.purchased_change,
+                 updated_at=$2
+               FROM purchase p
+               WHERE w.user_id=p.user_id
+               RETURNING
+                 w.user_id,
+                 w.purchased_credits
+             )
+             SELECT
+               r.id,
+               r.credits,
+               c.purchased_credits
+             FROM reviewed r
+             JOIN credited c
+               ON c.user_id=r.user_id`,
+            [
+              loadOrder.id,
+              now,
+              transactionId,
+              userId
+            ]
+          );
+
+
+        if(!rows.length){
+
+          const [existing]=
+            await q(
+              `SELECT
+                 clo.status,
+                 EXISTS(
+                   SELECT 1
+                   FROM credit_transactions ct
+                   WHERE ct.reference_id=clo.id
+                     AND ct.transaction_type='credit_purchase'
+                 ) AS credited
+               FROM credit_load_orders clo
+               WHERE clo.id=$1
+                 AND clo.user_id=$2`,
+              [
+                loadOrder.id,
+                userId
+              ]
+            );
+
+
+          if(
+            existing?.status==='approved'&&
+            existing?.credited===true
+          ){
+
+            return res.json({
+              ok:true,
+              status:'approved',
+              alreadyCredited:true,
+              account:
+                await accountData(
+                  userId
+                )
+            });
+          }
+
+
+          fail(
+            409,
+            'PayPal payment was captured, but MQ3 could not safely add the Credits. Please contact MQ3 support.'
+          );
+        }
+
+
+        res.json({
+          ok:true,
+          status:'approved',
+          creditsAdded:
+            Number(
+              rows[0].credits||
+              0
+            ),
+          purchasedCredits:
+            Number(
+              rows[0].purchased_credits||
+              0
+            ),
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
     }
-  });
+  );
 
 
   /* =========================================================
-     WALLET / GIFT REFRESH
+     CREATE CREDIT LOAD ORDER
   ========================================================= */
 
-  window.addEventListener('mq3-wallet-updated', () => {
-    loadAccount();
-  });
+  app.post(
+    '/api/account/credit-load',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'credit-load',
+          8
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const amountPesos=
+          Number(
+            req.body.amountPesos
+          );
+
+
+        const expectedCredits=
+          CREDIT_LOAD_PACKAGES[
+            amountPesos
+          ];
+
+
+        if(
+          !Number.isInteger(amountPesos)||
+          !expectedCredits
+        ){
+
+          fail(
+            400,
+            'Choose a valid MQ3 Credit package.'
+          );
+        }
+
+
+        const paymentProvider=
+          String(
+            req.body.paymentProvider||
+            ''
+          ).trim().toLowerCase();
+
+
+        if(
+          ![
+            'gcash',
+            'paypal'
+          ].includes(
+            paymentProvider
+          )
+        ){
+
+          fail(
+            400,
+            'Choose GCash or PayPal.'
+          );
+        }
+
+
+        const paymentReference=
+          String(
+            req.body.paymentReference||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
+
+
+        if(
+          paymentReference.length<4||
+          paymentReference.length>100
+        ){
+
+          fail(
+            400,
+            'Enter a valid payment reference.'
+          );
+        }
+
+
+        const duplicate=
+          await q(
+            `SELECT id
+             FROM credit_load_orders
+             WHERE payment_provider=$1
+               AND LOWER(payment_reference)=LOWER($2)
+             LIMIT 1`,
+            [
+              paymentProvider,
+              paymentReference
+            ]
+          );
+
+
+        if(duplicate.length){
+
+          fail(
+            409,
+            'This payment reference has already been submitted.'
+          );
+        }
+
+
+        const id=
+          randomUUID();
+
+
+        const [order]=
+          await q(
+            `INSERT INTO credit_load_orders(
+               id,
+               user_id,
+               amount_pesos,
+               credits,
+               payment_provider,
+               payment_reference,
+               status
+             )
+             VALUES(
+               $1,
+               $2,
+               $3,
+               $4,
+               $5,
+               $6,
+               'pending'
+             )
+             RETURNING
+               id,
+               amount_pesos,
+               credits,
+               payment_provider,
+               payment_reference,
+               status,
+               created_at`,
+            [
+              id,
+              userId,
+              amountPesos,
+              expectedCredits,
+              paymentProvider,
+              paymentReference
+            ]
+          );
+
+
+        res.status(
+          201
+        ).json({
+          ok:true,
+
+          message:
+            'Payment submitted for MQ3 verification.',
+
+          order:{
+            id:
+              order.id,
+
+            amountPesos:
+              Number(
+                order.amount_pesos
+              ),
+
+            credits:
+              Number(
+                order.credits
+              ),
+
+            paymentProvider:
+              order.payment_provider,
+
+            paymentReference:
+              order.payment_reference,
+
+            status:
+              order.status,
+
+            createdAt:
+              order.created_at
+          },
+
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
 
 
   /* =========================================================
-     START
+     UPDATE DISPLAY NAME
   ========================================================= */
 
-  loadAccount();
+  app.post(
+    '/api/account/profile',
+    async(req,res,next)=>{
 
-})();
+      try{
+
+        sameOrigin(req);
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const displayName=
+          String(
+            req.body.displayName||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
+
+
+        if(
+          !displayName||
+          displayName.length>50
+        ){
+
+          fail(
+            400,
+            'Enter a display name up to 50 characters.'
+          );
+        }
+
+
+        const now=
+          new Date();
+
+
+        const [current]=
+          await q(
+            `SELECT
+               display_name,
+               display_name_changed_at
+             FROM users
+             WHERE id=$1`,
+            [
+              userId
+            ]
+          );
+
+
+        if(!current){
+
+          fail(
+            404,
+            'MQ3 account not found.'
+          );
+        }
+
+
+        const currentName=
+          String(
+            current.display_name||
+            ''
+          ).trim();
+
+
+        if(
+          currentName===
+          displayName
+        ){
+
+          return res.json({
+            ok:true,
+
+            account:
+              await accountData(
+                userId
+              )
+          });
+        }
+
+
+        if(
+          currentName&&
+          current.display_name_changed_at
+        ){
+
+          const canChangeAt=
+            new Date(
+              new Date(
+                current.display_name_changed_at
+              ).getTime()+
+              DISPLAY_NAME_CHANGE_MS
+            );
+
+
+          if(
+            canChangeAt>
+            now
+          ){
+
+            const daysLeft=
+              Math.ceil(
+                (
+                  canChangeAt.getTime()-
+                  now.getTime()
+                )/
+                (
+                  24*
+                  60*
+                  60*
+                  1000
+                )
+              );
+
+
+            fail(
+              429,
+              `You can change your display name again in ${daysLeft} ${
+                daysLeft===1
+                  ?'day'
+                  :'days'
+              }.`
+            );
+          }
+        }
+
+
+        const changed=
+          await q(
+            `UPDATE users
+             SET
+               display_name=$2,
+               display_name_changed_at=$3
+             WHERE id=$1
+               AND (
+                 display_name=''
+                 OR display_name_changed_at IS NULL
+                 OR display_name_changed_at<=$4
+               )
+             RETURNING id`,
+            [
+              userId,
+              displayName,
+              now,
+              new Date(
+                now.getTime()-
+                DISPLAY_NAME_CHANGE_MS
+              )
+            ]
+          );
+
+
+        if(!changed.length){
+
+          fail(
+            429,
+            'Your display name was changed recently. Please wait 30 days before changing it again.'
+          );
+        }
+
+
+        res.json({
+          ok:true,
+
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
+     LISTENER LOGOUT
+  ========================================================= */
+
+  app.post(
+    '/api/account/logout',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        const value=
+          req.cookies.mq3_user;
+
+
+        if(
+          value&&
+          /^[a-f0-9]{64}$/.test(value)
+        ){
+
+          await q(
+            `DELETE FROM user_sessions
+             WHERE token_hash=$1`,
+            [
+              hash(value)
+            ]
+          );
+        }
+
+
+        res.clearCookie(
+          'mq3_user',
+          cookieOptions()
+        );
+
+
+        res.json({
+          ok:true
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
+     EXPORT AUTH HELPER FOR FUTURE WALLET / GIFTS
+  ========================================================= */
+
+  return {
+    currentUser,
+    requireUser,
+    accountData
+  };
+}
