@@ -141,7 +141,7 @@ export function services(env=process.env){
 
     async audio(
       path,
-      _range
+      range
     ){
 
       if(
@@ -203,6 +203,233 @@ export function services(env=process.env){
       }
 
 
+      const blob=
+        result.blob;
+
+
+      const size=
+        Number(
+          blob?.size||
+          0
+        );
+
+
+      if(
+        range&&
+        size>0
+      ){
+
+        const match=
+          /^bytes=(\d*)-(\d*)$/
+            .exec(
+              range
+            );
+
+
+        if(
+          !match
+        ){
+
+          return new Response(
+            null,
+            {
+              status:416,
+              headers:{
+                'Content-Range':
+                  `bytes */${size}`,
+                'Accept-Ranges':
+                  'bytes'
+              }
+            }
+          );
+        }
+
+
+        let start=
+          match[1]
+            ?Number(
+                match[1]
+              )
+            :null;
+
+
+        let end=
+          match[2]
+            ?Number(
+                match[2]
+              )
+            :null;
+
+
+        if(
+          start===null
+        ){
+
+          const suffixLength=
+            end;
+
+
+          if(
+            !Number.isInteger(
+              suffixLength
+            )||
+            suffixLength<=0
+          ){
+
+            return new Response(
+              null,
+              {
+                status:416,
+                headers:{
+                  'Content-Range':
+                    `bytes */${size}`,
+                  'Accept-Ranges':
+                    'bytes'
+                }
+              }
+            );
+          }
+
+
+          start=
+            Math.max(
+              size-
+              suffixLength,
+              0
+            );
+
+
+          end=
+            size-
+            1;
+
+        }else{
+
+          if(
+            !Number.isInteger(
+              start
+            )||
+            start<0||
+            start>=size
+          ){
+
+            return new Response(
+              null,
+              {
+                status:416,
+                headers:{
+                  'Content-Range':
+                    `bytes */${size}`,
+                  'Accept-Ranges':
+                    'bytes'
+                }
+              }
+            );
+          }
+
+
+          if(
+            end===null||
+            end>=size
+          ){
+
+            end=
+              size-
+              1;
+          }
+
+
+          if(
+            !Number.isInteger(
+              end
+            )||
+            end<start
+          ){
+
+            return new Response(
+              null,
+              {
+                status:416,
+                headers:{
+                  'Content-Range':
+                    `bytes */${size}`,
+                  'Accept-Ranges':
+                    'bytes'
+                }
+              }
+            );
+          }
+        }
+
+
+        const length=
+          end-
+          start+
+          1;
+
+
+        const chunk=
+          blob.slice(
+            start,
+            end+
+            1,
+            blob.contentType||
+            'audio/mpeg'
+          );
+
+
+        const headers=
+          new Headers();
+
+
+        headers.set(
+          'Content-Type',
+          blob.contentType||
+          'audio/mpeg'
+        );
+
+
+        headers.set(
+          'Content-Length',
+          String(
+            length
+          )
+        );
+
+
+        headers.set(
+          'Content-Range',
+          `bytes ${start}-${end}/${size}`
+        );
+
+
+        headers.set(
+          'Accept-Ranges',
+          'bytes'
+        );
+
+
+        if(
+          blob.etag
+        ){
+
+          headers.set(
+            'ETag',
+            blob.etag
+          );
+        }
+
+
+        return new Response(
+          chunk.stream(),
+          {
+            status:206,
+            headers
+          }
+        );
+      }
+
+
       const headers=
         new Headers(
           result.headers||
@@ -211,36 +438,36 @@ export function services(env=process.env){
 
 
       if(
-        result.blob?.contentType
+        blob?.contentType
       ){
 
         headers.set(
           'Content-Type',
-          result.blob.contentType
+          blob.contentType
         );
       }
 
 
       if(
-        result.blob?.size!=null
+        size>0
       ){
 
         headers.set(
           'Content-Length',
           String(
-            result.blob.size
+            size
           )
         );
       }
 
 
       if(
-        result.blob?.etag
+        blob?.etag
       ){
 
         headers.set(
           'ETag',
-          result.blob.etag
+          blob.etag
         );
       }
 
