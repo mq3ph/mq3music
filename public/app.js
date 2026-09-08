@@ -1228,6 +1228,414 @@ async function loadLeaderboard(){
 }
 
 
+/* =========================================================
+   MQ3 GIFT CELEBRATIONS
+========================================================= */
+
+function playGiftAnimation(gift){
+
+  if(
+    !gift||
+    matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+  ){
+    return;
+  }
+
+
+  const old=
+    $('mq3-gift-celebration');
+
+  old?.remove();
+
+
+  const overlay=
+    node(
+      'div'
+    );
+
+  overlay.id=
+    'mq3-gift-celebration';
+
+  overlay.setAttribute(
+    'aria-hidden',
+    'true'
+  );
+
+
+  Object.assign(
+    overlay.style,
+    {
+      position:'fixed',
+      inset:'0',
+      zIndex:'99999',
+      pointerEvents:'none',
+      overflow:'hidden'
+    }
+  );
+
+
+  document.body.append(
+    overlay
+  );
+
+
+  const addParticle=({
+    symbol,
+    left,
+    top='82%',
+    size=30,
+    delay=0,
+    duration=1800,
+    drift=0,
+    spin=0
+  })=>{
+
+    const particle=
+      node(
+        'span',
+        symbol
+      );
+
+
+    Object.assign(
+      particle.style,
+      {
+        position:'absolute',
+        left:`${left}%`,
+        top,
+        fontSize:`${size}px`,
+        lineHeight:'1',
+        opacity:'0',
+        transform:'translate(-50%,0) scale(.65)',
+        filter:'drop-shadow(0 4px 10px rgba(0,0,0,.35))',
+        willChange:'transform, opacity',
+        transition:'none'
+      }
+    );
+
+
+    overlay.append(
+      particle
+    );
+
+
+    const animation=
+      particle.animate(
+        [
+          {
+            opacity:0,
+            transform:
+              'translate(-50%,20px) scale(.65) rotate(0deg)'
+          },
+          {
+            opacity:1,
+            offset:.16,
+            transform:
+              'translate(-50%,0) scale(1.05) rotate(0deg)'
+          },
+          {
+            opacity:.95,
+            offset:.72,
+            transform:
+              `translate(calc(-50% + ${drift}px),-55vh) scale(1) rotate(${spin}deg)`
+          },
+          {
+            opacity:0,
+            transform:
+              `translate(calc(-50% + ${drift*1.25}px),-72vh) scale(.82) rotate(${spin*1.35}deg)`
+          }
+        ],
+        {
+          duration,
+          delay,
+          easing:'cubic-bezier(.18,.7,.2,1)',
+          fill:'forwards'
+        }
+      );
+
+
+    animation.onfinish=
+      ()=>particle.remove();
+  };
+
+
+  const burst=(
+    symbol,
+    count,
+    {
+      minSize=24,
+      maxSize=42,
+      duration=1900
+    }={}
+  )=>{
+
+    for(
+      let i=0;
+      i<count;
+      i++
+    ){
+
+      addParticle({
+        symbol,
+        left:
+          8+
+          Math.random()*84,
+        size:
+          minSize+
+          Math.random()*
+          (
+            maxSize-
+            minSize
+          ),
+        delay:
+          Math.random()*420,
+        duration:
+          duration+
+          Math.random()*550,
+        drift:
+          -70+
+          Math.random()*140,
+        spin:
+          -120+
+          Math.random()*240
+      });
+    }
+  };
+
+
+  const centerMoment=(
+    symbol,
+    label
+  )=>{
+
+    const card=
+      node(
+        'div'
+      );
+
+
+    Object.assign(
+      card.style,
+      {
+        position:'absolute',
+        left:'50%',
+        top:'46%',
+        transform:'translate(-50%,-50%) scale(.65)',
+        textAlign:'center',
+        opacity:'0',
+        padding:'18px 26px',
+        borderRadius:'22px',
+        background:'rgba(12,9,9,.76)',
+        border:'1px solid rgba(212,175,55,.55)',
+        boxShadow:'0 18px 60px rgba(0,0,0,.45)',
+        backdropFilter:'blur(7px)'
+      }
+    );
+
+
+    const big=
+      node(
+        'div',
+        symbol
+      );
+
+    big.style.fontSize=
+      'clamp(64px,18vw,112px)';
+
+    big.style.lineHeight=
+      '1';
+
+
+    const words=
+      node(
+        'strong',
+        label
+      );
+
+    Object.assign(
+      words.style,
+      {
+        display:'block',
+        marginTop:'10px',
+        fontSize:'clamp(18px,5vw,28px)',
+        letterSpacing:'.08em'
+      }
+    );
+
+
+    card.append(
+      big,
+      words
+    );
+
+
+    overlay.append(
+      card
+    );
+
+
+    card.animate(
+      [
+        {
+          opacity:0,
+          transform:
+            'translate(-50%,-50%) scale(.55)'
+        },
+        {
+          opacity:1,
+          offset:.2,
+          transform:
+            'translate(-50%,-50%) scale(1.08)'
+        },
+        {
+          opacity:1,
+          offset:.72,
+          transform:
+            'translate(-50%,-50%) scale(1)'
+        },
+        {
+          opacity:0,
+          transform:
+            'translate(-50%,-56%) scale(.92)'
+        }
+      ],
+      {
+        duration:2100,
+        easing:'cubic-bezier(.2,.75,.2,1)',
+        fill:'forwards'
+      }
+    );
+  };
+
+
+  switch(gift.type){
+
+    case 'heart':
+      burst(
+        '❤️',
+        14,
+        {
+          minSize:22,
+          maxSize:40
+        }
+      );
+      break;
+
+
+    case 'rose':
+      burst(
+        '🌹',
+        13,
+        {
+          minSize:24,
+          maxSize:42,
+          duration:2200
+        }
+      );
+      break;
+
+
+    case 'star':
+      burst(
+        '⭐',
+        15,
+        {
+          minSize:20,
+          maxSize:38,
+          duration:1850
+        }
+      );
+      break;
+
+
+    case 'music_note':
+      burst(
+        '🎵',
+        8,
+        {
+          minSize:25,
+          maxSize:43,
+          duration:2100
+        }
+      );
+
+      burst(
+        '🎶',
+        6,
+        {
+          minSize:24,
+          maxSize:40,
+          duration:2250
+        }
+      );
+      break;
+
+
+    case 'crown':
+      centerMoment(
+        '👑',
+        'CROWN GIFT'
+      );
+
+      burst(
+        '✨',
+        18,
+        {
+          minSize:18,
+          maxSize:34,
+          duration:2100
+        }
+      );
+      break;
+
+
+    case 'shoutout':
+      centerMoment(
+        '📣',
+        'SHOUT-OUT!'
+      );
+
+      burst(
+        '✨',
+        10,
+        {
+          minSize:18,
+          maxSize:32
+        }
+      );
+
+      burst(
+        '🎉',
+        8,
+        {
+          minSize:22,
+          maxSize:38,
+          duration:2200
+        }
+      );
+      break;
+
+
+    default:
+      burst(
+        gift.emoji||
+        '🎁',
+        12
+      );
+  }
+
+
+  setTimeout(
+    ()=>{
+      overlay.remove();
+    },
+    3300
+  );
+}
+
+
 function ensureGiftDialog(){
   let dialog=$('mq3-gift-dialog');
   if(dialog) return dialog;
@@ -1288,6 +1696,10 @@ async function sendGift(song,gift){
     }
 
     $('mq3-gift-dialog')?.close();
+
+    playGiftAnimation(
+      gift
+    );
 
     toast(
       `${gift.emoji} ${gift.name} sent to "${song.title}"! ${data.wallet.balance} Credits left.`
