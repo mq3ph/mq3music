@@ -13,6 +13,7 @@ let tab='Name Request';
 let songs=[];
 let requests=[];
 let orders=[];
+let creditLoads=[];
 
 /*
   Keeps the currently edited song.
@@ -1027,7 +1028,8 @@ async function load(){
   [
     songs,
     requests,
-    orders
+    orders,
+    creditLoads
   ]=await Promise.all([
 
     api(
@@ -1040,6 +1042,10 @@ async function load(){
 
     api(
       '/api/admin/orders'
+    ),
+
+    api(
+      '/api/admin/credit-loads'
     )
   ]);
 
@@ -1153,7 +1159,8 @@ for(
     'Name Request',
     ...cats,
     'GCash',
-    'PayPal'
+    'PayPal',
+    '🪙 Credit Loads'
   ]
 ){
 
@@ -1370,6 +1377,19 @@ function setRecordsTitle(){
 
     title.textContent=
       `${categoryLabel(tab)} · ${total} song${total===1?'':'s'}`;
+
+  }else if(
+    tab==='🪙 Credit Loads'
+  ){
+
+    const pending=
+      creditLoads.filter(
+        load=>
+          load.status==='pending'
+      ).length;
+
+    title.textContent=
+      `Credit Loads · ${pending} pending`;
 
   }else{
 
@@ -1628,6 +1648,154 @@ function render(){
 
               actions(
                 ...items
+              )
+            ]
+          );
+        }
+      );
+
+
+  }else if(
+    tab==='🪙 Credit Loads'
+  ){
+
+    $('tab-note').textContent=
+      'Manual verification: confirm the exact payment and reference in your actual GCash/PayPal account before approving. Approving adds purchased Credits to the listener wallet.';
+
+    const body=
+      table([
+        'Date',
+        'Listener',
+        'Email',
+        'Amount',
+        'Credits',
+        'Payment',
+        'Reference',
+        'Status',
+        'Actions'
+      ]);
+
+
+    creditLoads
+
+      .filter(match)
+
+      .forEach(
+        load=>{
+
+          const buttons=[];
+
+
+          if(
+            load.status==='pending'
+          ){
+
+            buttons.push(
+
+              button(
+                'Approve',
+                async()=>{
+
+                  if(
+                    !confirm(
+                      `Have you independently verified ₱${Number(load.amountPesos||0).toLocaleString()} and reference ${load.paymentReference||'—'} in your ${String(load.paymentProvider||'payment').toUpperCase()} account?\n\nApprove ${Number(load.credits||0).toLocaleString()} Credits for ${load.displayName||load.email}?`
+                    )
+                  ){
+                    return;
+                  }
+
+
+                  const result=
+                    await api(
+                      `/api/admin/credit-loads/${load.id}/review`,
+                      {
+                        status:'approved',
+                        verified:true
+                      }
+                    );
+
+
+                  message(
+                    `${Number(result.creditsAdded||load.credits||0).toLocaleString()} Credits approved for ${load.displayName||load.email}.`
+                  );
+
+
+                  await load();
+                }
+              ),
+
+
+              button(
+                'Reject',
+                async()=>{
+
+                  if(
+                    !confirm(
+                      `Reject this Credit Load?\n\n${load.displayName||load.email} · ₱${Number(load.amountPesos||0).toLocaleString()} · ${load.paymentReference||'No reference'}`
+                    )
+                  ){
+                    return;
+                  }
+
+
+                  await api(
+                    `/api/admin/credit-loads/${load.id}/review`,
+                    {
+                      status:'rejected'
+                    }
+                  );
+
+
+                  message(
+                    `Credit Load rejected for ${load.displayName||load.email}.`
+                  );
+
+
+                  await load();
+                }
+              )
+            );
+          }
+
+
+          row(
+            body,
+            [
+              date(
+                load.createdAt
+              ),
+
+              load.displayName||
+                '—',
+
+              load.email,
+
+              '₱'+
+                Number(
+                  load.amountPesos||
+                  0
+                ).toLocaleString(),
+
+              Number(
+                load.credits||
+                0
+              ).toLocaleString(),
+
+              String(
+                load.paymentProvider||
+                ''
+              ).toUpperCase()||
+                '—',
+
+              load.paymentReference||
+                '—',
+
+              badge(
+                load.status
+              ),
+
+              actions(
+                ...buttons
               )
             ]
           );
@@ -2528,7 +2696,9 @@ $('backup').onclick=
 
                 requests,
 
-                orders
+                orders,
+
+                creditLoads
               },
               null,
               2
