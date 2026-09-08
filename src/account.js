@@ -122,6 +122,23 @@ export function accountRoutes({
   }
 
 
+  const paypalReturnBaseUrl=()=>{
+    const configured=
+      String(
+        env.APP_URL||
+        ''
+      ).trim();
+
+    return (
+      configured||
+      'https://www.mq3music.com'
+    ).replace(
+      /\/+$/,
+      ''
+    );
+  };
+
+
   async function createPaypalCreditOrder(
     amountPesos,
     credits
@@ -129,6 +146,9 @@ export function accountRoutes({
 
     const accessToken=
       await paypalAccessToken();
+
+    const appUrl=
+      paypalReturnBaseUrl();
 
 
     const response=
@@ -145,6 +165,28 @@ export function accountRoutes({
           body:
             JSON.stringify({
               intent:'CAPTURE',
+
+              payment_source:{
+                paypal:{
+                  experience_context:{
+                    brand_name:
+                      'MQ3 Music',
+
+                    shipping_preference:
+                      'NO_SHIPPING',
+
+                    user_action:
+                      'PAY_NOW',
+
+                    return_url:
+                      `${appUrl}/?mq3_paypal=return`,
+
+                    cancel_url:
+                      `${appUrl}/?mq3_paypal=cancel`
+                  }
+                }
+              },
+
               purchase_units:[
                 {
                   description:
@@ -1164,11 +1206,32 @@ Music. Quality. 3rd Gen.`,
         );
 
 
+        const approvalUrl=
+          String(
+            paypalOrder?.links?.find(
+              link=>
+                link?.rel==='payer-action'||
+                link?.rel==='approve'
+            )?.href||
+            ''
+          ).trim();
+
+
+        if(!approvalUrl){
+
+          fail(
+            502,
+            'PayPal did not return an approval link.'
+          );
+        }
+
+
         res.status(
           201
         ).json({
           ok:true,
           orderId,
+          approvalUrl,
           creditLoadOrderId:
             id,
           amountPesos,
