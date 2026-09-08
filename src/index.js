@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {Readable} from 'node:stream';
 import {fileURLToPath} from 'node:url';
 import {services} from './services.js';
+import {accountRoutes} from './account.js';
 import {
   token,
   digest,
@@ -195,7 +196,19 @@ export function createApp(s=services()){
       );
     }
   }
+  /* =========================================================
+     LISTENER ACCOUNT
+  ========================================================= */
 
+  accountRoutes({
+    app,
+    env,
+    query:q,
+    mail:s.mail,
+    sameOrigin,
+    limit,
+    cookieOptions
+  });
 
   /* =========================================================
      CUSTOMER COOKIE
