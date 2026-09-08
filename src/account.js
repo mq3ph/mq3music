@@ -1,3 +1,4 @@
+import {capturePaypalOrder} from './paypal.js';
 import {randomInt,randomUUID} from 'node:crypto';
 import {
   token,
@@ -62,7 +63,7 @@ export function accountRoutes({
       String(env.PAYPAL_CLIENT_ID||'').trim();
 
     const secret=
-      String(env.PAYPAL_SECRET||'').trim();
+      String(env.PAYPAL_SECRET||env.PAYPAL_CLIENT_SECRET||'').trim();
 
 
     if(!clientId||!secret){
@@ -129,13 +130,10 @@ export function accountRoutes({
         ''
       ).trim();
 
-    return (
-      configured||
-      'https://www.mq3music.com'
-    ).replace(
-      /\/+$/,
-      ''
-    );
+    let url;
+    try { url=new URL(configured); } catch { fail(503,'Set APP_URL to your MQ3 website address before using PayPal.'); }
+    if(url.protocol!=='https:' && !(url.protocol==='http:' && url.hostname==='localhost')) fail(503,'APP_URL must use HTTPS.');
+    return url.origin;
   };
 
 
@@ -159,6 +157,8 @@ export function accountRoutes({
           headers:{
             Authorization:
               `Bearer ${accessToken}`,
+            'PayPal-Request-Id':randomUUID(),
+            Prefer:'return=representation',
             'Content-Type':
               'application/json'
           },
@@ -228,51 +228,11 @@ export function accountRoutes({
   }
 
 
-  async function capturePaypalCreditOrder(
-    orderId
-  ){
-
-    const accessToken=
-      await paypalAccessToken();
-
-
-    const response=
-      await fetch(
-        `${paypalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
-        {
-          method:'POST',
-          headers:{
-            Authorization:
-              `Bearer ${accessToken}`,
-            'Content-Type':
-              'application/json'
-          }
-        }
-      );
-
-
-    const data=
-      await response.json();
-
-
-    if(!response.ok){
-
-      console.error(
-        '[mq3/paypal/capture-order]',
-        response.status,
-        data
-      );
-
-      fail(
-        502,
-        'PayPal could not capture the payment.'
-      );
-    }
-
-
-    return data;
+  async function capturePaypalCreditOrder(orderId){
+    return capturePaypalOrder({
+      baseUrl:paypalBaseUrl(), accessToken:await paypalAccessToken(), orderId
+    });
   }
-
 
   /* =========================================================
      ACCOUNT RESPONSE
@@ -1375,6 +1335,10 @@ Music. Quality. 3rd Gen.`,
 
 
         if(
+          capture?.id!==orderId||
+          capture?.purchase_units?.length!==1||
+          purchaseUnit?.payments?.captures?.length!==1||
+          !captured?.id||
           !completed||
           paidCurrency!=='PHP'||
           !Number.isFinite(paidAmount)||

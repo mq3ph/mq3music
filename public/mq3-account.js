@@ -660,7 +660,7 @@
         );
       }
 
-      sessionStorage.setItem(
+      try { sessionStorage.setItem(
         PAYPAL_ORDER_KEY,
         JSON.stringify({
           orderId,
@@ -670,6 +670,8 @@
             Date.now()
         })
       );
+
+      } catch {}
 
       window.location.assign(
         approvalUrl
@@ -808,136 +810,47 @@
     }
   }
 
+  let paypalCaptureInProgress = false;
+
   async function finishPaypalCreditLoadFromReturn() {
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    const flow =
-      String(
-        params.get(
-          'mq3_paypal'
-        ) ||
-        ''
-      ).trim();
-
-    const token =
-      String(
-        params.get(
-          'token'
-        ) ||
-        ''
-      ).trim();
-
-    let saved = null;
-
+    const url = new URL(window.location.href);
+    const flow = url.searchParams.get('mq3_paypal');
+    const orderId = url.searchParams.get('token');
+    const clearReturn = () => {
+      ['mq3_paypal', 'token', 'PayerID'].forEach(key => url.searchParams.delete(key));
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      try { sessionStorage.removeItem(PAYPAL_ORDER_KEY); } catch {}
+    };
+    if (flow === 'cancel') {
+      clearReturn();
+      alert('PayPal checkout was cancelled. No Credits were added.');
+      return;
+    }
+    if (flow !== 'return' || !orderId || paypalCaptureInProgress) return;
+    // The server checks ownership. Old browser storage must not block a valid return.
+    if (!currentAccount) {
+      resetViews();
+      if (!dialog.open) dialog.showModal();
+      setMessage(emailMessage, 'Sign in to the same MQ3 account to finish your PayPal payment.');
+      return;
+    }
+    paypalCaptureInProgress = true;
     try {
-      saved =
-        JSON.parse(
-          sessionStorage.getItem(
-            PAYPAL_ORDER_KEY
-          ) ||
-          'null'
-        );
-    } catch {
-      saved = null;
-    }
-
-    if (
-      flow === 'cancel'
-    ) {
-      sessionStorage.removeItem(
-        PAYPAL_ORDER_KEY
-      );
-
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname
-      );
-
-      alert(
-        'PayPal payment was cancelled. No Credits were charged.'
-      );
-
-      return;
-    }
-
-    if (
-      flow !== 'return' ||
-      !token
-    ) {
-      return;
-    }
-
-    const orderId =
-      String(
-        saved?.orderId ||
-        token
-      ).trim();
-
-    if (
-      saved?.orderId &&
-      token !== saved.orderId
-    ) {
-      console.error(
-        'MQ3 PayPal order mismatch.'
-      );
-
-      return;
-    }
-
-    window.history.replaceState(
-      {},
-      '',
-      window.location.pathname
-    );
-
-    try {
-      const data = await api(
-        '/api/account/paypal/capture-order',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            orderId
-          })
-        }
-      );
-
-      sessionStorage.removeItem(
-        PAYPAL_ORDER_KEY
-      );
-
-      if (data.account) {
-        displayAccount(
-          data.account
-        );
-      } else {
-        await loadAccount();
-      }
-
-      const added =
-        Number(
-          data.creditsAdded ||
-          saved?.credits ||
-          0
-        );
-
-      alert(
-        `PayPal payment complete! 🪙 ${added.toLocaleString()} MQ3 Credits added.`
-      );
-
+      const data = await api('/api/account/paypal/capture-order', {
+        method: 'POST', body: JSON.stringify({orderId})
+      });
+      if (data.account) displayAccount(data.account);
+      else await loadAccount();
+      clearReturn();
+      alert(data.alreadyCredited
+        ? 'This PayPal payment has already been added to your MQ3 wallet.'
+        : `PayPal payment complete! ${Number(data.creditsAdded || 0).toLocaleString()} MQ3 Credits added.`);
     } catch (error) {
-      console.error(
-        'MQ3 PayPal capture failed:',
-        error
-      );
-
-      alert(
-        error.message ||
-        'PayPal payment could not be completed. Please contact MQ3 support.'
-      );
+      // Keep the return token so refresh, reconnect, or sign-in can safely retry.
+      alert((error.message || 'Payment confirmation is temporarily unavailable.') +
+        ' Refresh this page to retry confirmation. Do not make another payment for this order.');
+    } finally {
+      paypalCaptureInProgress = false;
     }
   }
 
@@ -1199,6 +1112,7 @@
 
       pendingEmail = '';
       codeInput.value = '';
+      await finishPaypalCreditLoadFromReturn();
 
     } catch (error) {
       setMessage(
@@ -1339,7 +1253,6 @@
 
   window.addEventListener('mq3-wallet-updated', () => {
     loadAccount();
-  finishPaypalCreditLoadFromReturn();
   });
 
 
@@ -1347,6 +1260,7 @@
      START
   ========================================================= */
 
-  loadAccount();
+  loadAccount().then(finishPaypalCreditLoadFromReturn);
+  window.addEventListener('online', () => loadAccount().then(finishPaypalCreditLoadFromReturn));
 
 })();
