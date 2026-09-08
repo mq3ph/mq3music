@@ -1384,7 +1384,7 @@ function setRecordsTitle(){
 
     const pending=
       creditLoads.filter(
-        load=>
+        creditLoad=>
           creditLoad.status==='pending'
       ).length;
 
