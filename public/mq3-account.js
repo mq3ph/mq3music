@@ -347,6 +347,9 @@
     1000: 1200
   };
 
+  const PAYPAL_ORDER_KEY =
+    'mq3-paypal-credit-order';
+
   function ensureCreditLoadDialog() {
     let loadDialog = $('mq3-credit-load-dialog');
 
@@ -371,25 +374,22 @@
           </select>
         </label>
 
-        <label>
-          Payment reference
+        <label id="mq3-credit-load-reference-wrap">
+          GCash payment reference
           <input
             id="mq3-credit-load-reference"
             type="text"
             maxlength="100"
             autocomplete="off"
-            placeholder="Enter transaction/reference number"
-            required
+            placeholder="Enter GCash transaction/reference number"
           >
         </label>
 
         <div id="mq3-credit-payment-instructions"
              style="margin:12px 0;padding:12px 14px;border:1px solid rgba(212,175,55,.28);border-radius:12px;line-height:1.5;"></div>
 
-        <p style="font-size:.88rem;opacity:.76;line-height:1.45;">
-          Pay the exact amount first, then submit your transaction/reference number.
-          Your Credits will remain pending until MQ3 verifies the payment.
-        </p>
+        <p id="mq3-credit-load-note"
+           style="font-size:.88rem;opacity:.76;line-height:1.45;"></p>
 
         <p
           id="mq3-credit-load-message"
@@ -424,29 +424,84 @@
       });
 
     $('mq3-credit-load-provider')
-      ?.addEventListener('change', updateCreditPaymentInstructions);
+      ?.addEventListener(
+        'change',
+        updateCreditPaymentInstructions
+      );
 
     $('mq3-credit-load-form')
-      ?.addEventListener('submit', submitCreditLoad);
+      ?.addEventListener(
+        'submit',
+        submitCreditLoad
+      );
 
     return loadDialog;
   }
 
   function updateCreditPaymentInstructions() {
-    const provider = $('mq3-credit-load-provider')?.value || 'gcash';
-    const box = $('mq3-credit-payment-instructions');
+    const provider =
+      $('mq3-credit-load-provider')?.value ||
+      'gcash';
 
-    if (!box || !selectedCreditAmount) return;
+    const box =
+      $('mq3-credit-payment-instructions');
 
-    const amount = `₱${selectedCreditAmount.toLocaleString()}`;
+    const referenceWrap =
+      $('mq3-credit-load-reference-wrap');
+
+    const reference =
+      $('mq3-credit-load-reference');
+
+    const note =
+      $('mq3-credit-load-note');
+
+    const button =
+      $('mq3-credit-load-submit');
+
+    if (
+      !box ||
+      !selectedCreditAmount
+    ) {
+      return;
+    }
+
+    const amount =
+      `₱${selectedCreditAmount.toLocaleString()}`;
 
     if (provider === 'paypal') {
+      if (referenceWrap) {
+        referenceWrap.hidden = true;
+      }
+
+      if (reference) {
+        reference.required = false;
+      }
+
       box.innerHTML = `
-        <strong>Pay via PayPal</strong><br>
-        Send <strong>${amount}</strong> to:<br>
-        <strong>manferquim3@gmail.com</strong>
+        <strong>Pay automatically with PayPal</strong><br>
+        Amount: <strong>${amount}</strong><br>
+        You will continue to PayPal to approve the payment.
       `;
+
+      if (note) {
+        note.textContent =
+          'After PayPal approves the payment, you will return to MQ3 and your Credits will be added automatically.';
+      }
+
+      if (button) {
+        button.textContent =
+          'Continue to PayPal';
+      }
+
       return;
+    }
+
+    if (referenceWrap) {
+      referenceWrap.hidden = false;
+    }
+
+    if (reference) {
+      reference.required = true;
     }
 
     box.innerHTML = `
@@ -454,37 +509,67 @@
       Send <strong>${amount}</strong> to:<br>
       <strong>+63 966 648 15330</strong>
     `;
+
+    if (note) {
+      note.textContent =
+        'Pay the exact amount first, then submit your GCash transaction/reference number. Your Credits will remain pending until MQ3 verifies the payment.';
+    }
+
+    if (button) {
+      button.textContent =
+        'Submit for Verification';
+    }
   }
 
   let selectedCreditAmount = 0;
 
   function openCreditLoad(amountPesos) {
-    const credits = creditPackages[amountPesos];
+    const credits =
+      creditPackages[amountPesos];
 
     if (!currentAccount) {
-      alert('Sign in to your MQ3 account first.');
+      alert(
+        'Sign in to your MQ3 account first.'
+      );
       return;
     }
 
     if (!credits) {
-      alert('Choose a valid MQ3 Credit package.');
+      alert(
+        'Choose a valid MQ3 Credit package.'
+      );
       return;
     }
 
-    selectedCreditAmount = amountPesos;
+    selectedCreditAmount =
+      amountPesos;
 
-    const loadDialog = ensureCreditLoadDialog();
-    const packageText = $('mq3-credit-load-package');
-    const reference = $('mq3-credit-load-reference');
-    const provider = $('mq3-credit-load-provider');
-    const message = $('mq3-credit-load-message');
+    const loadDialog =
+      ensureCreditLoadDialog();
+
+    const packageText =
+      $('mq3-credit-load-package');
+
+    const reference =
+      $('mq3-credit-load-reference');
+
+    const provider =
+      $('mq3-credit-load-provider');
+
+    const message =
+      $('mq3-credit-load-message');
 
     packageText.textContent =
       `₱${amountPesos.toLocaleString()} → 🪙 ${credits.toLocaleString()} Credits`;
 
     reference.value = '';
     provider.value = 'gcash';
-    setMessage(message, '');
+
+    setMessage(
+      message,
+      ''
+    );
+
     updateCreditPaymentInstructions();
 
     loadDialog.showModal();
@@ -493,43 +578,140 @@
 
   function activateCreditPackages() {
     const buttons =
-      document.querySelectorAll('.mq3-credit-package');
+      document.querySelectorAll(
+        '.mq3-credit-package'
+      );
 
     for (const button of buttons) {
       const amountPesos =
-        Number(button.dataset.pesos || 0);
+        Number(
+          button.dataset.pesos ||
+          0
+        );
 
       button.disabled = false;
       button.style.cursor = 'pointer';
 
-      if (button.dataset.mq3LoadReady === 'true') {
+      if (
+        button.dataset.mq3LoadReady ===
+        'true'
+      ) {
         continue;
       }
 
-      button.dataset.mq3LoadReady = 'true';
+      button.dataset.mq3LoadReady =
+        'true';
 
-      button.addEventListener('click', () => {
-        openCreditLoad(amountPesos);
-      });
+      button.addEventListener(
+        'click',
+        () => {
+          openCreditLoad(
+            amountPesos
+          );
+        }
+      );
+    }
+  }
+
+  async function submitPaypalCreditLoad({
+    amountPesos,
+    credits,
+    message,
+    button
+  }) {
+    button.disabled = true;
+    button.textContent =
+      'Opening PayPal…';
+
+    setMessage(
+      message,
+      'Creating your secure PayPal payment…'
+    );
+
+    try {
+      const data = await api(
+        '/api/account/paypal/create-order',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            amountPesos
+          })
+        }
+      );
+
+      const orderId =
+        String(
+          data.orderId ||
+          ''
+        ).trim();
+
+      const approvalUrl =
+        String(
+          data.approvalUrl ||
+          ''
+        ).trim();
+
+      if (
+        !orderId ||
+        !approvalUrl
+      ) {
+        throw new Error(
+          'PayPal checkout could not be started.'
+        );
+      }
+
+      sessionStorage.setItem(
+        PAYPAL_ORDER_KEY,
+        JSON.stringify({
+          orderId,
+          amountPesos,
+          credits,
+          createdAt:
+            Date.now()
+        })
+      );
+
+      window.location.assign(
+        approvalUrl
+      );
+
+    } catch (error) {
+      setMessage(
+        message,
+        error.message,
+        true
+      );
+
+      button.disabled = false;
+      button.textContent =
+        'Continue to PayPal';
     }
   }
 
   async function submitCreditLoad(event) {
     event.preventDefault();
 
-    const amountPesos = selectedCreditAmount;
-    const credits = creditPackages[amountPesos];
+    const amountPesos =
+      selectedCreditAmount;
 
-    const provider = $('mq3-credit-load-provider');
-    const reference = $('mq3-credit-load-reference');
-    const message = $('mq3-credit-load-message');
-    const button = $('mq3-credit-load-submit');
+    const credits =
+      creditPackages[amountPesos];
+
+    const provider =
+      $('mq3-credit-load-provider');
+
+    const reference =
+      $('mq3-credit-load-reference');
+
+    const message =
+      $('mq3-credit-load-message');
+
+    const button =
+      $('mq3-credit-load-submit');
 
     const paymentProvider =
-      provider?.value || '';
-
-    const paymentReference =
-      reference?.value.trim() || '';
+      provider?.value ||
+      '';
 
     if (!credits) {
       setMessage(
@@ -540,22 +722,41 @@
       return;
     }
 
+    if (
+      paymentProvider ===
+      'paypal'
+    ) {
+      await submitPaypalCreditLoad({
+        amountPesos,
+        credits,
+        message,
+        button
+      });
+      return;
+    }
+
+    const paymentReference =
+      reference?.value.trim() ||
+      '';
+
     if (!paymentReference) {
       setMessage(
         message,
-        'Enter your payment reference.',
+        'Enter your GCash payment reference.',
         true
       );
+
       reference?.focus();
       return;
     }
 
     button.disabled = true;
-    button.textContent = 'Submitting…';
+    button.textContent =
+      'Submitting…';
 
     setMessage(
       message,
-      'Submitting your payment for MQ3 verification…'
+      'Submitting your GCash payment for MQ3 verification…'
     );
 
     try {
@@ -565,14 +766,17 @@
           method: 'POST',
           body: JSON.stringify({
             amountPesos,
-            paymentProvider,
+            paymentProvider:
+              'gcash',
             paymentReference
           })
         }
       );
 
       if (data.account) {
-        displayAccount(data.account);
+        displayAccount(
+          data.account
+        );
       } else {
         await loadAccount();
       }
@@ -580,13 +784,14 @@
       setMessage(
         message,
         data.message ||
-        'Payment submitted for MQ3 verification. ✓'
+        'GCash payment submitted for MQ3 verification. ✓'
       );
 
       reference.value = '';
 
       setTimeout(() => {
-        $('mq3-credit-load-dialog')?.close();
+        $('mq3-credit-load-dialog')
+          ?.close();
       }, 1200);
 
     } catch (error) {
@@ -598,7 +803,141 @@
 
     } finally {
       button.disabled = false;
-      button.textContent = 'Submit for Verification';
+      button.textContent =
+        'Submit for Verification';
+    }
+  }
+
+  async function finishPaypalCreditLoadFromReturn() {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const flow =
+      String(
+        params.get(
+          'mq3_paypal'
+        ) ||
+        ''
+      ).trim();
+
+    const token =
+      String(
+        params.get(
+          'token'
+        ) ||
+        ''
+      ).trim();
+
+    let saved = null;
+
+    try {
+      saved =
+        JSON.parse(
+          sessionStorage.getItem(
+            PAYPAL_ORDER_KEY
+          ) ||
+          'null'
+        );
+    } catch {
+      saved = null;
+    }
+
+    if (
+      flow === 'cancel'
+    ) {
+      sessionStorage.removeItem(
+        PAYPAL_ORDER_KEY
+      );
+
+      window.history.replaceState(
+        {},
+        '',
+        window.location.pathname
+      );
+
+      alert(
+        'PayPal payment was cancelled. No Credits were charged.'
+      );
+
+      return;
+    }
+
+    if (
+      flow !== 'return' ||
+      !token
+    ) {
+      return;
+    }
+
+    const orderId =
+      String(
+        saved?.orderId ||
+        token
+      ).trim();
+
+    if (
+      saved?.orderId &&
+      token !== saved.orderId
+    ) {
+      console.error(
+        'MQ3 PayPal order mismatch.'
+      );
+
+      return;
+    }
+
+    window.history.replaceState(
+      {},
+      '',
+      window.location.pathname
+    );
+
+    try {
+      const data = await api(
+        '/api/account/paypal/capture-order',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            orderId
+          })
+        }
+      );
+
+      sessionStorage.removeItem(
+        PAYPAL_ORDER_KEY
+      );
+
+      if (data.account) {
+        displayAccount(
+          data.account
+        );
+      } else {
+        await loadAccount();
+      }
+
+      const added =
+        Number(
+          data.creditsAdded ||
+          saved?.credits ||
+          0
+        );
+
+      alert(
+        `PayPal payment complete! 🪙 ${added.toLocaleString()} MQ3 Credits added.`
+      );
+
+    } catch (error) {
+      console.error(
+        'MQ3 PayPal capture failed:',
+        error
+      );
+
+      alert(
+        error.message ||
+        'PayPal payment could not be completed. Please contact MQ3 support.'
+      );
     }
   }
 
@@ -1000,6 +1339,7 @@
 
   window.addEventListener('mq3-wallet-updated', () => {
     loadAccount();
+  finishPaypalCreditLoadFromReturn();
   });
 
 
