@@ -2427,11 +2427,7 @@ Keep this link private. Memberships expire on the stated access date.`,
               ?'This reference is already recorded. Check the existing order.'
               :status>=500&&
                 !err.status
-                ?(
-                    process.env.NODE_ENV==='production'
-                      ?`DIAGNOSTIC: ${err.message||'Unknown server error.'}`
-                      :(err.message||'Service unavailable.')
-                  )
+                ?'Service unavailable. Check your server configuration.'
                 :err.message
         });
     }
