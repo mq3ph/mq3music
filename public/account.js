@@ -383,8 +383,11 @@
           >
         </label>
 
+        <div id="mq3-credit-payment-instructions"
+             style="margin:12px 0;padding:12px 14px;border:1px solid rgba(212,175,55,.28);border-radius:12px;line-height:1.5;"></div>
+
         <p style="font-size:.88rem;opacity:.76;line-height:1.45;">
-          Submit the reference only after making your payment.
+          Pay the exact amount first, then submit your transaction/reference number.
           Your Credits will remain pending until MQ3 verifies the payment.
         </p>
 
@@ -420,10 +423,37 @@
         loadDialog.close();
       });
 
+    $('mq3-credit-load-provider')
+      ?.addEventListener('change', updateCreditPaymentInstructions);
+
     $('mq3-credit-load-form')
       ?.addEventListener('submit', submitCreditLoad);
 
     return loadDialog;
+  }
+
+  function updateCreditPaymentInstructions() {
+    const provider = $('mq3-credit-load-provider')?.value || 'gcash';
+    const box = $('mq3-credit-payment-instructions');
+
+    if (!box || !selectedCreditAmount) return;
+
+    const amount = `₱${selectedCreditAmount.toLocaleString()}`;
+
+    if (provider === 'paypal') {
+      box.innerHTML = `
+        <strong>Pay via PayPal</strong><br>
+        Send <strong>${amount}</strong> to:<br>
+        <strong>manferquim3@gmail.com</strong>
+      `;
+      return;
+    }
+
+    box.innerHTML = `
+      <strong>Pay via GCash</strong><br>
+      Send <strong>${amount}</strong> to:<br>
+      <strong>+63 966 648 15330</strong>
+    `;
   }
 
   let selectedCreditAmount = 0;
@@ -455,6 +485,7 @@
     reference.value = '';
     provider.value = 'gcash';
     setMessage(message, '');
+    updateCreditPaymentInstructions();
 
     loadDialog.showModal();
     reference.focus();
