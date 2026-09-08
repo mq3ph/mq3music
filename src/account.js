@@ -16,6 +16,9 @@ const SESSION_LIFETIME_MS=
 const WELCOME_CREDITS=
   25;
 
+const DISPLAY_NAME_CHANGE_MS=
+  30*24*60*60*1000;
+
 
 /* =========================================================
    MQ3 LISTENER ACCOUNT ROUTES
@@ -50,6 +53,7 @@ export function accountRoutes({
            u.id,
            u.email,
            u.display_name,
+           u.display_name_changed_at,
            u.created_at,
            u.last_login_at,
            COALESCE(w.promo_credits,0) AS promo_credits,
@@ -120,6 +124,19 @@ export function accountRoutes({
       displayName:
         row.display_name||
         '',
+
+      displayNameChangedAt:
+        row.display_name_changed_at,
+
+      displayNameCanChangeAt:
+        row.display_name_changed_at
+          ?new Date(
+              new Date(
+                row.display_name_changed_at
+              ).getTime()+
+              DISPLAY_NAME_CHANGE_MS
+            )
+          :null,
 
       credits:{
         promo,
@@ -806,15 +823,133 @@ Music. Quality. 3rd Gen.`,
         }
 
 
-        await q(
-          `UPDATE users
-           SET display_name=$2
-           WHERE id=$1`,
-          [
-            userId,
-            displayName
-          ]
-        );
+        const now=
+          new Date();
+
+
+        const [current]=
+          await q(
+            `SELECT
+               display_name,
+               display_name_changed_at
+             FROM users
+             WHERE id=$1`,
+            [
+              userId
+            ]
+          );
+
+
+        if(!current){
+
+          fail(
+            404,
+            'MQ3 account not found.'
+          );
+        }
+
+
+        const currentName=
+          String(
+            current.display_name||
+            ''
+          ).trim();
+
+
+        if(
+          currentName===
+          displayName
+        ){
+
+          return res.json({
+            ok:true,
+
+            account:
+              await accountData(
+                userId
+              )
+          });
+        }
+
+
+        if(
+          currentName&&
+          current.display_name_changed_at
+        ){
+
+          const canChangeAt=
+            new Date(
+              new Date(
+                current.display_name_changed_at
+              ).getTime()+
+              DISPLAY_NAME_CHANGE_MS
+            );
+
+
+          if(
+            canChangeAt>
+            now
+          ){
+
+            const daysLeft=
+              Math.ceil(
+                (
+                  canChangeAt.getTime()-
+                  now.getTime()
+                )/
+                (
+                  24*
+                  60*
+                  60*
+                  1000
+                )
+              );
+
+
+            fail(
+              429,
+              `You can change your display name again in ${daysLeft} ${
+                daysLeft===1
+                  ?'day'
+                  :'days'
+              }.`
+            );
+          }
+        }
+
+
+        const changed=
+          await q(
+            `UPDATE users
+             SET
+               display_name=$2,
+               display_name_changed_at=$3
+             WHERE id=$1
+               AND (
+                 display_name=''
+                 OR display_name_changed_at IS NULL
+                 OR display_name_changed_at<=$4
+               )
+             RETURNING id`,
+            [
+              userId,
+              displayName,
+              now,
+              new Date(
+                now.getTime()-
+                DISPLAY_NAME_CHANGE_MS
+              )
+            ]
+          );
+
+
+        if(!changed.length){
+
+          fail(
+            429,
+            'Your display name was changed recently. Please wait 30 days before changing it again.'
+          );
+        }
 
 
         res.json({
