@@ -210,8 +210,13 @@ export function giftRoutes({
         randomUUID();
 
 
-      const result=
-        await q(
+      let result;
+
+
+      try{
+
+        result=
+          await q(
           `
           WITH locked_wallet AS (
 
@@ -225,7 +230,6 @@ export function giftRoutes({
             WHERE
               user_id=$1
 
-            FOR UPDATE
           ),
 
 
@@ -369,6 +373,17 @@ export function giftRoutes({
             `Sent ${giftType} gift`
           ]
         );
+
+      }catch(error){
+
+        console.error(
+          'MQ3 gift send database error:',
+          error
+        );
+
+
+        throw error;
+      }
 
 
       if(!result.length){
