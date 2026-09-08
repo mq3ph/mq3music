@@ -4,50 +4,985 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090909">
+
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="MQ3">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <script src="/pwa.js" defer></script>
+
   <title>MQ3 — Music. Quality. 3rd Gen.</title>
+
   <link rel="icon" href="logo.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
+
   <script src="app.js" defer></script>
   <script src="shop.js" defer></script>
+  <script src="account.js" defer></script>
 </head>
+
 <body>
-  <a class="skip-link" href="#library">Skip to song library</a>
+
+  <a class="skip-link" href="#library">
+    Skip to song library
+  </a>
+
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
   <header class="top">
-    <a class="brand" href="#" aria-label="MQ3 home"><img src="logo.png" alt="MQ3"><span><span class="logo-lettering" aria-hidden="true"></span><small>MUSIC. QUALITY. 3RD GEN.</small></span></a>
+
+    <a class="brand" href="#" aria-label="MQ3 home">
+      <img src="logo.png" alt="MQ3">
+
+      <span>
+        <span class="logo-lettering" aria-hidden="true"></span>
+        <small>MUSIC. QUALITY. 3RD GEN.</small>
+      </span>
+    </a>
+
+
     <nav class="main-nav" aria-label="Main navigation">
-      <button id="home" class="nav active" aria-current="page"><span class="nav-icon" data-icon="home"></span>Home</button>
-      <button id="browse" class="nav"><span class="nav-icon" data-icon="compass"></span>Browse</button>
-      <button id="librarynav" class="nav"><span class="nav-icon" data-icon="library"></span>Library</button>
-      <button id="favorites" class="nav"><span class="nav-icon" data-icon="heart"></span>Favorites</button>
+
+      <button id="home" class="nav active" aria-current="page">
+        <span class="nav-icon" data-icon="home"></span>
+        Home
+      </button>
+
+      <button id="browse" class="nav">
+        <span class="nav-icon" data-icon="compass"></span>
+        Browse
+      </button>
+
+      <button id="librarynav" class="nav">
+        <span class="nav-icon" data-icon="library"></span>
+        Library
+      </button>
+
+      <button id="favorites" class="nav">
+        <span class="nav-icon" data-icon="heart"></span>
+        Favorites
+      </button>
+
     </nav>
-    <div class="header-actions"><div class="searchbox"><span data-icon="search"></span><input class="search" id="search" type="search" aria-label="Search songs" placeholder="Search your songs…"></div><button class="button primary" id="membership">Membership</button></div>
+
+
+    <div class="header-actions">
+
+      <div class="searchbox">
+        <span data-icon="search"></span>
+
+        <input
+          class="search"
+          id="search"
+          type="search"
+          aria-label="Search songs"
+          placeholder="Search your songs…"
+        >
+      </div>
+
+
+      <!-- Existing button kept for old shop.js compatibility -->
+
+      <button
+        class="button primary"
+        id="membership"
+      >
+        Membership
+      </button>
+
+
+      <!-- New MQ3 Listener Account button -->
+
+      <button
+        class="button"
+        id="account-button"
+        type="button"
+      >
+        👤 Sign In
+      </button>
+
+    </div>
+
   </header>
+
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
   <main>
+
+
+    <!-- HERO -->
+
     <section class="hero" aria-labelledby="hero-title">
-      <div class="heroCopy"><div class="eyebrow">MUSIC. QUALITY. 3RD GEN.</div><div class="wordmark logo-lettering" role="img" aria-label="MQ3"></div><h1 id="hero-title">Real music. <br><em>Real emotions.</em></h1><p>Personal stories. Filipino soul. <br>A sound for every moment in life.</p><button class="button primary" id="listen"><span aria-hidden="true">▶</span> Start listening</button><button class="hero-link" id="explore">Explore collections <span aria-hidden="true">↗</span></button></div>
-      <span class="hero-signature">THE SOUND OF MQ3 <span aria-hidden="true">―</span></span>
+
+      <div class="heroCopy">
+
+        <div class="eyebrow">
+          MUSIC. QUALITY. 3RD GEN.
+        </div>
+
+        <div
+          class="wordmark logo-lettering"
+          role="img"
+          aria-label="MQ3"
+        ></div>
+
+        <h1 id="hero-title">
+          Real music.
+          <br>
+          <em>Real emotions.</em>
+        </h1>
+
+        <p>
+          Personal stories. Filipino soul.
+          <br>
+          A sound for every moment in life.
+        </p>
+
+        <button
+          class="button primary"
+          id="listen"
+        >
+          <span aria-hidden="true">▶</span>
+          Start listening
+        </button>
+
+        <button
+          class="hero-link"
+          id="explore"
+        >
+          Explore collections
+          <span aria-hidden="true">↗</span>
+        </button>
+
+      </div>
+
+
+      <span class="hero-signature">
+        THE SOUND OF MQ3
+        <span aria-hidden="true">―</span>
+      </span>
+
     </section>
+
+
+    <!-- COLLECTIONS -->
+
     <section aria-labelledby="collections-title">
-      <div class="sectionhead" id="collections"><div><h2 id="collections-title">Explore MQ3 Music</h2><p>Four collections. One passion — music.</p></div><span class="section-note">FIND YOUR SOUND</span></div>
-      <div class="categories" id="categories"></div>
+
+      <div class="sectionhead" id="collections">
+
+        <div>
+
+          <h2 id="collections-title">
+            Explore MQ3 Music
+          </h2>
+
+          <p>
+            Four collections. One passion — music.
+          </p>
+
+        </div>
+
+        <span class="section-note">
+          FIND YOUR SOUND
+        </span>
+
+      </div>
+
+      <div
+        class="categories"
+        id="categories"
+      ></div>
+
     </section>
-    <section id="recent-section" class="hidden" aria-labelledby="recent-title"><div class="sectionhead"><h2 id="recent-title">Recently Added</h2><button class="text-button" id="seeall">View library <span aria-hidden="true">›</span></button></div><div id="recent" class="recent-grid"></div></section>
-    <section id="library" aria-labelledby="listtitle" tabindex="-1"><div class="sectionhead"><h2 id="listtitle">Your song library</h2><span id="count" aria-live="polite">0 songs</span></div><div id="songs"></div></section>
-    <div class="credits"><b>THE CREATIVE PROCESS</b><p>Original Songs: lyrics &amp; melodies written by MQ3, with Suno assistance for music &amp; voice. Name Series, Inspirational Songs &amp; OPM: AI-generated lyrics and Suno-generated music.</p></div>
-    <div class="pagefoot"><span>MQ3 <span aria-hidden="true">·</span> Music. Quality. 3rd Gen.</span><span><button id="install-app" class="text-button">Install MQ3</button> <button id="my-purchases" class="text-button">My purchases</button></span></div>
+
+
+    <!-- RECENT -->
+
+    <section
+      id="recent-section"
+      class="hidden"
+      aria-labelledby="recent-title"
+    >
+
+      <div class="sectionhead">
+
+        <h2 id="recent-title">
+          Recently Added
+        </h2>
+
+        <button
+          class="text-button"
+          id="seeall"
+        >
+          View library
+          <span aria-hidden="true">›</span>
+        </button>
+
+      </div>
+
+      <div
+        id="recent"
+        class="recent-grid"
+      ></div>
+
+    </section>
+
+
+    <!-- LIBRARY -->
+
+    <section
+      id="library"
+      aria-labelledby="listtitle"
+      tabindex="-1"
+    >
+
+      <div class="sectionhead">
+
+        <h2 id="listtitle">
+          Your song library
+        </h2>
+
+        <span id="count" aria-live="polite">
+          0 songs
+        </span>
+
+      </div>
+
+      <div id="songs"></div>
+
+    </section>
+
+
+    <!-- CREDITS -->
+
+    <div class="credits">
+
+      <b>
+        THE CREATIVE PROCESS
+      </b>
+
+      <p>
+        Original Songs: lyrics &amp; melodies written by MQ3,
+        with Suno assistance for music &amp; voice.
+        Name Series, Inspirational Songs &amp; OPM:
+        AI-generated lyrics and Suno-generated music.
+      </p>
+
+    </div>
+
+
+    <!-- FOOTER LINKS -->
+
+    <div class="pagefoot">
+
+      <span>
+        MQ3
+        <span aria-hidden="true">·</span>
+        Music. Quality. 3rd Gen.
+      </span>
+
+      <span>
+
+        <button
+          id="install-app"
+          class="text-button"
+        >
+          Install MQ3
+        </button>
+
+        <button
+          id="my-purchases"
+          class="text-button"
+        >
+          My purchases
+        </button>
+
+      </span>
+
+    </div>
+
   </main>
-  <footer class="player" aria-label="Music player"><div class="now"><img id="nowart" src="logo.png" alt=""><div><b id="nowtitle">Your next favorite awaits</b><small id="nowcat">Choose a song to start listening</small></div></div><div class="transport"><div class="controls"><button id="prev" aria-label="Previous song" disabled><span data-icon="previous"></span></button><button class="play" id="play" aria-label="Play" disabled>▶</button><button id="next" aria-label="Next song" disabled><span data-icon="next"></span></button></div><div class="timeline"><span id="elapsed">0:00</span><input type="range" id="seek" aria-label="Seek" value="0" min="0" max="100" disabled><span id="duration">0:00</span></div></div><label class="volume"><span data-icon="volume"></span><span class="sr-only">Volume</span><input id="volume" aria-label="Volume" type="range" min="0" max="1" step="0.01" value="0.8"></label></footer>
-  <dialog id="detail"><h2 id="detailtitle"></h2><p id="detailcredits" class="credit-preview"></p><pre id="detaillyrics" style="white-space:pre-wrap;font:inherit"></pre><p id="detailprice"></p><div class="actions"><button class="button primary" id="buy-song">Buy song</button><button class="button" id="closedetail">Done</button></div></dialog>
-  <dialog id="name-request"><form id="name-request-form"><div class="eyebrow">MADE FOR YOU, MADE WITH HEART</div><h2 id="request-heading">Request your name song</h2><p>We are adding more names. Leave your name and email so MQ3 can let you know when yours is available.</p><label>Your name<input id="requested-name" maxlength="80" required></label><label>Your email<input id="requested-email" type="email" maxlength="254" required></label><label class="sr-only" aria-hidden="true">Website<input id="request-website" tabindex="-1" autocomplete="off"></label><label style="display:flex;gap:8px"><input id="request-consent" style="width:20px" type="checkbox" required> I agree to receive an email about this name request.</label><p>Your name and email are visible only to MQ3 administrators and used to respond to this request.</p><p id="request-message" role="status"></p><div class="actions"><button type="button" class="button" id="cancel-name-request">Cancel</button><button class="button primary">Request this name</button></div></form></dialog>
-  <dialog id="checkout"><form id="checkout-form"><h2 id="checkout-title">Get your music</h2><p id="checkout-description"></p><label>Email<input id="buyer-email" type="email" required maxlength="254"></label><label>Payment method<select id="payment-provider"><option value="gcash">GCash</option><option value="paypal">PayPal</option></select></label><p>Payments are checked manually by MQ3. Access starts after verification. Membership is fixed-term, with no automatic renewal.</p><p id="checkout-message" role="status"></p><div class="actions"><button type="button" class="button" id="close-checkout">Cancel</button><button class="button primary">Show payment instructions</button></div></form><form id="reference-form" class="hidden"><h2>Complete your payment</h2><div id="payment-instructions"></div><label>Transaction reference<input id="payment-reference" required maxlength="100"></label><p id="reference-message" role="status"></p><div class="actions"><button type="button" class="button" id="close-reference">Close</button><button class="button primary">Submit for verification</button></div></form></dialog>
-  <dialog id="purchases"><h2>Your purchases</h2><p>Orders made in this browser. An access email can restore a verified purchase on another browser.</p><div id="purchase-list"></div><div class="actions"><button class="button" id="refresh-purchases">Refresh</button><button class="button primary" id="close-purchases">Done</button></div></dialog>
-  <dialog id="install-help"><h2>MQ3 on your home screen</h2><p id="install-instructions"></p><p>Internet is required for music, requests, and purchases.</p><div class="actions"><button id="close-install-help" class="button primary">Got it</button></div></dialog>
-  <div class="toast hidden" id="toast" role="status"></div><audio id="audio"></audio>
+
+
+  <!-- =====================================================
+       MUSIC PLAYER
+  ====================================================== -->
+
+  <footer
+    class="player"
+    aria-label="Music player"
+  >
+
+    <div class="now">
+
+      <img
+        id="nowart"
+        src="logo.png"
+        alt=""
+      >
+
+      <div>
+
+        <b id="nowtitle">
+          Your next favorite awaits
+        </b>
+
+        <small id="nowcat">
+          Choose a song to start listening
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="transport">
+
+      <div class="controls">
+
+        <button
+          id="prev"
+          aria-label="Previous song"
+          disabled
+        >
+          <span data-icon="previous"></span>
+        </button>
+
+        <button
+          class="play"
+          id="play"
+          aria-label="Play"
+          disabled
+        >
+          ▶
+        </button>
+
+        <button
+          id="next"
+          aria-label="Next song"
+          disabled
+        >
+          <span data-icon="next"></span>
+        </button>
+
+      </div>
+
+
+      <div class="timeline">
+
+        <span id="elapsed">
+          0:00
+        </span>
+
+        <input
+          type="range"
+          id="seek"
+          aria-label="Seek"
+          value="0"
+          min="0"
+          max="100"
+          disabled
+        >
+
+        <span id="duration">
+          0:00
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <label class="volume">
+
+      <span data-icon="volume"></span>
+
+      <span class="sr-only">
+        Volume
+      </span>
+
+      <input
+        id="volume"
+        aria-label="Volume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value="0.8"
+      >
+
+    </label>
+
+  </footer>
+
+
+  <!-- =====================================================
+       SONG DETAILS
+  ====================================================== -->
+
+  <dialog id="detail">
+
+    <h2 id="detailtitle"></h2>
+
+    <p
+      id="detailcredits"
+      class="credit-preview"
+    ></p>
+
+    <pre
+      id="detaillyrics"
+      style="white-space:pre-wrap;font:inherit"
+    ></pre>
+
+    <p id="detailprice"></p>
+
+    <div class="actions">
+
+      <button
+        class="button primary"
+        id="buy-song"
+      >
+        Buy song
+      </button>
+
+      <button
+        class="button"
+        id="closedetail"
+      >
+        Done
+      </button>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       NAME REQUEST
+  ====================================================== -->
+
+  <dialog id="name-request">
+
+    <form id="name-request-form">
+
+      <div class="eyebrow">
+        MADE FOR YOU, MADE WITH HEART
+      </div>
+
+      <h2 id="request-heading">
+        Request your name song
+      </h2>
+
+      <p>
+        We are adding more names.
+        Leave your name and email so MQ3 can let you know
+        when yours is available.
+      </p>
+
+      <label>
+        Your name
+
+        <input
+          id="requested-name"
+          maxlength="80"
+          required
+        >
+      </label>
+
+      <label>
+        Your email
+
+        <input
+          id="requested-email"
+          type="email"
+          maxlength="254"
+          required
+        >
+      </label>
+
+      <label
+        class="sr-only"
+        aria-hidden="true"
+      >
+        Website
+
+        <input
+          id="request-website"
+          tabindex="-1"
+          autocomplete="off"
+        >
+      </label>
+
+      <label style="display:flex;gap:8px">
+
+        <input
+          id="request-consent"
+          style="width:20px"
+          type="checkbox"
+          required
+        >
+
+        I agree to receive an email about this name request.
+
+      </label>
+
+      <p>
+        Your name and email are visible only to MQ3
+        administrators and used to respond to this request.
+      </p>
+
+      <p
+        id="request-message"
+        role="status"
+      ></p>
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="cancel-name-request"
+        >
+          Cancel
+        </button>
+
+        <button class="button primary">
+          Request this name
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       EXISTING CHECKOUT
+  ====================================================== -->
+
+  <dialog id="checkout">
+
+    <form id="checkout-form">
+
+      <h2 id="checkout-title">
+        Get your music
+      </h2>
+
+      <p id="checkout-description"></p>
+
+      <label>
+        Email
+
+        <input
+          id="buyer-email"
+          type="email"
+          required
+          maxlength="254"
+        >
+      </label>
+
+      <label>
+        Payment method
+
+        <select id="payment-provider">
+
+          <option value="gcash">
+            GCash
+          </option>
+
+          <option value="paypal">
+            PayPal
+          </option>
+
+        </select>
+
+      </label>
+
+      <p>
+        Payments are checked manually by MQ3.
+        Access starts after verification.
+        Membership is fixed-term, with no automatic renewal.
+      </p>
+
+      <p
+        id="checkout-message"
+        role="status"
+      ></p>
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="close-checkout"
+        >
+          Cancel
+        </button>
+
+        <button class="button primary">
+          Show payment instructions
+        </button>
+
+      </div>
+
+    </form>
+
+
+    <form
+      id="reference-form"
+      class="hidden"
+    >
+
+      <h2>
+        Complete your payment
+      </h2>
+
+      <div id="payment-instructions"></div>
+
+      <label>
+        Transaction reference
+
+        <input
+          id="payment-reference"
+          required
+          maxlength="100"
+        >
+      </label>
+
+      <p
+        id="reference-message"
+        role="status"
+      ></p>
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="close-reference"
+        >
+          Close
+        </button>
+
+        <button class="button primary">
+          Submit for verification
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       PURCHASES
+  ====================================================== -->
+
+  <dialog id="purchases">
+
+    <h2>
+      Your purchases
+    </h2>
+
+    <p>
+      Orders made in this browser.
+      An access email can restore a verified purchase
+      on another browser.
+    </p>
+
+    <div id="purchase-list"></div>
+
+    <div class="actions">
+
+      <button
+        class="button"
+        id="refresh-purchases"
+      >
+        Refresh
+      </button>
+
+      <button
+        class="button primary"
+        id="close-purchases"
+      >
+        Done
+      </button>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       INSTALL HELP
+  ====================================================== -->
+
+  <dialog id="install-help">
+
+    <h2>
+      MQ3 on your home screen
+    </h2>
+
+    <p id="install-instructions"></p>
+
+    <p>
+      Internet is required for music,
+      requests, and purchases.
+    </p>
+
+    <div class="actions">
+
+      <button
+        id="close-install-help"
+        class="button primary"
+      >
+        Got it
+      </button>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       MQ3 LISTENER ACCOUNT
+  ====================================================== -->
+
+  <dialog id="account-dialog">
+
+    <!-- SIGN IN -->
+
+    <form id="account-email-form">
+
+      <div class="eyebrow">
+        MQ3 LISTENER ACCOUNT
+      </div>
+
+      <h2>
+        Welcome to MQ3
+      </h2>
+
+      <p>
+        Sign in with your email.
+        No password needed.
+      </p>
+
+      <p>
+        🎁 New listeners receive
+        <strong>25 FREE Welcome Credits.</strong>
+      </p>
+
+      <label>
+        Email
+
+        <input
+          id="account-email"
+          type="email"
+          maxlength="254"
+          autocomplete="email"
+          placeholder="you@example.com"
+          required
+        >
+      </label>
+
+      <p
+        id="account-email-message"
+        role="status"
+      ></p>
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="account-close"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="button primary"
+          id="account-send-code"
+        >
+          Send Code
+        </button>
+
+      </div>
+
+    </form>
+
+
+    <!-- OTP -->
+
+    <form
+      id="account-code-form"
+      class="hidden"
+    >
+
+      <div class="eyebrow">
+        CHECK YOUR EMAIL
+      </div>
+
+      <h2>
+        Enter your code
+      </h2>
+
+      <p>
+        We sent a 6-digit MQ3 sign-in code to
+        <strong id="account-code-email"></strong>.
+      </p>
+
+      <label>
+        6-digit code
+
+        <input
+          id="account-code"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          pattern="[0-9]{6}"
+          placeholder="000000"
+          required
+        >
+      </label>
+
+      <p>
+        The code expires in 10 minutes.
+      </p>
+
+      <p
+        id="account-code-message"
+        role="status"
+      ></p>
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="account-back"
+        >
+          Back
+        </button>
+
+        <button
+          class="button primary"
+          id="account-verify"
+        >
+          Sign In
+        </button>
+
+      </div>
+
+    </form>
+
+
+    <!-- SIGNED-IN ACCOUNT -->
+
+    <section
+      id="account-panel"
+      class="hidden"
+    >
+
+      <div class="eyebrow">
+        MQ3 ACCOUNT
+      </div>
+
+      <h2 id="account-welcome">
+        Welcome!
+      </h2>
+
+      <p id="account-user-email"></p>
+
+
+      <div
+        style="
+          margin:22px 0;
+          padding:20px;
+          border:1px solid rgba(212,175,55,.35);
+          border-radius:16px;
+          text-align:center;
+        "
+      >
+
+        <small>
+          CREDIT BALANCE
+        </small>
+
+        <div
+          id="account-credit-balance"
+          style="
+            font-size:2.4rem;
+            font-weight:800;
+            margin-top:6px;
+          "
+        >
+          0
+        </div>
+
+        <div>
+          🪙 MQ3 Credits
+        </div>
+
+      </div>
+
+
+      <p id="account-welcome-bonus">
+        🎁 Welcome to MQ3!
+        You received 25 FREE Credits.
+        Send your first gift to a song you love. ❤️
+      </p>
+
+
+      <div class="actions">
+
+        <button
+          type="button"
+          class="button"
+          id="account-logout"
+        >
+          Sign Out
+        </button>
+
+        <button
+          type="button"
+          class="button primary"
+          id="account-done"
+        >
+          Done
+        </button>
+
+      </div>
+
+    </section>
+
+  </dialog>
+
+
+  <!-- =====================================================
+       GLOBAL
+  ====================================================== -->
+
+  <div
+    class="toast hidden"
+    id="toast"
+    role="status"
+  ></div>
+
+  <audio id="audio"></audio>
+
 </body>
 </html>
