@@ -910,6 +910,93 @@ const MQ3_GIFTS=[
   {type:'shoutout',name:'Shout-out',emoji:'📣',credits:100}
 ];
 
+let mq3GiftStats={};
+
+async function loadGiftStats({
+  rerender=true
+}={}){
+
+  try{
+
+    const response=
+      await fetch(
+        '/api/gifts/song-stats',
+        {
+          credentials:'same-origin'
+        }
+      );
+
+
+    const data=
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw Error(
+        data.error||
+        'Gift stats could not be loaded.'
+      );
+    }
+
+
+    mq3GiftStats=
+      data.songs||
+      {};
+
+
+    if(rerender){
+      render();
+    }
+
+
+  }catch(error){
+
+    console.error(
+      'MQ3 gift stats failed:',
+      error
+    );
+  }
+}
+
+function giftStatsText(songId){
+
+  const stats=
+    mq3GiftStats[
+      songId
+    ];
+
+
+  if(
+    !stats||
+    !stats.gifts
+  ){
+    return '';
+  }
+
+
+  return MQ3_GIFTS
+    .map(
+      gift=>{
+
+        const count=
+          Number(
+            stats.gifts[
+              gift.type
+            ]?.count||
+            0
+          );
+
+
+        return count>0
+          ?`${gift.emoji} ${count.toLocaleString()}`
+          :'';
+      }
+    )
+    .filter(Boolean)
+    .join(' · ');
+}
+
 function ensureGiftDialog(){
   let dialog=$('mq3-gift-dialog');
   if(dialog) return dialog;
@@ -986,6 +1073,8 @@ async function sendGift(song,gift){
         {detail:data.wallet}
       )
     );
+
+    await loadGiftStats();
 
   }catch(e){
     toast(e.message||'Gift could not be sent.');
@@ -1322,11 +1411,37 @@ function render(){
           openGiftDialog(t);
 
 
+      const giftStats=
+        node(
+          'small',
+          giftStatsText(
+            t.id
+          ),
+          'track-gift-stats'
+        );
+
+
+      giftStats.style.display=
+        giftStats.textContent
+          ?'block'
+          :'none';
+
+      giftStats.style.marginTop=
+        '7px';
+
+      giftStats.style.opacity=
+        '.86';
+
+      giftStats.style.fontSize=
+        '.88rem';
+
+
       info.append(
         title,
         meta,
         lyrics,
-        gift
+        gift,
+        giftStats
       );
 
 
@@ -2119,3 +2234,4 @@ async function loadCatalog(){
 render();
 
 loadCatalog();
+loadGiftStats();
