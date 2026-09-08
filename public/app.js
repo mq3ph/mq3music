@@ -1,172 +1,59 @@
 'use strict';
 
 const $=id=>document.getElementById(id);
-
-const cats=[
-  'NAME SONGS',
-  'INSPIRATIONAL SONGS',
-  'OPM',
-  'ORIGINAL SONGS'
-];
-
-const subs=[
-  'Personalized songs. Made for you.',
-  'A little hope. A little light.',
-  'Filipino heart. Familiar feeling.',
-  'My words. My melodies.'
-];
-
-const artwork=[
-  'assets/name-series.png',
-  'assets/inspirational.png',
-  'assets/opm.png',
-  'assets/original.png'
-];
-
-const symbols=[
-  'heart',
-  'sun',
-  'music',
-  'pen'
-];
-
-const artFor=t=>
-  artwork[cats.indexOf(t.category)]||
-  'logo.png';
-
+const cats=['NAME SONGS','INSPIRATIONAL SONGS','OPM','ORIGINAL SONGS'];
+const subs=['Personalized songs. Made for you.','A little hope. A little light.','Filipino heart. Familiar feeling.','My words. My melodies.'];
+const artwork=['assets/name-series.png','assets/inspirational.png','assets/opm.png','assets/original.png'];
+const symbols=['heart','sun','music','pen'];
+const artFor=t=>artwork[cats.indexOf(t.category)]||'logo.png';
 
 const icons={
-
-  home:
-    '<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
-
-  compass:
-    '<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5Z"/>',
-
-  library:
-    '<rect x="5" y="5" width="15" height="16" rx="2"/><path d="M3 17V3h13m-1 7v6m0-6 3-1m-3 7c0 2-4 2-4 0s4-2 4 0"/>',
-
-  heart:
-    '<path d="M20.5 5.5a5.2 5.2 0 0 0-8.5 1 5.2 5.2 0 0 0-8.5-1C-1 11 12 20 12 20s13-9 8.5-14.5Z"/>',
-
-  search:
-    '<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',
-
-  sun:
-    '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
-
-  music:
-    '<path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="17" cy="16" rx="3" ry="2"/>',
-
-  pen:
-    '<path d="m4 16-1 5 5-1L21 7l-4-4Zm11-11 4 4M4 16l4 4"/>',
-
-  previous:
-    '<path d="M5 4v16m14-15L8 12l11 7Z"/>',
-
-  next:
-    '<path d="M19 4v16M5 5l11 7-11 7Z"/>',
-
-  volume:
-    '<path d="M4 9h4l5-4v14l-5-4H4Zm12-1c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/>'
-
+  home:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5Z"/>',
+  library:'<rect x="5" y="5" width="15" height="16" rx="2"/><path d="M3 17V3h13m-1 7v6m0-6 3-1m-3 7c0 2-4 2-4 0s4-2 4 0"/>',
+  heart:'<path d="M20.5 5.5a5.2 5.2 0 0 0-8.5 1 5.2 5.2 0 0 0-8.5-1C-1 11 12 20 12 20s13-9 8.5-14.5Z"/>',
+  search:'<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
+  music:'<path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="17" cy="16" rx="3" ry="2"/>',
+  pen:'<path d="m4 16-1 5 5-1L21 7l-4-4Zm11-11 4 4M4 16l4 4"/>',
+  previous:'<path d="M5 4v16m14-15L8 12l11 7Z"/>',
+  next:'<path d="M19 4v16M5 5l11 7-11 7Z"/>',
+  volume:'<path d="M4 9h4l5-4v14l-5-4H4Zm12-1c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/>'
 };
 
-
 function icon(name){
-
-  const el=
-    document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'svg'
-    );
-
-  el.setAttribute(
-    'viewBox',
-    '0 0 24 24'
-  );
-
-  el.setAttribute(
-    'aria-hidden',
-    'true'
-  );
-
-  el.innerHTML=
-    icons[name]||
-    icons.music;
-
+  const el=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  el.setAttribute('viewBox','0 0 24 24');
+  el.setAttribute('aria-hidden','true');
+  el.innerHTML=icons[name]||icons.music;
   return el;
 }
 
-
-document
-  .querySelectorAll('[data-icon]')
-  .forEach(
-    el=>
-      el.append(
-        icon(
-          el.dataset.icon
-        )
-      )
-  );
-
+document.querySelectorAll('[data-icon]').forEach(el=>el.append(icon(el.dataset.icon)));
 
 function scrollToSection(id){
-
   $(id).scrollIntoView({
-    behavior:
-      matchMedia(
-        '(prefers-reduced-motion: reduce)'
-      ).matches
-        ?'instant'
-        :'smooth',
-
+    behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
     block:'start'
   });
-
 }
-
 
 function activeNav(id){
+  document.querySelectorAll('.main-nav .nav').forEach(b=>{
+    b.classList.toggle('active',b.id===id);
 
-  document
-    .querySelectorAll(
-      '.main-nav .nav'
-    )
-    .forEach(b=>{
-
-      b.classList.toggle(
-        'active',
-        b.id===id
-      );
-
-      if(
-        b.id===id
-      ){
-
-        b.setAttribute(
-          'aria-current',
-          'page'
-        );
-
-      }else{
-
-        b.removeAttribute(
-          'aria-current'
-        );
-
-      }
-
-    });
-
+    if(b.id===id){
+      b.setAttribute('aria-current','page');
+    }else{
+      b.removeAttribute('aria-current');
+    }
+  });
 }
-
 
 const credit=c=>
   c===cats[3]
     ?'Lyrics & melodies: MQ3. Music & voice: assisted by Suno.'
     :'Lyrics: AI-generated. Music: generated with Suno. Curated by MQ3.';
-
 
 let tracks=[];
 let filter='';
@@ -176,16 +63,10 @@ let detailId=null;
 let db=null;
 let url=null;
 
-
-const viewedThisPage=
-  new Set();
-
+const viewedThisPage=new Set();
 
 function recordView(id){
-
-  if(
-    viewedThisPage.has(id)
-  ){
+  if(viewedThisPage.has(id)){
     return;
   }
 
@@ -203,12 +84,9 @@ function recordView(id){
       ()=>
         viewedThisPage.delete(id)
     );
-
 }
 
-
 function toast(s){
-
   $('toast').textContent=s;
 
   $('toast')
@@ -222,16 +100,13 @@ function toast(s){
         .add('hidden'),
     4200
   );
-
 }
-
 
 function node(
   tag,
   text,
   cls
 ){
-
   const el=
     document.createElement(tag);
 
@@ -250,45 +125,75 @@ function node(
 
 
 /* =========================================================
-   MQ3 LYRICS WINDOW
+   MQ3 LYRICS PANEL
 ========================================================= */
 
-function ensureLyricsDialog(){
+function ensureLyricsPanel(){
 
-  let dialog=
-    $('mq3-lyrics-dialog');
+  let overlay=
+    $('mq3-lyrics-overlay');
 
-  if(dialog){
-    return dialog;
+  if(overlay){
+    return overlay;
   }
 
 
-  dialog=
-    document.createElement(
-      'dialog'
-    );
-
-  dialog.id=
-    'mq3-lyrics-dialog';
-
-  dialog.className=
-    'mq3-lyrics-dialog';
-
-
-  const header=
+  overlay=
     node(
       'div',
       undefined,
-      'lyrics-dialog-head'
+      'lyrics-overlay hidden'
     );
 
+  overlay.id=
+    'mq3-lyrics-overlay';
 
-  const heading=
+  overlay.setAttribute(
+    'role',
+    'presentation'
+  );
+
+
+  const panel=
     node(
-      'div',
+      'section',
       undefined,
-      'lyrics-heading'
+      'lyrics-panel'
     );
+
+  panel.setAttribute(
+    'role',
+    'dialog'
+  );
+
+  panel.setAttribute(
+    'aria-modal',
+    'true'
+  );
+
+  panel.setAttribute(
+    'aria-labelledby',
+    'mq3-lyrics-title'
+  );
+
+
+  const close=
+    node(
+      'button',
+      '×',
+      'lyrics-close'
+    );
+
+  close.type=
+    'button';
+
+  close.setAttribute(
+    'aria-label',
+    'Close lyrics'
+  );
+
+  close.onclick=
+    closeLyrics;
 
 
   const kicker=
@@ -321,39 +226,6 @@ function ensureLyricsDialog(){
     'mq3-lyrics-category';
 
 
-  heading.append(
-    kicker,
-    title,
-    category
-  );
-
-
-  const close=
-    node(
-      'button',
-      '×',
-      'lyrics-close'
-    );
-
-  close.type=
-    'button';
-
-  close.setAttribute(
-    'aria-label',
-    'Close lyrics'
-  );
-
-  close.onclick=
-    ()=>
-      dialog.close();
-
-
-  header.append(
-    heading,
-    close
-  );
-
-
   const divider=
     node(
       'div',
@@ -365,7 +237,7 @@ function ensureLyricsDialog(){
   const body=
     node(
       'div',
-      '',
+      undefined,
       'lyrics-body'
     );
 
@@ -406,35 +278,49 @@ function ensureLyricsDialog(){
   );
 
 
-  dialog.append(
-    header,
+  panel.append(
+    close,
+    kicker,
+    title,
+    category,
     divider,
     body,
     creditsBox
   );
 
 
-  dialog.addEventListener(
+  overlay.append(
+    panel
+  );
+
+
+  overlay.addEventListener(
     'click',
     e=>{
 
       if(
-        e.target===dialog
+        e.target===overlay
       ){
+        closeLyrics();
+      }
 
-        const rect=
-          dialog.getBoundingClientRect();
+    }
+  );
 
-        const inside=
-          e.clientX>=rect.left &&
-          e.clientX<=rect.right &&
-          e.clientY>=rect.top &&
-          e.clientY<=rect.bottom;
 
-        if(!inside){
-          dialog.close();
-        }
+  document.addEventListener(
+    'keydown',
+    e=>{
 
+      if(
+        e.key==='Escape' &&
+        !overlay
+          .classList
+          .contains(
+            'hidden'
+          )
+      ){
+        closeLyrics();
       }
 
     }
@@ -442,10 +328,168 @@ function ensureLyricsDialog(){
 
 
   document.body.append(
-    dialog
+    overlay
   );
 
-  return dialog;
+
+  return overlay;
+
+}
+
+
+function closeLyrics(){
+
+  const overlay=
+    $('mq3-lyrics-overlay');
+
+  if(!overlay){
+    return;
+  }
+
+
+  overlay
+    .classList
+    .add(
+      'hidden'
+    );
+
+
+  document.body
+    .classList
+    .remove(
+      'lyrics-open'
+    );
+
+}
+
+
+function isSectionLabel(text){
+
+  return /^\[[^\]]{1,40}\]$/
+    .test(
+      text.trim()
+    );
+
+}
+
+
+function renderLyricsBody(raw){
+
+  const body=
+    $('mq3-lyrics-body');
+
+
+  body.replaceChildren();
+
+
+  const text=
+    String(
+      raw||
+      ''
+    )
+      .replace(
+        /\r\n/g,
+        '\n'
+      )
+      .trim();
+
+
+  if(!text){
+
+    body.append(
+      node(
+        'p',
+        'Lyrics are not available for this song yet.',
+        'lyrics-empty'
+      )
+    );
+
+    return;
+
+  }
+
+
+  const parts=
+    text
+      .split(
+        /(\[[^\]]{1,40}\])/g
+      )
+      .filter(Boolean);
+
+
+  let hadSection=
+    false;
+
+
+  parts.forEach(
+    part=>{
+
+      const clean=
+        part.trim();
+
+
+      if(!clean){
+        return;
+      }
+
+
+      if(
+        isSectionLabel(
+          clean
+        )
+      ){
+
+        hadSection=
+          true;
+
+
+        body.append(
+          node(
+            'div',
+            clean,
+            'lyrics-section-label'
+          )
+        );
+
+
+        return;
+
+      }
+
+
+      const block=
+        node(
+          'div',
+          undefined,
+          'lyrics-text-block'
+        );
+
+
+      block.textContent=
+        clean;
+
+
+      body.append(
+        block
+      );
+
+    }
+  );
+
+
+  if(
+    !hadSection &&
+    body.children.length===1
+  ){
+
+    body
+      .firstElementChild
+      .classList
+      .add(
+        'lyrics-text-block--plain'
+      );
+
+  }
 
 }
 
@@ -453,16 +497,18 @@ function ensureLyricsDialog(){
 function showLyrics(t){
 
   if(!t){
+
     toast(
       'Choose a song first.'
     );
 
     return;
+
   }
 
 
-  const dialog=
-    ensureLyricsDialog();
+  const overlay=
+    ensureLyricsPanel();
 
 
   $('mq3-lyrics-title')
@@ -477,19 +523,6 @@ function showLyrics(t){
       'MQ3 MUSIC';
 
 
-  const lyrics=
-    String(
-      t.lyrics||
-      ''
-    ).trim();
-
-
-  $('mq3-lyrics-body')
-    .textContent=
-      lyrics||
-      'Lyrics are not available for this song yet.';
-
-
   $('mq3-lyrics-credits')
     .textContent=
       credit(
@@ -497,23 +530,45 @@ function showLyrics(t){
       );
 
 
-  if(
-    !dialog.open
-  ){
-    dialog.showModal();
-  }
+  renderLyricsBody(
+    t.lyrics
+  );
+
+
+  overlay
+    .classList
+    .remove(
+      'hidden'
+    );
+
+
+  document.body
+    .classList
+    .add(
+      'lyrics-open'
+    );
+
+
+  overlay
+    .querySelector(
+      '.lyrics-close'
+    )
+    .focus({
+      preventScroll:true
+    });
 
 }
 
 
 /* =========================================================
-   LYRICS BUTTON INSIDE THE BOTTOM PLAYER
+   PLAYER LYRICS BUTTON
 ========================================================= */
 
 function ensurePlayerLyricsButton(){
 
   const nowcat=
     $('nowcat');
+
 
   if(
     !nowcat||
@@ -526,32 +581,31 @@ function ensurePlayerLyricsButton(){
   const button=
     node(
       'button',
-      'Lyrics',
+      '♪ Lyrics',
       'player-lyrics'
     );
+
 
   button.id=
     'player-lyrics';
 
+
   button.type=
     'button';
+
 
   button.disabled=
     !current;
 
 
   button.onclick=
-    ()=>{
-
-      const song=
+    ()=>
+      showLyrics(
         tracks.find(
           t=>
             t.id===current
-        );
-
-      showLyrics(song);
-
-    };
+        )
+      );
 
 
   nowcat
@@ -569,6 +623,7 @@ function visible(){
     $('search')
       .value
       .toLowerCase();
+
 
   return tracks.filter(
     t=>
@@ -605,6 +660,7 @@ function setFilter(
   filter=c;
   onlyFav=fav;
 
+
   activeNav(
     fav
       ?'favorites'
@@ -612,6 +668,7 @@ function setFilter(
         ?'browse'
         :'home'
   );
+
 
   render();
 
@@ -628,7 +685,10 @@ cats.forEach(
         'category'
       );
 
-    b.dataset.cat=c;
+
+    b.dataset.cat=
+      c;
+
 
     b.style.setProperty(
       '--art',
@@ -642,6 +702,7 @@ cats.forEach(
         undefined,
         'symbol'
       );
+
 
     symbol.append(
       icon(
@@ -677,6 +738,7 @@ cats.forEach(
       ()=>{
 
         setFilter(c);
+
         scrollToSection(
           'library'
         );
@@ -685,7 +747,9 @@ cats.forEach(
 
 
     $('categories')
-      .append(b);
+      .append(
+        b
+      );
 
   }
 );
@@ -743,77 +807,86 @@ function renderRecent(){
     .replaceChildren();
 
 
-  list.forEach(t=>{
+  list.forEach(
+    t=>{
 
-    const playing=
-      current===t.id &&
-      !audio.paused;
+      const playing=
+        current===t.id &&
+        !audio.paused;
 
 
-    const b=
-      node(
-        'button',
-        undefined,
-        'recent-card'
+      const b=
+        node(
+          'button',
+          undefined,
+          'recent-card'
+        );
+
+
+      b.setAttribute(
+        'aria-label',
+        (
+          playing
+            ?'Pause recent song '
+            :'Play recent song '
+        )+
+        t.title
       );
 
 
-    b.setAttribute(
-      'aria-label',
-      (
-        playing
-          ?'Pause recent song '
-          :'Play recent song '
-      )+
-      t.title
-    );
+      b.title=
+        t.title;
 
 
-    b.title=
-      t.title;
+      const img=
+        node(
+          'img'
+        );
 
 
-    const img=
-      node('img');
-
-    img.src=
-      artFor(t);
-
-    img.alt='';
-
-    img.loading=
-      'lazy';
+      img.src=
+        artFor(t);
 
 
-    b.append(
-      img,
-      node(
-        'span',
-        playing
-          ?'Ⅱ'
-          :'▶',
-        'card-play'
-      ),
-      node(
-        'strong',
-        t.title
-      ),
-      node(
-        'small',
-        t.category
-      )
-    );
+      img.alt='';
 
 
-    b.onclick=
-      ()=>
-        start(t);
+      img.loading=
+        'lazy';
 
 
-    $('recent')
-      .append(b);
+      b.append(
+        img,
+        node(
+          'span',
+          playing
+            ?'Ⅱ'
+            :'▶',
+          'card-play'
+        ),
+        node(
+          'strong',
+          t.title
+        ),
+        node(
+          'small',
+          t.category
+        )
+      );
 
-  });
+
+      b.onclick=
+        ()=>
+          start(t);
+
+
+      $('recent')
+        .append(
+          b
+        );
+
+    }
+  );
 
 
   $('recent')
@@ -838,43 +911,45 @@ function render(){
     .querySelectorAll(
       '.category'
     )
-    .forEach(b=>{
+    .forEach(
+      b=>{
 
-      b.classList.toggle(
-        'chosen',
-        filter===b.dataset.cat
-      );
-
-
-      b.setAttribute(
-        'aria-pressed',
-        String(
-          filter===
-          b.dataset.cat
-        )
-      );
-
-
-      const n=
-        tracks.filter(
-          t=>
-            t.category===
-            b.dataset.cat
-        ).length;
-
-
-      b.querySelector(
-        '.num'
-      ).textContent=
-        n+
-        ' song'+
-        (
-          n===1
-            ?''
-            :'s'
+        b.classList.toggle(
+          'chosen',
+          filter===b.dataset.cat
         );
 
-    });
+
+        b.setAttribute(
+          'aria-pressed',
+          String(
+            filter===
+            b.dataset.cat
+          )
+        );
+
+
+        const n=
+          tracks.filter(
+            t=>
+              t.category===
+              b.dataset.cat
+          ).length;
+
+
+        b.querySelector(
+          '.num'
+        ).textContent=
+          n+
+          ' song'+
+          (
+            n===1
+              ?''
+              :'s'
+          );
+
+      }
+    );
 
 
   $('listtitle')
@@ -913,7 +988,9 @@ function render(){
 
 
     const copy=
-      node('div');
+      node(
+        'div'
+      );
 
 
     const q=
@@ -923,7 +1000,6 @@ function render(){
 
 
     copy.append(
-
       node(
         'h3',
         onlyFav
@@ -932,18 +1008,18 @@ function render(){
             ?'No matching song yet.'
             :'New music is on its way.'
       ),
-
       node(
         'p',
         onlyFav
           ?'Tap the heart beside a song to save it here.'
           :'Explore the collections or request a personalized name song.'
       )
-
     );
 
 
-    e.append(copy);
+    e.append(
+      copy
+    );
 
 
     if(
@@ -967,230 +1043,237 @@ function render(){
           openNameRequest(q);
 
 
-      e.append(b);
+      e.append(
+        b
+      );
 
     }
 
 
     $('songs')
-      .append(e);
+      .append(
+        e
+      );
 
   }
 
 
-  list.forEach(t=>{
+  list.forEach(
+    t=>{
 
-    const playing=
-      current===t.id &&
-      !audio.paused;
+      const playing=
+        current===t.id &&
+        !audio.paused;
 
 
-    const r=
-      node(
-        'div',
-        undefined,
-        'row'+
+      const r=
+        node(
+          'div',
+          undefined,
+          'row'+
+          (
+            playing
+              ?' is-playing'
+              :''
+          )
+        );
+
+
+      const p=
+        node(
+          'button',
+          playing
+            ?'Ⅱ'
+            :'▶',
+          'round'
+        );
+
+
+      p.setAttribute(
+        'aria-label',
         (
           playing
-            ?' is-playing'
-            :''
-        )
+            ?'Pause '
+            :'Play '
+        )+
+        t.title
       );
 
 
-    const p=
-      node(
-        'button',
-        playing
-          ?'Ⅱ'
-          :'▶',
-        'round'
+      p.onclick=
+        ()=>
+          start(t);
+
+
+      const img=
+        node(
+          'img',
+          undefined,
+          'track-art'
+        );
+
+
+      img.src=
+        artFor(t);
+
+
+      img.alt='';
+
+
+      img.loading=
+        'lazy';
+
+
+      const info=
+        node(
+          'div',
+          undefined,
+          'track-info'
+        );
+
+
+      const title=
+        node(
+          'div',
+          t.title,
+          'title'
+        );
+
+
+      const meta=
+        node(
+          'small',
+          'MQ3 · '+
+          (
+            t.price
+              ?'₱'+
+                (
+                  t.price/
+                  100
+                ).toFixed(2)
+              :'Free'
+          ),
+          'track-meta'
+        );
+
+
+      const lyrics=
+        node(
+          'button',
+          'Lyrics',
+          'lyrics-button'
+        );
+
+
+      lyrics.setAttribute(
+        'aria-label',
+        'Open lyrics for '+
+        t.title
       );
 
 
-    p.setAttribute(
-      'aria-label',
-      (
-        playing
-          ?'Pause '
-          :'Play '
-      )+
-      t.title
-    );
+      lyrics.onclick=
+        ()=>
+          showLyrics(t);
 
 
-    p.onclick=
-      ()=>
-        start(t);
-
-
-    const img=
-      node(
-        'img',
-        undefined,
-        'track-art'
+      info.append(
+        title,
+        meta,
+        lyrics
       );
 
 
-    img.src=
-      artFor(t);
-
-    img.alt='';
-
-    img.loading=
-      'lazy';
-
-
-    const info=
-      node(
-        'div',
-        undefined,
-        'track-info'
-      );
+      const cat=
+        node(
+          'small',
+          t.category,
+          'catlabel'
+        );
 
 
-    info.append(
+      const f=
+        node(
+          'button',
+          t.favorite
+            ?'♥'
+            :'♡',
+          'fav'
+        );
 
-      node(
-        'div',
-        t.title,
-        'title'
-      ),
 
-      node(
-        'small',
-        'MQ3 · '+
+      f.setAttribute(
+        'aria-label',
         (
-          t.price
-            ?'₱'+
-              (
-                t.price/
-                100
-              ).toFixed(2)
-            :'Free'
+          t.favorite
+            ?'Unfavorite '
+            :'Favorite '
+        )+
+        t.title
+      );
+
+
+      f.setAttribute(
+        'aria-pressed',
+        String(
+          t.favorite
         )
-      )
-
-    );
-
-
-    const cat=
-      node(
-        'small',
-        t.category,
-        'catlabel'
       );
 
 
-    const f=
-      node(
-        'button',
-        t.favorite
-          ?'♥'
-          :'♡',
-        'fav'
+      f.onclick=
+        async()=>{
+
+          f.disabled=
+            true;
+
+
+          try{
+
+            await persist({
+              ...t,
+              favorite:
+                !t.favorite
+            });
+
+
+            t.favorite=
+              !t.favorite;
+
+
+            render();
+
+          }catch{
+
+            f.disabled=
+              false;
+
+
+            toast(
+              'Could not save favorite.'
+            );
+
+          }
+
+        };
+
+
+      r.append(
+        p,
+        img,
+        info,
+        cat,
+        f
       );
 
 
-    f.setAttribute(
-      'aria-label',
-      (
-        t.favorite
-          ?'Unfavorite '
-          :'Favorite '
-      )+
-      t.title
-    );
+      $('songs')
+        .append(
+          r
+        );
 
-
-    f.setAttribute(
-      'aria-pressed',
-      String(
-        t.favorite
-      )
-    );
-
-
-    f.onclick=
-      async()=>{
-
-        f.disabled=true;
-
-        try{
-
-          await persist({
-            ...t,
-            favorite:
-              !t.favorite
-          });
-
-
-          t.favorite=
-            !t.favorite;
-
-
-          render();
-
-        }catch{
-
-          f.disabled=false;
-
-          toast(
-            'Could not save favorite.'
-          );
-
-        }
-
-      };
-
-
-    const lyrics=
-      node(
-        'button',
-        'Lyrics',
-        'lyrics-button'
-      );
-
-
-    lyrics.setAttribute(
-      'aria-label',
-      'Open lyrics for '+
-      t.title
-    );
-
-
-    lyrics.onclick=
-      ()=>
-        showLyrics(t);
-
-
-    const actions=
-      node(
-        'div',
-        undefined,
-        'song-actions'
-      );
-
-
-    actions.append(
-      f,
-      lyrics
-    );
-
-
-    r.append(
-      p,
-      img,
-      info,
-      cat,
-      actions
-    );
-
-
-    $('songs')
-      .append(r);
-
-  });
+    }
+  );
 
 
   renderRecent();
@@ -1202,7 +1285,9 @@ function goHome(){
 
   $('search').value='';
 
+
   setFilter();
+
 
   window.scrollTo({
     top:0,
@@ -1216,11 +1301,14 @@ function goLibrary(){
 
   $('search').value='';
 
+
   setFilter();
+
 
   activeNav(
     'librarynav'
   );
+
 
   scrollToSection(
     'library'
@@ -1233,11 +1321,14 @@ function goBrowse(){
 
   $('search').value='';
 
+
   setFilter();
+
 
   activeNav(
     'browse'
   );
+
 
   scrollToSection(
     'collections'
@@ -1277,10 +1368,12 @@ $('favorites').onclick=
 
     $('search').value='';
 
+
     setFilter(
       '',
       true
     );
+
 
     scrollToSection(
       'library'
@@ -1297,6 +1390,7 @@ $('search').oninput=
         ?'favorites'
         :'librarynav'
     );
+
 
     render();
 
@@ -1356,6 +1450,7 @@ $('listen').onclick=
     ){
 
       goBrowse();
+
       return;
 
     }
@@ -1377,10 +1472,16 @@ $('listen').onclick=
   };
 
 
-$('closedetail').onclick=
-  ()=>
-    $('detail')
-      .close();
+if(
+  $('closedetail')
+){
+
+  $('closedetail').onclick=
+    ()=>
+      $('detail')
+        .close();
+
+}
 
 
 function persist(t){
@@ -1446,6 +1547,7 @@ async function start(t){
   ){
 
     toggle();
+
     return;
 
   }
@@ -1503,12 +1605,14 @@ async function start(t){
     false;
 
 
-  const playerLyrics=
-    $('player-lyrics');
+  if(
+    $('player-lyrics')
+  ){
 
+    $('player-lyrics')
+      .disabled=
+        false;
 
-  if(playerLyrics){
-    playerLyrics.disabled=false;
   }
 
 
