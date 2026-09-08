@@ -336,6 +336,243 @@
 
 
   /* =========================================================
+     LOAD CREDITS
+  ========================================================= */
+
+  const creditPackages = {
+    50: 50,
+    100: 105,
+    250: 275,
+    500: 575,
+    1000: 1200
+  };
+
+  function ensureCreditLoadDialog() {
+    let loadDialog = $('mq3-credit-load-dialog');
+
+    if (loadDialog) return loadDialog;
+
+    loadDialog = document.createElement('dialog');
+    loadDialog.id = 'mq3-credit-load-dialog';
+
+    loadDialog.innerHTML = `
+      <form id="mq3-credit-load-form">
+        <div class="eyebrow">MQ3 LOAD CREDITS</div>
+        <h2 style="margin-bottom:6px;">🪙 Complete Credit Load</h2>
+
+        <p id="mq3-credit-load-package"
+           style="margin-top:0;font-weight:700;"></p>
+
+        <label>
+          Payment method
+          <select id="mq3-credit-load-provider" required>
+            <option value="gcash">GCash</option>
+            <option value="paypal">PayPal</option>
+          </select>
+        </label>
+
+        <label>
+          Payment reference
+          <input
+            id="mq3-credit-load-reference"
+            type="text"
+            maxlength="100"
+            autocomplete="off"
+            placeholder="Enter transaction/reference number"
+            required
+          >
+        </label>
+
+        <p style="font-size:.88rem;opacity:.76;line-height:1.45;">
+          Submit the reference only after making your payment.
+          Your Credits will remain pending until MQ3 verifies the payment.
+        </p>
+
+        <p
+          id="mq3-credit-load-message"
+          role="status"
+        ></p>
+
+        <div class="actions">
+          <button
+            type="button"
+            class="button"
+            id="mq3-credit-load-cancel"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="button primary"
+            id="mq3-credit-load-submit"
+          >
+            Submit for Verification
+          </button>
+        </div>
+      </form>
+    `;
+
+    document.body.append(loadDialog);
+
+    $('mq3-credit-load-cancel')
+      ?.addEventListener('click', () => {
+        loadDialog.close();
+      });
+
+    $('mq3-credit-load-form')
+      ?.addEventListener('submit', submitCreditLoad);
+
+    return loadDialog;
+  }
+
+  let selectedCreditAmount = 0;
+
+  function openCreditLoad(amountPesos) {
+    const credits = creditPackages[amountPesos];
+
+    if (!currentAccount) {
+      alert('Sign in to your MQ3 account first.');
+      return;
+    }
+
+    if (!credits) {
+      alert('Choose a valid MQ3 Credit package.');
+      return;
+    }
+
+    selectedCreditAmount = amountPesos;
+
+    const loadDialog = ensureCreditLoadDialog();
+    const packageText = $('mq3-credit-load-package');
+    const reference = $('mq3-credit-load-reference');
+    const provider = $('mq3-credit-load-provider');
+    const message = $('mq3-credit-load-message');
+
+    packageText.textContent =
+      `₱${amountPesos.toLocaleString()} → 🪙 ${credits.toLocaleString()} Credits`;
+
+    reference.value = '';
+    provider.value = 'gcash';
+    setMessage(message, '');
+
+    loadDialog.showModal();
+    reference.focus();
+  }
+
+  function activateCreditPackages() {
+    const buttons =
+      document.querySelectorAll('.mq3-credit-package');
+
+    for (const button of buttons) {
+      const amountPesos =
+        Number(button.dataset.pesos || 0);
+
+      button.disabled = false;
+      button.style.cursor = 'pointer';
+
+      if (button.dataset.mq3LoadReady === 'true') {
+        continue;
+      }
+
+      button.dataset.mq3LoadReady = 'true';
+
+      button.addEventListener('click', () => {
+        openCreditLoad(amountPesos);
+      });
+    }
+  }
+
+  async function submitCreditLoad(event) {
+    event.preventDefault();
+
+    const amountPesos = selectedCreditAmount;
+    const credits = creditPackages[amountPesos];
+
+    const provider = $('mq3-credit-load-provider');
+    const reference = $('mq3-credit-load-reference');
+    const message = $('mq3-credit-load-message');
+    const button = $('mq3-credit-load-submit');
+
+    const paymentProvider =
+      provider?.value || '';
+
+    const paymentReference =
+      reference?.value.trim() || '';
+
+    if (!credits) {
+      setMessage(
+        message,
+        'Choose a valid MQ3 Credit package.',
+        true
+      );
+      return;
+    }
+
+    if (!paymentReference) {
+      setMessage(
+        message,
+        'Enter your payment reference.',
+        true
+      );
+      reference?.focus();
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Submitting…';
+
+    setMessage(
+      message,
+      'Submitting your payment for MQ3 verification…'
+    );
+
+    try {
+      const data = await api(
+        '/api/account/credit-load',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            amountPesos,
+            paymentProvider,
+            paymentReference
+          })
+        }
+      );
+
+      if (data.account) {
+        displayAccount(data.account);
+      } else {
+        await loadAccount();
+      }
+
+      setMessage(
+        message,
+        data.message ||
+        'Payment submitted for MQ3 verification. ✓'
+      );
+
+      reference.value = '';
+
+      setTimeout(() => {
+        $('mq3-credit-load-dialog')?.close();
+      }, 1200);
+
+    } catch (error) {
+      setMessage(
+        message,
+        error.message,
+        true
+      );
+
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Submit for Verification';
+    }
+  }
+
+
+  /* =========================================================
      ACCOUNT DISPLAY
   ========================================================= */
 
@@ -374,6 +611,7 @@
 
     displayGiftHistory(account);
     displaySupporterRank(account);
+    activateCreditPackages();
 
     if (promo > 0) {
       welcomeBonus.textContent =
