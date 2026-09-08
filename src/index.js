@@ -1957,6 +1957,378 @@ Music. Quality. 3rd Gen.`,
 
 
   /* =========================================================
+     ADMIN CREDIT LOADS
+  ========================================================= */
+
+  app.get(
+    '/api/admin/credit-loads',
+    wrap(
+      async(_req,res)=>{
+
+        const rows=
+          await q(
+            `SELECT
+               clo.id,
+               clo.user_id,
+               u.email,
+               u.display_name,
+               clo.amount_pesos,
+               clo.credits,
+               clo.payment_provider,
+               clo.payment_reference,
+               clo.status,
+               clo.created_at,
+               clo.reviewed_at
+             FROM credit_load_orders clo
+             JOIN users u
+               ON u.id=clo.user_id
+             ORDER BY
+               CASE
+                 WHEN clo.status='pending' THEN 0
+                 ELSE 1
+               END,
+               clo.created_at DESC`
+          );
+
+
+        res.json(
+          rows.map(
+            row=>({
+              id:
+                row.id,
+
+              userId:
+                row.user_id,
+
+              email:
+                row.email,
+
+              displayName:
+                row.display_name||
+                '',
+
+              amountPesos:
+                Number(
+                  row.amount_pesos||
+                  0
+                ),
+
+              credits:
+                Number(
+                  row.credits||
+                  0
+                ),
+
+              paymentProvider:
+                row.payment_provider,
+
+              paymentReference:
+                row.payment_reference||
+                '',
+
+              status:
+                row.status,
+
+              createdAt:
+                row.created_at,
+
+              reviewedAt:
+                row.reviewed_at
+            })
+          )
+        );
+      }
+    )
+  );
+
+
+  /* =========================================================
+     REVIEW CREDIT LOAD
+  ========================================================= */
+
+  app.post(
+    '/api/admin/credit-loads/:id/review',
+    wrap(
+      async(req,res)=>{
+
+        const id=
+          uuid(
+            req.params.id
+          );
+
+
+        const status=
+          String(
+            req.body.status||
+            ''
+          ).trim().toLowerCase();
+
+
+        if(
+          ![
+            'approved',
+            'rejected'
+          ].includes(status)
+        ){
+          fail(
+            400,
+            'Invalid Credit Load review.'
+          );
+        }
+
+
+        if(
+          status==='approved'&&
+          req.body.verified!==true
+        ){
+          fail(
+            400,
+            'Verify the amount and payment reference in GCash or PayPal first.'
+          );
+        }
+
+
+        if(
+          status==='rejected'
+        ){
+
+          const rows=
+            await q(
+              `UPDATE credit_load_orders
+               SET
+                 status='rejected',
+                 reviewed_at=$2
+               WHERE id=$1
+                 AND status='pending'
+               RETURNING id`,
+              [
+                id,
+                new Date()
+              ]
+            );
+
+
+          if(!rows.length){
+
+            const [existing]=
+              await q(
+                `SELECT status
+                 FROM credit_load_orders
+                 WHERE id=$1`,
+                [
+                  id
+                ]
+              );
+
+
+            if(!existing){
+              fail(
+                404,
+                'Credit Load order not found.'
+              );
+            }
+
+
+            if(existing.status==='rejected'){
+              return res.json({
+                ok:true,
+                status:'rejected'
+              });
+            }
+
+
+            fail(
+              409,
+              'This Credit Load order has already been reviewed.'
+            );
+          }
+
+
+          return res.json({
+            ok:true,
+            status:'rejected'
+          });
+        }
+
+
+        const now=
+          new Date();
+
+        const transactionId=
+          randomUUID();
+
+
+        /*
+          One SQL statement performs the approval.
+
+          The order can move from pending to approved only when
+          its listener wallet exists.
+
+          The credit_purchase ledger row uses the Credit Load
+          order ID as reference_id. The database unique index
+          one_credit_purchase_per_load_order prevents the same
+          load order from creating two purchase transactions.
+
+          The wallet is credited only from the newly inserted
+          ledger row, so repeated approval requests cannot add
+          the Credits twice.
+        */
+
+        const rows=
+          await q(
+            `WITH reviewed AS (
+               UPDATE credit_load_orders clo
+               SET
+                 status='approved',
+                 reviewed_at=$2
+               WHERE clo.id=$1
+                 AND clo.status='pending'
+                 AND EXISTS(
+                   SELECT 1
+                   FROM wallets w
+                   WHERE w.user_id=clo.user_id
+                 )
+               RETURNING
+                 clo.id,
+                 clo.user_id,
+                 clo.credits
+             ),
+             purchase AS (
+               INSERT INTO credit_transactions(
+                 id,
+                 user_id,
+                 transaction_type,
+                 promo_change,
+                 purchased_change,
+                 description,
+                 reference_id
+               )
+               SELECT
+                 $3,
+                 r.user_id,
+                 'credit_purchase',
+                 0,
+                 r.credits,
+                 'MQ3 Credit Load',
+                 r.id
+               FROM reviewed r
+               ON CONFLICT DO NOTHING
+               RETURNING
+                 user_id,
+                 purchased_change
+             ),
+             credited AS (
+               UPDATE wallets w
+               SET
+                 purchased_credits=
+                   w.purchased_credits+
+                   p.purchased_change,
+                 updated_at=$2
+               FROM purchase p
+               WHERE w.user_id=p.user_id
+               RETURNING
+                 w.user_id,
+                 w.purchased_credits
+             )
+             SELECT
+               r.id,
+               r.user_id,
+               r.credits,
+               c.purchased_credits
+             FROM reviewed r
+             JOIN credited c
+               ON c.user_id=r.user_id`,
+            [
+              id,
+              now,
+              transactionId
+            ]
+          );
+
+
+        if(rows.length){
+
+          return res.json({
+            ok:true,
+            status:'approved',
+            creditsAdded:
+              Number(
+                rows[0].credits||
+                0
+              ),
+            purchasedCredits:
+              Number(
+                rows[0].purchased_credits||
+                0
+              )
+          });
+        }
+
+
+        const [existing]=
+          await q(
+            `SELECT
+               clo.status,
+               clo.user_id,
+               COALESCE(w.purchased_credits,0) AS purchased_credits,
+               EXISTS(
+                 SELECT 1
+                 FROM credit_transactions ct
+                 WHERE ct.reference_id=clo.id
+                   AND ct.transaction_type='credit_purchase'
+               ) AS credited
+             FROM credit_load_orders clo
+             LEFT JOIN wallets w
+               ON w.user_id=clo.user_id
+             WHERE clo.id=$1`,
+            [
+              id
+            ]
+          );
+
+
+        if(!existing){
+          fail(
+            404,
+            'Credit Load order not found.'
+          );
+        }
+
+
+        if(
+          existing.status==='approved'&&
+          existing.credited===true
+        ){
+          return res.json({
+            ok:true,
+            status:'approved',
+            purchasedCredits:
+              Number(
+                existing.purchased_credits||
+                0
+              )
+          });
+        }
+
+
+        if(existing.status==='rejected'){
+          fail(
+            409,
+            'This Credit Load order was already rejected.'
+          );
+        }
+
+
+        fail(
+          409,
+          'Credit Load approval could not be completed safely. Check the listener wallet and order status.'
+        );
+      }
+    )
+  );
+
+
+  /* =========================================================
      EMAIL ACCESS LINK
   ========================================================= */
 
