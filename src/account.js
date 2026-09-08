@@ -50,6 +50,188 @@ export function accountRoutes({
     );
 
 
+  const paypalBaseUrl=()=>
+    String(env.PAYPAL_ENV||'').toLowerCase()==='live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+
+  async function paypalAccessToken(){
+
+    const clientId=
+      String(env.PAYPAL_CLIENT_ID||'').trim();
+
+    const secret=
+      String(env.PAYPAL_SECRET||'').trim();
+
+
+    if(!clientId||!secret){
+
+      fail(
+        503,
+        'PayPal automatic payments are not configured yet.'
+      );
+    }
+
+
+    const basicAuth=
+      Buffer.from(
+        `${clientId}:${secret}`
+      ).toString('base64');
+
+
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v1/oauth2/token`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Basic ${basicAuth}`,
+            'Content-Type':
+              'application/x-www-form-urlencoded'
+          },
+          body:
+            'grant_type=client_credentials'
+        }
+      );
+
+
+    if(!response.ok){
+
+      const detail=
+        await response.text();
+
+      console.error(
+        '[mq3/paypal/auth]',
+        response.status,
+        detail
+      );
+
+      fail(
+        502,
+        'PayPal authentication failed.'
+      );
+    }
+
+
+    const data=
+      await response.json();
+
+    return data.access_token;
+  }
+
+
+  async function createPaypalCreditOrder(
+    amountPesos,
+    credits
+  ){
+
+    const accessToken=
+      await paypalAccessToken();
+
+
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v2/checkout/orders`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Bearer ${accessToken}`,
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify({
+              intent:'CAPTURE',
+              purchase_units:[
+                {
+                  description:
+                    `MQ3 ${credits} Credits`,
+                  amount:{
+                    currency_code:'PHP',
+                    value:
+                      Number(
+                        amountPesos
+                      ).toFixed(2)
+                  }
+                }
+              ]
+            })
+        }
+      );
+
+
+    const data=
+      await response.json();
+
+
+    if(!response.ok){
+
+      console.error(
+        '[mq3/paypal/create-order]',
+        response.status,
+        data
+      );
+
+      fail(
+        502,
+        'PayPal could not create the payment.'
+      );
+    }
+
+
+    return data;
+  }
+
+
+  async function capturePaypalCreditOrder(
+    orderId
+  ){
+
+    const accessToken=
+      await paypalAccessToken();
+
+
+    const response=
+      await fetch(
+        `${paypalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
+        {
+          method:'POST',
+          headers:{
+            Authorization:
+              `Bearer ${accessToken}`,
+            'Content-Type':
+              'application/json'
+          }
+        }
+      );
+
+
+    const data=
+      await response.json();
+
+
+    if(!response.ok){
+
+      console.error(
+        '[mq3/paypal/capture-order]',
+        response.status,
+        data
+      );
+
+      fail(
+        502,
+        'PayPal could not capture the payment.'
+      );
+    }
+
+
+    return data;
+  }
+
+
   /* =========================================================
      ACCOUNT RESPONSE
   ========================================================= */
@@ -874,6 +1056,438 @@ Music. Quality. 3rd Gen.`,
             })
           )
       });
+    }
+  );
+
+
+  /* =========================================================
+     AUTOMATIC PAYPAL CREDIT LOAD
+  ========================================================= */
+
+  app.post(
+    '/api/account/paypal/create-order',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'paypal-create-order',
+          8
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const amountPesos=
+          Number(
+            req.body.amountPesos
+          );
+
+
+        const expectedCredits=
+          CREDIT_LOAD_PACKAGES[
+            amountPesos
+          ];
+
+
+        if(
+          !Number.isInteger(amountPesos)||
+          !expectedCredits
+        ){
+
+          fail(
+            400,
+            'Choose a valid MQ3 Credit package.'
+          );
+        }
+
+
+        const paypalOrder=
+          await createPaypalCreditOrder(
+            amountPesos,
+            expectedCredits
+          );
+
+
+        const orderId=
+          String(
+            paypalOrder?.id||
+            ''
+          ).trim();
+
+
+        if(!orderId){
+
+          fail(
+            502,
+            'PayPal did not return an order ID.'
+          );
+        }
+
+
+        const id=
+          randomUUID();
+
+
+        await q(
+          `INSERT INTO credit_load_orders(
+             id,
+             user_id,
+             amount_pesos,
+             credits,
+             payment_provider,
+             payment_reference,
+             status
+           )
+           VALUES(
+             $1,
+             $2,
+             $3,
+             $4,
+             'paypal',
+             $5,
+             'pending'
+           )`,
+          [
+            id,
+            userId,
+            amountPesos,
+            expectedCredits,
+            orderId
+          ]
+        );
+
+
+        res.status(
+          201
+        ).json({
+          ok:true,
+          orderId,
+          creditLoadOrderId:
+            id,
+          amountPesos,
+          credits:
+            expectedCredits
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  app.post(
+    '/api/account/paypal/capture-order',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'paypal-capture-order',
+          12
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const orderId=
+          String(
+            req.body.orderId||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
+
+
+        if(
+          orderId.length<6||
+          orderId.length>100
+        ){
+
+          fail(
+            400,
+            'Invalid PayPal order.'
+          );
+        }
+
+
+        const [loadOrder]=
+          await q(
+            `SELECT
+               id,
+               amount_pesos,
+               credits,
+               status
+             FROM credit_load_orders
+             WHERE user_id=$1
+               AND payment_provider='paypal'
+               AND payment_reference=$2
+             LIMIT 1`,
+            [
+              userId,
+              orderId
+            ]
+          );
+
+
+        if(!loadOrder){
+
+          fail(
+            404,
+            'MQ3 PayPal Credit Load order not found.'
+          );
+        }
+
+
+        if(loadOrder.status==='approved'){
+
+          return res.json({
+            ok:true,
+            status:'approved',
+            alreadyCredited:true,
+            account:
+              await accountData(
+                userId
+              )
+          });
+        }
+
+
+        if(loadOrder.status!=='pending'){
+
+          fail(
+            409,
+            'This PayPal Credit Load is no longer pending.'
+          );
+        }
+
+
+        const capture=
+          await capturePaypalCreditOrder(
+            orderId
+          );
+
+
+        const purchaseUnit=
+          capture?.purchase_units?.[0];
+
+        const captured=
+          purchaseUnit?.payments?.captures?.[0];
+
+        const paidAmount=
+          Number(
+            captured?.amount?.value
+          );
+
+        const paidCurrency=
+          String(
+            captured?.amount?.currency_code||
+            ''
+          ).toUpperCase();
+
+
+        const completed=
+          capture?.status==='COMPLETED'&&
+          captured?.status==='COMPLETED';
+
+
+        const expectedAmount=
+          Number(
+            loadOrder.amount_pesos
+          );
+
+
+        if(
+          !completed||
+          paidCurrency!=='PHP'||
+          !Number.isFinite(paidAmount)||
+          paidAmount!==expectedAmount
+        ){
+
+          console.error(
+            '[mq3/paypal/verification-failed]',
+            {
+              orderId,
+              orderStatus:
+                capture?.status,
+              captureStatus:
+                captured?.status,
+              paidAmount,
+              paidCurrency,
+              expectedAmount
+            }
+          );
+
+          fail(
+            400,
+            'PayPal payment could not be verified.'
+          );
+        }
+
+
+        const transactionId=
+          randomUUID();
+
+        const now=
+          new Date();
+
+
+        const rows=
+          await q(
+            `WITH reviewed AS (
+               UPDATE credit_load_orders clo
+               SET
+                 status='approved',
+                 reviewed_at=$2
+               WHERE clo.id=$1
+                 AND clo.user_id=$4
+                 AND clo.status='pending'
+                 AND EXISTS(
+                   SELECT 1
+                   FROM wallets w
+                   WHERE w.user_id=clo.user_id
+                 )
+               RETURNING
+                 clo.id,
+                 clo.user_id,
+                 clo.credits
+             ),
+             purchase AS (
+               INSERT INTO credit_transactions(
+                 id,
+                 user_id,
+                 transaction_type,
+                 promo_change,
+                 purchased_change,
+                 description,
+                 reference_id
+               )
+               SELECT
+                 $3,
+                 r.user_id,
+                 'credit_purchase',
+                 0,
+                 r.credits,
+                 'MQ3 PayPal Credit Load',
+                 r.id
+               FROM reviewed r
+               ON CONFLICT DO NOTHING
+               RETURNING
+                 user_id,
+                 purchased_change
+             ),
+             credited AS (
+               UPDATE wallets w
+               SET
+                 purchased_credits=
+                   w.purchased_credits+
+                   p.purchased_change,
+                 updated_at=$2
+               FROM purchase p
+               WHERE w.user_id=p.user_id
+               RETURNING
+                 w.user_id,
+                 w.purchased_credits
+             )
+             SELECT
+               r.id,
+               r.credits,
+               c.purchased_credits
+             FROM reviewed r
+             JOIN credited c
+               ON c.user_id=r.user_id`,
+            [
+              loadOrder.id,
+              now,
+              transactionId,
+              userId
+            ]
+          );
+
+
+        if(!rows.length){
+
+          const [existing]=
+            await q(
+              `SELECT
+                 clo.status,
+                 EXISTS(
+                   SELECT 1
+                   FROM credit_transactions ct
+                   WHERE ct.reference_id=clo.id
+                     AND ct.transaction_type='credit_purchase'
+                 ) AS credited
+               FROM credit_load_orders clo
+               WHERE clo.id=$1
+                 AND clo.user_id=$2`,
+              [
+                loadOrder.id,
+                userId
+              ]
+            );
+
+
+          if(
+            existing?.status==='approved'&&
+            existing?.credited===true
+          ){
+
+            return res.json({
+              ok:true,
+              status:'approved',
+              alreadyCredited:true,
+              account:
+                await accountData(
+                  userId
+                )
+            });
+          }
+
+
+          fail(
+            409,
+            'PayPal payment was captured, but MQ3 could not safely add the Credits. Please contact MQ3 support.'
+          );
+        }
+
+
+        res.json({
+          ok:true,
+          status:'approved',
+          creditsAdded:
+            Number(
+              rows[0].credits||
+              0
+            ),
+          purchasedCredits:
+            Number(
+              rows[0].purchased_credits||
+              0
+            ),
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
     }
   );
 
