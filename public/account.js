@@ -25,6 +25,15 @@
   let pendingEmail = '';
   let currentAccount = null;
 
+  const giftMeta = {
+    heart: {emoji: '❤️', name: 'Heart'},
+    rose: {emoji: '🌹', name: 'Rose'},
+    star: {emoji: '⭐', name: 'Star'},
+    music_note: {emoji: '🎵', name: 'Music Note'},
+    crown: {emoji: '👑', name: 'Crown'},
+    shoutout: {emoji: '📣', name: 'Shout-out'}
+  };
+
 
   /* =========================================================
      HELPERS
@@ -87,6 +96,136 @@
 
 
   /* =========================================================
+     GIFT HISTORY DISPLAY
+  ========================================================= */
+
+  function ensureGiftHistory() {
+    let section = $('account-gift-history');
+
+    if (section) return section;
+
+    section = document.createElement('section');
+    section.id = 'account-gift-history';
+    section.style.marginTop = '18px';
+    section.style.paddingTop = '16px';
+    section.style.borderTop = '1px solid rgba(212,175,55,.28)';
+
+    const heading = document.createElement('div');
+    heading.style.display = 'flex';
+    heading.style.justifyContent = 'space-between';
+    heading.style.alignItems = 'center';
+    heading.style.gap = '12px';
+    heading.style.marginBottom = '10px';
+
+    const title = document.createElement('strong');
+    title.textContent = '🎁 Recent Gifts';
+
+    const lifetime = document.createElement('span');
+    lifetime.id = 'account-lifetime-gifted';
+    lifetime.style.fontSize = '.9rem';
+    lifetime.style.opacity = '.86';
+
+    const list = document.createElement('div');
+    list.id = 'account-gift-list';
+
+    heading.append(title, lifetime);
+    section.append(heading, list);
+
+    const doneButton = $('account-done');
+    if (doneButton && doneButton.parentNode === accountPanel) {
+      accountPanel.insertBefore(section, doneButton);
+    } else {
+      accountPanel.append(section);
+    }
+
+    return section;
+  }
+
+  function displayGiftHistory(account) {
+    const section = ensureGiftHistory();
+    const lifetime = $('account-lifetime-gifted');
+    const list = $('account-gift-list');
+
+    const lifetimeGifted =
+      Number(account.lifetimeGifted || 0);
+
+    lifetime.textContent =
+      `${lifetimeGifted.toLocaleString()} lifetime Credits`;
+
+    const gifts =
+      Array.isArray(account.giftHistory)
+        ? account.giftHistory
+        : [];
+
+    list.replaceChildren();
+
+    if (!gifts.length) {
+      const empty = document.createElement('div');
+      empty.textContent =
+        'No gifts sent yet. Support a song you love with your first gift. ❤️';
+      empty.style.opacity = '.78';
+      empty.style.fontSize = '.92rem';
+      empty.style.lineHeight = '1.45';
+      list.append(empty);
+      return;
+    }
+
+    for (const gift of gifts) {
+      const meta =
+        giftMeta[gift.type] ||
+        {emoji: '🎁', name: 'Gift'};
+
+      const item = document.createElement('div');
+      item.style.padding = '10px 0';
+      item.style.borderBottom =
+        '1px solid rgba(255,255,255,.08)';
+
+      const top = document.createElement('div');
+      top.style.display = 'flex';
+      top.style.justifyContent = 'space-between';
+      top.style.gap = '12px';
+
+      const label = document.createElement('strong');
+      label.textContent =
+        `${meta.emoji} ${meta.name}`;
+
+      const credits = document.createElement('span');
+      const amount = Number(gift.credits || 0);
+      credits.textContent =
+        `${amount.toLocaleString()} ${amount === 1 ? 'Credit' : 'Credits'}`;
+
+      const song = document.createElement('div');
+      song.textContent = gift.songTitle || 'MQ3 Song';
+      song.style.marginTop = '3px';
+      song.style.fontSize = '.92rem';
+      song.style.opacity = '.86';
+
+      const date = document.createElement('div');
+      date.style.marginTop = '3px';
+      date.style.fontSize = '.8rem';
+      date.style.opacity = '.62';
+
+      const parsedDate = new Date(gift.createdAt);
+      date.textContent =
+        Number.isNaN(parsedDate.getTime())
+          ? ''
+          : parsedDate.toLocaleString();
+
+      top.append(label, credits);
+      item.append(top, song);
+
+      if (date.textContent) {
+        item.append(date);
+      }
+
+      list.append(item);
+    }
+
+    show(section);
+  }
+
+
+  /* =========================================================
      ACCOUNT DISPLAY
   ========================================================= */
 
@@ -116,6 +255,8 @@
     );
 
     creditBalance.textContent = total.toLocaleString();
+
+    displayGiftHistory(account);
 
     if (promo > 0) {
       welcomeBonus.textContent =
@@ -396,6 +537,15 @@
       button.disabled = false;
       button.textContent = 'Sign Out';
     }
+  });
+
+
+  /* =========================================================
+     WALLET / GIFT REFRESH
+  ========================================================= */
+
+  window.addEventListener('mq3-wallet-updated', () => {
+    loadAccount();
   });
 
 
