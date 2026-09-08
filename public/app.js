@@ -896,6 +896,131 @@ function renderRecent(){
 }
 
 
+
+/* =========================================================
+   MQ3 VIRTUAL GIFTS
+========================================================= */
+
+const MQ3_GIFTS=[
+  {type:'heart',name:'Heart',emoji:'❤️',credits:1},
+  {type:'rose',name:'Rose',emoji:'🌹',credits:5},
+  {type:'star',name:'Star',emoji:'⭐',credits:10},
+  {type:'music_note',name:'Music Note',emoji:'🎵',credits:25},
+  {type:'crown',name:'Crown',emoji:'👑',credits:50},
+  {type:'shoutout',name:'Shout-out',emoji:'📣',credits:100}
+];
+
+function ensureGiftDialog(){
+  let dialog=$('mq3-gift-dialog');
+  if(dialog) return dialog;
+
+  dialog=node('dialog',undefined,'mq3-gift-dialog');
+  dialog.id='mq3-gift-dialog';
+
+  const box=node('div',undefined,'mq3-gift-box');
+  const title=node('h2','Send a Gift');
+  title.id='mq3-gift-title';
+
+  const song=node('p','','mq3-gift-song');
+  song.id='mq3-gift-song';
+
+  const choices=node('div',undefined,'mq3-gift-choices');
+  choices.id='mq3-gift-choices';
+
+  const close=node('button','Cancel','button');
+  close.type='button';
+  close.onclick=()=>dialog.close();
+
+  box.append(title,song,choices,close);
+  dialog.append(box);
+
+  dialog.addEventListener('click',e=>{
+    if(e.target===dialog) dialog.close();
+  });
+
+  document.body.append(dialog);
+  return dialog;
+}
+
+async function sendGift(song,gift){
+  try{
+    const response=await fetch(
+      '/api/gifts/send',
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body:JSON.stringify({
+          songId:song.id,
+          giftType:gift.type
+        })
+      }
+    );
+
+    const data=await response.json();
+
+    if(!response.ok){
+      if(response.status===401){
+        toast('Sign in first to send a gift.');
+        $('mq3-gift-dialog')?.close();
+        $('account-button')?.click();
+        return;
+      }
+      throw Error(data.error||'Gift could not be sent.');
+    }
+
+    $('mq3-gift-dialog')?.close();
+
+    toast(
+      `${gift.emoji} ${gift.name} sent to "${song.title}"! ${data.wallet.balance} Credits left.`
+    );
+
+    const accountButton=$('account-button');
+    if(accountButton){
+      accountButton.textContent=`🪙 ${data.wallet.balance} Credits`;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(
+        'mq3-wallet-updated',
+        {detail:data.wallet}
+      )
+    );
+
+  }catch(e){
+    toast(e.message||'Gift could not be sent.');
+  }
+}
+
+function openGiftDialog(song){
+  const dialog=ensureGiftDialog();
+
+  $('mq3-gift-song').textContent=song.title;
+
+  const choices=$('mq3-gift-choices');
+  choices.replaceChildren();
+
+  MQ3_GIFTS.forEach(gift=>{
+    const button=node(
+      'button',
+      `${gift.emoji} ${gift.name} · ${gift.credits}`,
+      'button mq3-gift-choice'
+    );
+
+    button.type='button';
+
+    button.onclick=async()=>{
+      button.disabled=true;
+      await sendGift(song,gift);
+      button.disabled=false;
+    };
+
+    choices.append(button);
+  });
+
+  dialog.showModal();
+}
+
 function render(){
 
   const list=
@@ -1177,10 +1302,31 @@ function render(){
           showLyrics(t);
 
 
+      const gift=
+        node(
+          'button',
+          '🎁 Gift',
+          'lyrics-button'
+        );
+
+
+      gift.setAttribute(
+        'aria-label',
+        'Send a gift to '+
+        t.title
+      );
+
+
+      gift.onclick=
+        ()=>
+          openGiftDialog(t);
+
+
       info.append(
         title,
         meta,
-        lyrics
+        lyrics,
+        gift
       );
 
 
