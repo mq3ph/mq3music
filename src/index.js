@@ -2410,6 +2410,15 @@ Keep this link private. Memberships expire on the stated access date.`,
         );
 
 
+      if(status>=500){
+
+        console.error(
+          'MQ3 API ERROR:',
+          err
+        );
+      }
+
+
       res.status(status)
         .json({
 
@@ -2418,7 +2427,11 @@ Keep this link private. Memberships expire on the stated access date.`,
               ?'This reference is already recorded. Check the existing order.'
               :status>=500&&
                 !err.status
-                ?'Service unavailable. Check your server configuration.'
+                ?(
+                    process.env.NODE_ENV==='production'
+                      ?`DIAGNOSTIC: ${err.message||'Unknown server error.'}`
+                      :(err.message||'Service unavailable.')
+                  )
                 :err.message
         });
     }
