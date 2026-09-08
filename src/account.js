@@ -20,6 +20,15 @@ const DISPLAY_NAME_CHANGE_MS=
   30*24*60*60*1000;
 
 
+const CREDIT_LOAD_PACKAGES={
+  50:50,
+  100:105,
+  250:275,
+  500:575,
+  1000:1200
+};
+
+
 /* =========================================================
    MQ3 LISTENER ACCOUNT ROUTES
 ========================================================= */
@@ -113,6 +122,27 @@ export function accountRoutes({
       );
 
 
+    const creditLoadOrders=
+      await q(
+        `SELECT
+           id,
+           amount_pesos,
+           credits,
+           payment_provider,
+           payment_reference,
+           status,
+           created_at,
+           reviewed_at
+         FROM credit_load_orders
+         WHERE user_id=$1
+         ORDER BY created_at DESC
+         LIMIT 25`,
+        [
+          userId
+        ]
+      );
+
+
     return {
 
       id:
@@ -179,6 +209,42 @@ export function accountRoutes({
 
             createdAt:
               gift.created_at
+          })
+        ),
+
+      creditLoadOrders:
+        creditLoadOrders.map(
+          order=>({
+            id:
+              order.id,
+
+            amountPesos:
+              Number(
+                order.amount_pesos||
+                0
+              ),
+
+            credits:
+              Number(
+                order.credits||
+                0
+              ),
+
+            paymentProvider:
+              order.payment_provider,
+
+            paymentReference:
+              order.payment_reference||
+              '',
+
+            status:
+              order.status,
+
+            createdAt:
+              order.created_at,
+
+            reviewedAt:
+              order.reviewed_at
           })
         ),
 
@@ -770,6 +836,240 @@ Music. Quality. 3rd Gen.`,
 
         res.json({
           signedIn:true,
+
+          account:
+            await accountData(
+              userId
+            )
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
+     CREDIT LOAD PACKAGES
+  ========================================================= */
+
+  app.get(
+    '/api/account/credit-packages',
+    (_req,res)=>{
+
+      res.json({
+        packages:
+          Object.entries(
+            CREDIT_LOAD_PACKAGES
+          ).map(
+            ([amountPesos,credits])=>({
+              amountPesos:
+                Number(
+                  amountPesos
+                ),
+
+              credits
+            })
+          )
+      });
+    }
+  );
+
+
+  /* =========================================================
+     CREATE CREDIT LOAD ORDER
+  ========================================================= */
+
+  app.post(
+    '/api/account/credit-load',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'credit-load',
+          8
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const amountPesos=
+          Number(
+            req.body.amountPesos
+          );
+
+
+        const expectedCredits=
+          CREDIT_LOAD_PACKAGES[
+            amountPesos
+          ];
+
+
+        if(
+          !Number.isInteger(amountPesos)||
+          !expectedCredits
+        ){
+
+          fail(
+            400,
+            'Choose a valid MQ3 Credit package.'
+          );
+        }
+
+
+        const paymentProvider=
+          String(
+            req.body.paymentProvider||
+            ''
+          ).trim().toLowerCase();
+
+
+        if(
+          ![
+            'gcash',
+            'paypal'
+          ].includes(
+            paymentProvider
+          )
+        ){
+
+          fail(
+            400,
+            'Choose GCash or PayPal.'
+          );
+        }
+
+
+        const paymentReference=
+          String(
+            req.body.paymentReference||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
+
+
+        if(
+          paymentReference.length<4||
+          paymentReference.length>100
+        ){
+
+          fail(
+            400,
+            'Enter a valid payment reference.'
+          );
+        }
+
+
+        const duplicate=
+          await q(
+            `SELECT id
+             FROM credit_load_orders
+             WHERE payment_provider=$1
+               AND LOWER(payment_reference)=LOWER($2)
+             LIMIT 1`,
+            [
+              paymentProvider,
+              paymentReference
+            ]
+          );
+
+
+        if(duplicate.length){
+
+          fail(
+            409,
+            'This payment reference has already been submitted.'
+          );
+        }
+
+
+        const id=
+          randomUUID();
+
+
+        const [order]=
+          await q(
+            `INSERT INTO credit_load_orders(
+               id,
+               user_id,
+               amount_pesos,
+               credits,
+               payment_provider,
+               payment_reference,
+               status
+             )
+             VALUES(
+               $1,
+               $2,
+               $3,
+               $4,
+               $5,
+               $6,
+               'pending'
+             )
+             RETURNING
+               id,
+               amount_pesos,
+               credits,
+               payment_provider,
+               payment_reference,
+               status,
+               created_at`,
+            [
+              id,
+              userId,
+              amountPesos,
+              expectedCredits,
+              paymentProvider,
+              paymentReference
+            ]
+          );
+
+
+        res.status(
+          201
+        ).json({
+          ok:true,
+
+          message:
+            'Payment submitted for MQ3 verification.',
+
+          order:{
+            id:
+              order.id,
+
+            amountPesos:
+              Number(
+                order.amount_pesos
+              ),
+
+            credits:
+              Number(
+                order.credits
+              ),
+
+            paymentProvider:
+              order.payment_provider,
+
+            paymentReference:
+              order.payment_reference,
+
+            status:
+              order.status,
+
+            createdAt:
+              order.created_at
+          },
 
           account:
             await accountData(
