@@ -311,8 +311,9 @@ export function giftRoutes({
               $3,
               user_id,
               $4,
+              $5,
               $2::integer,
-              $5
+              $6
 
             FROM updated_wallet
 
@@ -334,12 +335,12 @@ export function giftRoutes({
             )
 
             SELECT
-              $6,
+              $7,
               user_id,
               'gift_sent',
               -promo_used,
               -purchased_used,
-              $7,
+              $8,
               $3
 
             FROM updated_wallet
@@ -367,6 +368,7 @@ export function giftRoutes({
             user.id,
             credits,
             giftId,
+            songId,
             giftType,
             message,
             transactionId,
