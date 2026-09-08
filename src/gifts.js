@@ -233,6 +233,80 @@ export function giftRoutes({
 
 
   /* =========================================================
+     PUBLIC TOP SUPPORTERS LEADERBOARD
+  ========================================================= */
+
+  app.get(
+    '/api/gifts/leaderboard',
+    async(_req,res,next)=>{
+
+      try{
+
+        const rows=
+          await q(
+            `
+              SELECT
+                u.display_name,
+                COALESCE(
+                  w.lifetime_gifted,
+                  0
+                )::integer AS lifetime_gifted
+              FROM wallets w
+              JOIN users u
+                ON u.id=w.user_id
+              WHERE
+                COALESCE(
+                  w.lifetime_gifted,
+                  0
+                )>0
+                AND NULLIF(
+                  BTRIM(
+                    u.display_name
+                  ),
+                  ''
+                ) IS NOT NULL
+              ORDER BY
+                w.lifetime_gifted DESC,
+                LOWER(
+                  u.display_name
+                ) ASC,
+                u.display_name ASC
+              LIMIT 25
+            `
+          );
+
+
+        const supporters=
+          rows.map(
+            (row,index)=>({
+              rank:
+                index+1,
+
+              displayName:
+                row.display_name,
+
+              lifetimeGifted:
+                Number(
+                  row.lifetime_gifted||
+                  0
+                )
+            })
+          );
+
+
+        res.json({
+          supporters
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  /* =========================================================
      SEND GIFT
   ========================================================= */
 
