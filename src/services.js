@@ -4,6 +4,7 @@ import {
   get,
   del
 } from '@vercel/blob';
+import nodemailer from 'nodemailer';
 
 
 export function services(env=process.env){
@@ -55,7 +56,7 @@ export function services(env=process.env){
 
 
     /* =========================================================
-       EMAIL
+       EMAIL — GMAIL
     ========================================================= */
 
     async mail(
@@ -66,13 +67,13 @@ export function services(env=process.env){
     ){
 
       if(
-        !env.RESEND_API_KEY||
-        !env.EMAIL_FROM
+        !env.GMAIL_USER||
+        !env.GMAIL_APP_PASSWORD
       ){
 
         throw Object.assign(
           new Error(
-            'Connect Resend and EMAIL_FROM before sending email.'
+            'Connect Gmail before sending email.'
           ),
           {
             status:503
@@ -81,48 +82,50 @@ export function services(env=process.env){
       }
 
 
-      const r=
-        await fetch(
-          'https://api.resend.com/emails',
-          {
-            method:'POST',
+      const transporter=
+        nodemailer.createTransport({
+          service:'gmail',
 
-            headers:{
-              Authorization:
-                `Bearer ${env.RESEND_API_KEY}`,
+          auth:{
+            user:
+              env.GMAIL_USER,
 
-              'Content-Type':
-                'application/json',
-
-              'Idempotency-Key':
-                key
-            },
-
-            body:
-              JSON.stringify({
-                from:
-                  env.EMAIL_FROM,
-
-                to:[
-                  to
-                ],
-
-                subject,
-
-                text:
-                  body
-              })
+            pass:
+              env.GMAIL_APP_PASSWORD
           }
+        });
+
+
+      try{
+
+        await transporter.sendMail({
+          from:
+            `MQ3 Music <${env.GMAIL_USER}>`,
+
+          to,
+
+          subject,
+
+          text:
+            body,
+
+          headers:{
+            'X-MQ3-Message-Key':
+              key
+          }
+        });
+
+      }catch(error){
+
+        console.error(
+          'Gmail send failed:',
+          error
         );
 
 
-      if(
-        !r.ok
-      ){
-
         throw Object.assign(
           new Error(
-            'Email was not accepted. Check Resend settings, then retry.'
+            'Email was not accepted. Check Gmail settings, then retry.'
           ),
           {
             status:502
