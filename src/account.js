@@ -87,6 +87,28 @@ export function accountRoutes({
       );
 
 
+    const giftHistory=
+      await q(
+        `SELECT
+           g.id,
+           g.gift_type,
+           g.credits,
+           g.message,
+           g.created_at,
+           s.id AS song_id,
+           s.title AS song_title
+         FROM gifts g
+         JOIN songs s
+           ON s.id=g.song_id
+         WHERE g.user_id=$1
+         ORDER BY g.created_at DESC
+         LIMIT 50`,
+        [
+          userId
+        ]
+      );
+
+
     return {
 
       id:
@@ -111,6 +133,36 @@ export function accountRoutes({
         Number(
           row.lifetime_gifted||
           0
+        ),
+
+      giftHistory:
+        giftHistory.map(
+          gift=>({
+            id:
+              gift.id,
+
+            type:
+              gift.gift_type,
+
+            credits:
+              Number(
+                gift.credits||
+                0
+              ),
+
+            message:
+              gift.message||
+              '',
+
+            songId:
+              gift.song_id,
+
+            songTitle:
+              gift.song_title,
+
+            createdAt:
+              gift.created_at
+          })
         ),
 
       welcomeBonusClaimed:
