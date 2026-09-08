@@ -449,6 +449,447 @@ function showDeleteConfirm(title){
 }
 
 
+
+/* =========================================================
+   MQ3 PAYMENT CONFIRMATION MODAL
+========================================================= */
+
+function showPaymentConfirm({
+  mode='approve',
+  amountPesos=0,
+  credits=0,
+  displayName='Listener',
+  provider='Payment',
+  reference='—'
+}={}){
+
+  if(
+    !document.getElementById(
+      'mq3-payment-modal-style'
+    )
+  ){
+
+    const style=
+      document.createElement(
+        'style'
+      );
+
+    style.id=
+      'mq3-payment-modal-style';
+
+    style.textContent=`
+      .mq3-payment-modal{
+        width:min(92vw,500px);
+        border:1px solid rgba(232,184,91,.58);
+        border-radius:24px;
+        padding:0;
+        color:#f8e7bd;
+        background:
+          radial-gradient(circle at top right,rgba(145,66,31,.28),transparent 42%),
+          linear-gradient(180deg,#2a0807 0%,#120504 100%);
+        box-shadow:
+          0 30px 90px rgba(0,0,0,.68),
+          inset 0 1px 0 rgba(255,255,255,.05);
+      }
+
+      .mq3-payment-modal::backdrop{
+        background:rgba(0,0,0,.76);
+        backdrop-filter:blur(4px);
+      }
+
+      .mq3-payment-wrap{
+        padding:30px;
+      }
+
+      .mq3-payment-kicker{
+        margin:0 0 9px;
+        color:#e8b85b;
+        font-size:11px;
+        font-weight:900;
+        letter-spacing:.2em;
+        text-transform:uppercase;
+      }
+
+      .mq3-payment-title{
+        margin:0;
+        color:#ffe7a8;
+        font-family:Georgia,serif;
+        font-size:28px;
+        line-height:1.18;
+      }
+
+      .mq3-payment-copy{
+        margin:12px 0 20px;
+        color:#d9c8b0;
+        font-size:14px;
+        line-height:1.6;
+      }
+
+      .mq3-payment-card{
+        display:grid;
+        gap:0;
+        overflow:hidden;
+        border:1px solid rgba(232,184,91,.25);
+        border-radius:17px;
+        background:rgba(0,0,0,.18);
+      }
+
+      .mq3-payment-line{
+        display:flex;
+        justify-content:space-between;
+        gap:20px;
+        padding:12px 15px;
+        border-bottom:1px solid rgba(232,184,91,.12);
+      }
+
+      .mq3-payment-line:last-child{
+        border-bottom:0;
+      }
+
+      .mq3-payment-label{
+        color:#ad9a83;
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+      }
+
+      .mq3-payment-value{
+        color:#fff0c5;
+        font-weight:800;
+        text-align:right;
+        overflow-wrap:anywhere;
+      }
+
+      .mq3-payment-warning{
+        margin:18px 0 0;
+        padding:12px 14px;
+        border-radius:14px;
+        color:#e4d4bb;
+        background:rgba(232,184,91,.07);
+        font-size:13px;
+        line-height:1.55;
+      }
+
+      .mq3-payment-actions{
+        display:flex;
+        justify-content:flex-end;
+        gap:12px;
+        margin-top:24px;
+        flex-wrap:wrap;
+      }
+
+      .mq3-payment-cancel,
+      .mq3-payment-approve,
+      .mq3-payment-reject{
+        min-width:130px;
+        border-radius:999px;
+        padding:12px 19px;
+        font:inherit;
+        font-weight:900;
+        cursor:pointer;
+      }
+
+      .mq3-payment-cancel{
+        border:1px solid rgba(232,184,91,.5);
+        color:#f8e7bd;
+        background:transparent;
+      }
+
+      .mq3-payment-approve{
+        border:1px solid #f3cf77;
+        color:#2a1603;
+        background:linear-gradient(180deg,#f5d37e,#dcae4e);
+        box-shadow:0 9px 24px rgba(218,166,68,.2);
+      }
+
+      .mq3-payment-reject{
+        border:1px solid #d9634c;
+        color:#fff8ef;
+        background:linear-gradient(180deg,#a62f26,#751d18);
+        box-shadow:0 9px 24px rgba(129,28,22,.28);
+      }
+
+      .mq3-payment-cancel:hover,
+      .mq3-payment-approve:hover,
+      .mq3-payment-reject:hover{
+        filter:brightness(1.08);
+      }
+
+      .mq3-payment-cancel:focus-visible,
+      .mq3-payment-approve:focus-visible,
+      .mq3-payment-reject:focus-visible{
+        outline:2px solid #f2c86d;
+        outline-offset:3px;
+      }
+
+      @media(max-width:520px){
+        .mq3-payment-wrap{
+          padding:24px 20px 20px;
+        }
+
+        .mq3-payment-line{
+          align-items:flex-start;
+          flex-direction:column;
+          gap:5px;
+        }
+
+        .mq3-payment-value{
+          text-align:left;
+        }
+
+        .mq3-payment-actions{
+          display:grid;
+          grid-template-columns:1fr 1fr;
+        }
+
+        .mq3-payment-cancel,
+        .mq3-payment-approve,
+        .mq3-payment-reject{
+          min-width:0;
+          width:100%;
+        }
+      }
+    `;
+
+    document.head.append(style);
+  }
+
+
+  return new Promise(
+    resolve=>{
+
+      const rejecting=
+        mode==='reject';
+
+      const dialog=
+        document.createElement(
+          'dialog'
+        );
+
+      dialog.className=
+        'mq3-payment-modal';
+
+
+      const wrap=
+        node(
+          'div',
+          undefined,
+          'mq3-payment-wrap'
+        );
+
+      const kicker=
+        node(
+          'p',
+          'MQ3 · CREDIT LOAD',
+          'mq3-payment-kicker'
+        );
+
+      const heading=
+        node(
+          'h2',
+          rejecting
+            ?'Reject Credit Load?'
+            :'Verify Payment',
+          'mq3-payment-title'
+        );
+
+      const copy=
+        node(
+          'p',
+          rejecting
+            ?'Reject this submitted Credit Load without adding Credits to the listener wallet.'
+            :'Confirm that you checked the actual payment in your payment account before adding Credits.',
+          'mq3-payment-copy'
+        );
+
+      const card=
+        node(
+          'div',
+          undefined,
+          'mq3-payment-card'
+        );
+
+
+      const addLine=(label,value)=>{
+
+        const line=
+          node(
+            'div',
+            undefined,
+            'mq3-payment-line'
+          );
+
+        line.append(
+          node(
+            'span',
+            label,
+            'mq3-payment-label'
+          ),
+          node(
+            'span',
+            value,
+            'mq3-payment-value'
+          )
+        );
+
+        card.append(line);
+      };
+
+
+      addLine(
+        'Listener',
+        displayName||'Listener'
+      );
+
+      addLine(
+        'Amount',
+        '₱'+
+          Number(
+            amountPesos||0
+          ).toLocaleString()
+      );
+
+      addLine(
+        'Credits',
+        Number(
+          credits||0
+        ).toLocaleString()+
+          ' Credits'
+      );
+
+      addLine(
+        'Payment',
+        String(
+          provider||'Payment'
+        ).toUpperCase()
+      );
+
+      addLine(
+        'Reference',
+        reference||'—'
+      );
+
+
+      const warning=
+        node(
+          'p',
+          rejecting
+            ?'Rejected orders cannot be approved later from this admin screen.'
+            :'Only approve after independently verifying the amount and reference. Approval adds purchased Credits to the wallet.',
+          'mq3-payment-warning'
+        );
+
+
+      const buttons=
+        node(
+          'div',
+          undefined,
+          'mq3-payment-actions'
+        );
+
+
+      const cancel=
+        node(
+          'button',
+          'Cancel',
+          'mq3-payment-cancel'
+        );
+
+      cancel.type='button';
+
+
+      const proceed=
+        node(
+          'button',
+          rejecting
+            ?'Reject Load'
+            :'Approve Credits',
+          rejecting
+            ?'mq3-payment-reject'
+            :'mq3-payment-approve'
+        );
+
+      proceed.type='button';
+
+
+      buttons.append(
+        cancel,
+        proceed
+      );
+
+
+      wrap.append(
+        kicker,
+        heading,
+        copy,
+        card,
+        warning,
+        buttons
+      );
+
+      dialog.append(wrap);
+
+      document.body.append(dialog);
+
+
+      let settled=false;
+
+      const finish=value=>{
+
+        if(settled){
+          return;
+        }
+
+        settled=true;
+
+        if(dialog.open){
+          dialog.close();
+        }
+
+        dialog.remove();
+
+        resolve(value);
+      };
+
+
+      cancel.onclick=
+        ()=>finish(false);
+
+      proceed.onclick=
+        ()=>finish(true);
+
+
+      dialog.addEventListener(
+        'cancel',
+        e=>{
+
+          e.preventDefault();
+
+          finish(false);
+        }
+      );
+
+
+      dialog.addEventListener(
+        'click',
+        e=>{
+
+          if(e.target===dialog){
+            finish(false);
+          }
+        }
+      );
+
+
+      dialog.showModal();
+
+      cancel.focus();
+    }
+  );
+}
+
+
 const money=n=>
   '₱'+
   (
@@ -1696,11 +2137,24 @@ function render(){
                 'Approve',
                 async()=>{
 
-                  if(
-                    !confirm(
-                      `Have you independently verified ₱${Number(creditLoad.amountPesos||0).toLocaleString()} and reference ${creditLoad.paymentReference||'—'} in your ${String(creditLoad.paymentProvider||'payment').toUpperCase()} account?\n\nApprove ${Number(creditLoad.credits||0).toLocaleString()} Credits for ${creditLoad.displayName||creditLoad.email}?`
-                    )
-                  ){
+                  const approved=
+                    await showPaymentConfirm({
+                      mode:'approve',
+                      amountPesos:
+                        creditLoad.amountPesos,
+                      credits:
+                        creditLoad.credits,
+                      displayName:
+                        creditLoad.displayName||
+                        creditLoad.email,
+                      provider:
+                        creditLoad.paymentProvider,
+                      reference:
+                        creditLoad.paymentReference
+                    });
+
+
+                  if(!approved){
                     return;
                   }
 
@@ -1729,11 +2183,24 @@ function render(){
                 'Reject',
                 async()=>{
 
-                  if(
-                    !confirm(
-                      `Reject this Credit Load?\n\n${creditLoad.displayName||creditLoad.email} · ₱${Number(creditLoad.amountPesos||0).toLocaleString()} · ${creditLoad.paymentReference||'No reference'}`
-                    )
-                  ){
+                  const rejected=
+                    await showPaymentConfirm({
+                      mode:'reject',
+                      amountPesos:
+                        creditLoad.amountPesos,
+                      credits:
+                        creditLoad.credits,
+                      displayName:
+                        creditLoad.displayName||
+                        creditLoad.email,
+                      provider:
+                        creditLoad.paymentProvider,
+                      reference:
+                        creditLoad.paymentReference
+                    });
+
+
+                  if(!rejected){
                     return;
                   }
 
