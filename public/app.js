@@ -31,9 +31,8 @@ const symbols=[
 ];
 
 const artFor=t=>
-  artwork[
-    cats.indexOf(t.category)
-  ]||'logo.png';
+  artwork[cats.indexOf(t.category)]||
+  'logo.png';
 
 
 const icons={
@@ -70,6 +69,7 @@ const icons={
 
   volume:
     '<path d="M4 9h4l5-4v14l-5-4H4Zm12-1c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/>'
+
 };
 
 
@@ -100,9 +100,7 @@ function icon(name){
 
 
 document
-  .querySelectorAll(
-    '[data-icon]'
-  )
+  .querySelectorAll('[data-icon]')
   .forEach(
     el=>
       el.append(
@@ -116,7 +114,6 @@ document
 function scrollToSection(id){
 
   $(id).scrollIntoView({
-
     behavior:
       matchMedia(
         '(prefers-reduced-motion: reduce)'
@@ -124,9 +121,9 @@ function scrollToSection(id){
         ?'instant'
         :'smooth',
 
-    block:
-      'start'
+    block:'start'
   });
+
 }
 
 
@@ -136,31 +133,32 @@ function activeNav(id){
     .querySelectorAll(
       '.main-nav .nav'
     )
-    .forEach(
-      b=>{
+    .forEach(b=>{
 
-        b.classList.toggle(
-          'active',
-          b.id===id
+      b.classList.toggle(
+        'active',
+        b.id===id
+      );
+
+      if(
+        b.id===id
+      ){
+
+        b.setAttribute(
+          'aria-current',
+          'page'
         );
 
-        if(
-          b.id===id
-        ){
+      }else{
 
-          b.setAttribute(
-            'aria-current',
-            'page'
-          );
+        b.removeAttribute(
+          'aria-current'
+        );
 
-        }else{
-
-          b.removeAttribute(
-            'aria-current'
-          );
-        }
       }
-    );
+
+    });
+
 }
 
 
@@ -179,10 +177,6 @@ let db=null;
 let url=null;
 
 
-/*
-  Prevent repeated view counts when the listener
-  pauses and resumes the same song on one page load.
-*/
 const viewedThisPage=
   new Set();
 
@@ -190,68 +184,26 @@ const viewedThisPage=
 function recordView(id){
 
   if(
-    !id||
     viewedThisPage.has(id)
   ){
     return;
   }
 
-
   viewedThisPage.add(id);
-
 
   fetch(
     '/api/songs/'+
-    encodeURIComponent(id)+
-    '/view',
+      encodeURIComponent(id)+
+      '/view',
     {
       method:'POST'
     }
   )
-    .then(
-      response=>{
-
-        if(
-          !response.ok
-        ){
-          viewedThisPage.delete(id);
-          return;
-        }
-
-
-        return response
-          .json()
-          .then(
-            data=>{
-
-              const song=
-                tracks.find(
-                  t=>
-                    t.id===id
-                );
-
-
-              if(
-                song&&
-                Number.isFinite(
-                  Number(data.views)
-                )
-              ){
-
-                song.views=
-                  Number(
-                    data.views
-                  );
-              }
-            }
-          );
-      }
-    )
     .catch(
-      ()=>{
-        viewedThisPage.delete(id);
-      }
+      ()=>
+        viewedThisPage.delete(id)
     );
+
 }
 
 
@@ -270,6 +222,7 @@ function toast(s){
         .add('hidden'),
     4200
   );
+
 }
 
 
@@ -280,9 +233,7 @@ function node(
 ){
 
   const el=
-    document.createElement(
-      tag
-    );
+    document.createElement(tag);
 
   if(
     text!==undefined
@@ -298,6 +249,320 @@ function node(
 }
 
 
+/* =========================================================
+   MQ3 LYRICS WINDOW
+========================================================= */
+
+function ensureLyricsDialog(){
+
+  let dialog=
+    $('mq3-lyrics-dialog');
+
+  if(dialog){
+    return dialog;
+  }
+
+
+  dialog=
+    document.createElement(
+      'dialog'
+    );
+
+  dialog.id=
+    'mq3-lyrics-dialog';
+
+  dialog.className=
+    'mq3-lyrics-dialog';
+
+
+  const header=
+    node(
+      'div',
+      undefined,
+      'lyrics-dialog-head'
+    );
+
+
+  const heading=
+    node(
+      'div',
+      undefined,
+      'lyrics-heading'
+    );
+
+
+  const kicker=
+    node(
+      'div',
+      'MQ3 · LYRICS',
+      'lyrics-kicker'
+    );
+
+
+  const title=
+    node(
+      'h2',
+      '',
+      'lyrics-title'
+    );
+
+  title.id=
+    'mq3-lyrics-title';
+
+
+  const category=
+    node(
+      'div',
+      '',
+      'lyrics-category'
+    );
+
+  category.id=
+    'mq3-lyrics-category';
+
+
+  heading.append(
+    kicker,
+    title,
+    category
+  );
+
+
+  const close=
+    node(
+      'button',
+      '×',
+      'lyrics-close'
+    );
+
+  close.type=
+    'button';
+
+  close.setAttribute(
+    'aria-label',
+    'Close lyrics'
+  );
+
+  close.onclick=
+    ()=>
+      dialog.close();
+
+
+  header.append(
+    heading,
+    close
+  );
+
+
+  const divider=
+    node(
+      'div',
+      undefined,
+      'lyrics-divider'
+    );
+
+
+  const body=
+    node(
+      'div',
+      '',
+      'lyrics-body'
+    );
+
+  body.id=
+    'mq3-lyrics-body';
+
+
+  const creditsBox=
+    node(
+      'div',
+      undefined,
+      'lyrics-credits'
+    );
+
+
+  const creditsLabel=
+    node(
+      'div',
+      'SONG CREDITS',
+      'lyrics-credits-label'
+    );
+
+
+  const creditsText=
+    node(
+      'div',
+      '',
+      'lyrics-credits-text'
+    );
+
+  creditsText.id=
+    'mq3-lyrics-credits';
+
+
+  creditsBox.append(
+    creditsLabel,
+    creditsText
+  );
+
+
+  dialog.append(
+    header,
+    divider,
+    body,
+    creditsBox
+  );
+
+
+  dialog.addEventListener(
+    'click',
+    e=>{
+
+      if(
+        e.target===dialog
+      ){
+
+        const rect=
+          dialog.getBoundingClientRect();
+
+        const inside=
+          e.clientX>=rect.left &&
+          e.clientX<=rect.right &&
+          e.clientY>=rect.top &&
+          e.clientY<=rect.bottom;
+
+        if(!inside){
+          dialog.close();
+        }
+
+      }
+
+    }
+  );
+
+
+  document.body.append(
+    dialog
+  );
+
+  return dialog;
+
+}
+
+
+function showLyrics(t){
+
+  if(!t){
+    toast(
+      'Choose a song first.'
+    );
+
+    return;
+  }
+
+
+  const dialog=
+    ensureLyricsDialog();
+
+
+  $('mq3-lyrics-title')
+    .textContent=
+      t.title||
+      'Untitled Song';
+
+
+  $('mq3-lyrics-category')
+    .textContent=
+      t.category||
+      'MQ3 MUSIC';
+
+
+  const lyrics=
+    String(
+      t.lyrics||
+      ''
+    ).trim();
+
+
+  $('mq3-lyrics-body')
+    .textContent=
+      lyrics||
+      'Lyrics are not available for this song yet.';
+
+
+  $('mq3-lyrics-credits')
+    .textContent=
+      credit(
+        t.category
+      );
+
+
+  if(
+    !dialog.open
+  ){
+    dialog.showModal();
+  }
+
+}
+
+
+/* =========================================================
+   LYRICS BUTTON INSIDE THE BOTTOM PLAYER
+========================================================= */
+
+function ensurePlayerLyricsButton(){
+
+  const nowcat=
+    $('nowcat');
+
+  if(
+    !nowcat||
+    $('player-lyrics')
+  ){
+    return;
+  }
+
+
+  const button=
+    node(
+      'button',
+      'Lyrics',
+      'player-lyrics'
+    );
+
+  button.id=
+    'player-lyrics';
+
+  button.type=
+    'button';
+
+  button.disabled=
+    !current;
+
+
+  button.onclick=
+    ()=>{
+
+      const song=
+        tracks.find(
+          t=>
+            t.id===current
+        );
+
+      showLyrics(song);
+
+    };
+
+
+  nowcat
+    .parentElement
+    .append(
+      button
+    );
+
+}
+
+
 function visible(){
 
   const q=
@@ -305,25 +570,22 @@ function visible(){
       .value
       .toLowerCase();
 
-
   return tracks.filter(
     t=>
-
       (
         !filter||
         t.category===filter
       )&&
-
       (
         !onlyFav||
         t.favorite
       )&&
-
       (
         t.title+
         ' '+
         (
-          t.names||''
+          t.names||
+          ''
         )
       )
         .toLowerCase()
@@ -331,6 +593,7 @@ function visible(){
           q.trim()
         )
   );
+
 }
 
 
@@ -351,6 +614,7 @@ function setFilter(
   );
 
   render();
+
 }
 
 
@@ -379,7 +643,6 @@ cats.forEach(
         'symbol'
       );
 
-
     symbol.append(
       icon(
         symbols[i]
@@ -388,25 +651,20 @@ cats.forEach(
 
 
     b.append(
-
       node(
         'span',
         '0 songs',
         'num'
       ),
-
       symbol,
-
       node(
         'strong',
         c
       ),
-
       node(
         'small',
         subs[i]
       ),
-
       node(
         'span',
         '›',
@@ -415,18 +673,20 @@ cats.forEach(
     );
 
 
-    b.onclick=()=>{
+    b.onclick=
+      ()=>{
 
-      setFilter(c);
+        setFilter(c);
+        scrollToSection(
+          'library'
+        );
 
-      scrollToSection(
-        'library'
-      );
-    };
+      };
 
 
     $('categories')
       .append(b);
+
   }
 );
 
@@ -435,20 +695,17 @@ function renderRecent(){
 
   const list=
     tracks
-
       .filter(
         t=>
           Number.isFinite(
             t.addedAt
           )
       )
-
       .sort(
         (a,b)=>
           b.addedAt-
           a.addedAt
       )
-
       .slice(
         0,
         6
@@ -456,7 +713,6 @@ function renderRecent(){
 
 
   const hidden=
-
     !list.length||
     !!filter||
     onlyFav||
@@ -466,7 +722,8 @@ function renderRecent(){
 
 
   $('recent-section')
-    .classList.toggle(
+    .classList
+    .toggle(
       'hidden',
       hidden
     );
@@ -486,87 +743,83 @@ function renderRecent(){
     .replaceChildren();
 
 
-  list.forEach(
-    t=>{
+  list.forEach(t=>{
 
-      const playing=
-        current===t.id&&
-        !audio.paused;
-
-
-      const b=
-        node(
-          'button',
-          undefined,
-          'recent-card'
-        );
+    const playing=
+      current===t.id &&
+      !audio.paused;
 
 
-      b.setAttribute(
-        'aria-label',
-        (
-          playing
-            ?'Pause recent song '
-            :'Play recent song '
-        )+
+    const b=
+      node(
+        'button',
+        undefined,
+        'recent-card'
+      );
+
+
+    b.setAttribute(
+      'aria-label',
+      (
+        playing
+          ?'Pause recent song '
+          :'Play recent song '
+      )+
+      t.title
+    );
+
+
+    b.title=
+      t.title;
+
+
+    const img=
+      node('img');
+
+    img.src=
+      artFor(t);
+
+    img.alt='';
+
+    img.loading=
+      'lazy';
+
+
+    b.append(
+      img,
+      node(
+        'span',
+        playing
+          ?'Ⅱ'
+          :'▶',
+        'card-play'
+      ),
+      node(
+        'strong',
         t.title
-      );
+      ),
+      node(
+        'small',
+        t.category
+      )
+    );
 
 
-      b.title=
-        t.title;
+    b.onclick=
+      ()=>
+        start(t);
 
 
-      const img=
-        node('img');
+    $('recent')
+      .append(b);
 
-
-      img.src=
-        artFor(t);
-
-      img.alt='';
-
-      img.loading=
-        'lazy';
-
-
-      b.append(
-
-        img,
-
-        node(
-          'span',
-          playing
-            ?'Ⅱ'
-            :'▶',
-          'card-play'
-        ),
-
-        node(
-          'strong',
-          t.title
-        ),
-
-        node(
-          'small',
-          t.category
-        )
-      );
-
-
-      b.onclick=
-        ()=>start(t);
-
-
-      $('recent')
-        .append(b);
-    }
-  );
+  });
 
 
   $('recent')
     .scrollLeft=
       offset;
+
 }
 
 
@@ -585,50 +838,47 @@ function render(){
     .querySelectorAll(
       '.category'
     )
-    .forEach(
-      b=>{
+    .forEach(b=>{
 
-        b.classList.toggle(
-          'chosen',
+      b.classList.toggle(
+        'chosen',
+        filter===b.dataset.cat
+      );
+
+
+      b.setAttribute(
+        'aria-pressed',
+        String(
           filter===
           b.dataset.cat
-        );
+        )
+      );
 
 
-        b.setAttribute(
-          'aria-pressed',
-          String(
-            filter===
+      const n=
+        tracks.filter(
+          t=>
+            t.category===
             b.dataset.cat
-          )
+        ).length;
+
+
+      b.querySelector(
+        '.num'
+      ).textContent=
+        n+
+        ' song'+
+        (
+          n===1
+            ?''
+            :'s'
         );
 
-
-        const n=
-          tracks.filter(
-            t=>
-              t.category===
-              b.dataset.cat
-          ).length;
-
-
-        b.querySelector(
-          '.num'
-        ).textContent=
-          n+
-          ' song'+
-          (
-            n===1
-              ?''
-              :'s'
-          );
-      }
-    );
+    });
 
 
   $('listtitle')
     .textContent=
-
       onlyFav
         ?'Your favorites'
         :filter||
@@ -637,7 +887,6 @@ function render(){
 
   $('count')
     .textContent=
-
       list.length+
       ' song'+
       (
@@ -677,7 +926,6 @@ function render(){
 
       node(
         'h3',
-
         onlyFav
           ?'Keep the songs you love.'
           :q
@@ -685,14 +933,13 @@ function render(){
             :'New music is on its way.'
       ),
 
-
       node(
         'p',
-
         onlyFav
           ?'Tap the heart beside a song to save it here.'
           :'Explore the collections or request a personalized name song.'
       )
+
     );
 
 
@@ -721,254 +968,233 @@ function render(){
 
 
       e.append(b);
+
     }
 
 
     $('songs')
       .append(e);
+
   }
 
 
-  list.forEach(
-    t=>{
+  list.forEach(t=>{
 
-      const playing=
-        current===t.id&&
-        !audio.paused;
-
-
-      const r=
-        node(
-          'div',
-          undefined,
-          'row'+
-          (
-            playing
-              ?' is-playing'
-              :''
-          )
-        );
+    const playing=
+      current===t.id &&
+      !audio.paused;
 
 
-      const p=
-        node(
-          'button',
-          playing
-            ?'Ⅱ'
-            :'▶',
-          'round'
-        );
-
-
-      p.setAttribute(
-        'aria-label',
+    const r=
+      node(
+        'div',
+        undefined,
+        'row'+
         (
           playing
-            ?'Pause '
-            :'Play '
-        )+
-        t.title
-      );
-
-
-      p.onclick=
-        ()=>start(t);
-
-
-      const img=
-        node(
-          'img',
-          undefined,
-          'track-art'
-        );
-
-
-      img.src=
-        artFor(t);
-
-      img.alt='';
-
-      img.loading=
-        'lazy';
-
-
-      const info=
-        node('div');
-
-
-      info.append(
-
-        node(
-          'div',
-          t.title,
-          'title'
-        ),
-
-        node(
-          'small',
-          'MQ3 · '+
-          (
-            t.price
-              ?'₱'+
-                (
-                  t.price/100
-                ).toFixed(2)
-              :'Free'
-          )
+            ?' is-playing'
+            :''
         )
       );
 
 
-      const f=
-        node(
-          'button',
-          t.favorite
-            ?'♥'
-            :'♡',
-          'fav'
-        );
+    const p=
+      node(
+        'button',
+        playing
+          ?'Ⅱ'
+          :'▶',
+        'round'
+      );
 
 
-      f.setAttribute(
-        'aria-label',
+    p.setAttribute(
+      'aria-label',
+      (
+        playing
+          ?'Pause '
+          :'Play '
+      )+
+      t.title
+    );
+
+
+    p.onclick=
+      ()=>
+        start(t);
+
+
+    const img=
+      node(
+        'img',
+        undefined,
+        'track-art'
+      );
+
+
+    img.src=
+      artFor(t);
+
+    img.alt='';
+
+    img.loading=
+      'lazy';
+
+
+    const info=
+      node(
+        'div',
+        undefined,
+        'track-info'
+      );
+
+
+    info.append(
+
+      node(
+        'div',
+        t.title,
+        'title'
+      ),
+
+      node(
+        'small',
+        'MQ3 · '+
         (
-          t.favorite
-            ?'Unfavorite '
-            :'Favorite '
-        )+
-        t.title
-      );
-
-
-      f.setAttribute(
-        'aria-pressed',
-        String(
-          t.favorite
+          t.price
+            ?'₱'+
+              (
+                t.price/
+                100
+              ).toFixed(2)
+            :'Free'
         )
+      )
+
+    );
+
+
+    const cat=
+      node(
+        'small',
+        t.category,
+        'catlabel'
       );
 
 
-      f.onclick=
-        async()=>{
-
-          f.disabled=true;
-
-
-          try{
-
-            await persist({
-              ...t,
-              favorite:
-                !t.favorite
-            });
+    const f=
+      node(
+        'button',
+        t.favorite
+          ?'♥'
+          :'♡',
+        'fav'
+      );
 
 
-            t.favorite=
-              !t.favorite;
+    f.setAttribute(
+      'aria-label',
+      (
+        t.favorite
+          ?'Unfavorite '
+          :'Favorite '
+      )+
+      t.title
+    );
 
 
-            render();
+    f.setAttribute(
+      'aria-pressed',
+      String(
+        t.favorite
+      )
+    );
 
 
-          }catch{
+    f.onclick=
+      async()=>{
 
-            f.disabled=false;
+        f.disabled=true;
 
+        try{
 
-            toast(
-              'Could not save favorite.'
-            );
-          }
-        };
-
-
-      const c=
-        node(
-          'button',
-          'Credits'
-        );
+          await persist({
+            ...t,
+            favorite:
+              !t.favorite
+          });
 
 
-      c.onclick=()=>{
-
-        detailId=
-          t.id;
+          t.favorite=
+            !t.favorite;
 
 
-        $('detailtitle')
-          .textContent=
-            t.title;
+          render();
 
+        }catch{
 
-        $('detailcredits')
-          .textContent=
-            credit(
-              t.category
-            );
+          f.disabled=false;
 
-
-        $('detaillyrics')
-          .textContent=
-            t.lyrics||'';
-
-
-        $('detailprice')
-          .textContent=
-
-            t.price
-              ?'₱'+
-                (
-                  t.price/100
-                ).toFixed(2)+
-                ' · Preview before purchase, full access after verification.'
-              :'Free listening';
-
-
-        $('buy-song')
-          .classList
-          .toggle(
-            'hidden',
-            !t.price
+          toast(
+            'Could not save favorite.'
           );
 
+        }
 
-        $('buy-song')
-          .onclick=()=>{
-
-            $('detail')
-              .close();
-
-
-            openCheckout(t);
-          };
-
-
-        $('detail')
-          .showModal();
       };
 
 
-      r.append(
-        p,
-        img,
-        info,
-        node(
-          'small',
-          t.category,
-          'catlabel'
-        ),
-        f,
-        c
+    const lyrics=
+      node(
+        'button',
+        'Lyrics',
+        'lyrics-button'
       );
 
 
-      $('songs')
-        .append(r);
-    }
-  );
+    lyrics.setAttribute(
+      'aria-label',
+      'Open lyrics for '+
+      t.title
+    );
+
+
+    lyrics.onclick=
+      ()=>
+        showLyrics(t);
+
+
+    const actions=
+      node(
+        'div',
+        undefined,
+        'song-actions'
+      );
+
+
+    actions.append(
+      f,
+      lyrics
+    );
+
+
+    r.append(
+      p,
+      img,
+      info,
+      cat,
+      actions
+    );
+
+
+    $('songs')
+      .append(r);
+
+  });
 
 
   renderRecent();
+
 }
 
 
@@ -982,6 +1208,7 @@ function goHome(){
     top:0,
     behavior:'instant'
   });
+
 }
 
 
@@ -998,6 +1225,7 @@ function goLibrary(){
   scrollToSection(
     'library'
   );
+
 }
 
 
@@ -1014,11 +1242,11 @@ function goBrowse(){
   scrollToSection(
     'collections'
   );
+
 }
 
 
-$('home')
-  .onclick=
+$('home').onclick=
   goHome;
 
 
@@ -1027,26 +1255,24 @@ document
     '.brand'
   )
   .onclick=
-  e=>{
+    e=>{
 
-    e.preventDefault();
+      e.preventDefault();
 
-    goHome();
-  };
+      goHome();
+
+    };
 
 
-$('browse')
-  .onclick=
+$('browse').onclick=
   goBrowse;
 
 
-$('librarynav')
-  .onclick=
+$('librarynav').onclick=
   goLibrary;
 
 
-$('favorites')
-  .onclick=
+$('favorites').onclick=
   ()=>{
 
     $('search').value='';
@@ -1059,11 +1285,11 @@ $('favorites')
     scrollToSection(
       'library'
     );
+
   };
 
 
-$('search')
-  .oninput=
+$('search').oninput=
   ()=>{
 
     activeNav(
@@ -1073,11 +1299,11 @@ $('search')
     );
 
     render();
+
   };
 
 
-$('search')
-  .onkeydown=
+$('search').onkeydown=
   e=>{
 
     if(
@@ -1106,23 +1332,23 @@ $('search')
         scrollToSection(
           'library'
         );
+
       }
+
     }
+
   };
 
 
-$('explore')
-  .onclick=
+$('explore').onclick=
   goBrowse;
 
 
-$('seeall')
-  .onclick=
+$('seeall').onclick=
   goLibrary;
 
 
-$('listen')
-  .onclick=
+$('listen').onclick=
   ()=>{
 
     if(
@@ -1131,6 +1357,7 @@ $('listen')
 
       goBrowse();
       return;
+
     }
 
 
@@ -1138,21 +1365,19 @@ $('listen')
 
 
     const t=
-
       tracks.find(
         t=>
           t.id===current
       )||
-
       visible()[0];
 
 
     start(t);
+
   };
 
 
-$('closedetail')
-  .onclick=
+$('closedetail').onclick=
   ()=>
     $('detail')
       .close();
@@ -1161,7 +1386,10 @@ $('closedetail')
 function persist(t){
 
   return new Promise(
-    (resolve,reject)=>{
+    (
+      resolve,
+      reject
+    )=>{
 
       try{
 
@@ -1188,33 +1416,30 @@ function persist(t){
 
         resolve();
 
-
       }catch(e){
 
         reject(e);
+
       }
+
     }
   );
+
 }
 
-
-/* =========================================================
-   AUDIO PLAYER
-========================================================= */
 
 const audio=
   $('audio');
 
 
-audio.volume=.8;
+audio.volume=
+  .8;
+
+
+ensurePlayerLyricsButton();
 
 
 async function start(t){
-
-  if(!t){
-    return;
-  }
-
 
   if(
     current===t.id
@@ -1222,6 +1447,7 @@ async function start(t){
 
     toggle();
     return;
+
   }
 
 
@@ -1237,7 +1463,8 @@ async function start(t){
     t.id;
 
 
-  $('seek').value=0;
+  $('seek').value=
+    0;
 
 
   $('elapsed')
@@ -1276,20 +1503,30 @@ async function start(t){
     false;
 
 
+  const playerLyrics=
+    $('player-lyrics');
+
+
+  if(playerLyrics){
+    playerLyrics.disabled=false;
+  }
+
+
   try{
 
     await audio.play();
 
-
   }catch{
 
     toast(
-      'Full access may require a verified purchase. Open Credits for song details.'
+      'Unable to play this audio.'
     );
+
   }
 
 
   render();
+
 }
 
 
@@ -1316,12 +1553,13 @@ function toggle(){
   }else{
 
     audio.pause();
+
   }
+
 }
 
 
-$('play')
-  .onclick=
+$('play').onclick=
   toggle;
 
 
@@ -1361,31 +1599,25 @@ function next(delta){
           list.length
     ]
   );
+
 }
 
 
-$('prev')
-  .onclick=
+$('prev').onclick=
   ()=>
     next(-1);
 
 
-$('next')
-  .onclick=
+$('next').onclick=
   ()=>
     next(1);
 
 
 audio.onended=
-  ()=>next(1);
+  ()=>
+    next(1);
 
 
-/*
-  This is where a real play is counted.
-
-  Pause/resume will NOT repeatedly increase the
-  counter during the same page session.
-*/
 audio.onplay=
   ()=>{
 
@@ -1407,6 +1639,7 @@ audio.onplay=
 
 
     render();
+
   };
 
 
@@ -1426,24 +1659,26 @@ audio.onpause=
 
 
     render();
+
   };
 
 
 const time=n=>
-
   Number.isFinite(n)
-
-    ?Math.floor(n/60)+
+    ?Math.floor(
+        n/
+        60
+      )+
       ':'+
       String(
         Math.floor(
-          n%60
+          n%
+          60
         )
       ).padStart(
         2,
         '0'
       )
-
     :'0:00';
 
 
@@ -1465,37 +1700,32 @@ audio.ontimeupdate=
 
 
     $('seek').value=
-
       audio.duration
         ?audio.currentTime/
           audio.duration*
           100
         :0;
+
   };
 
 
 audio.onloadedmetadata=
-  ()=>{
-
+  ()=>
     $('duration')
       .textContent=
         time(
           audio.duration
         );
-  };
 
 
 audio.onerror=
-  ()=>{
-
+  ()=>
     toast(
-      'Audio unavailable. Paid songs may require a verified purchase; open Credits for details.'
+      'Audio unavailable.'
     );
-  };
 
 
-$('seek')
-  .oninput=
+$('seek').oninput=
   ()=>{
 
     if(
@@ -1505,30 +1735,24 @@ $('seek')
     ){
 
       audio.currentTime=
-
         audio.duration*
         Number(
           $('seek').value
         )/
         100;
+
     }
+
   };
 
 
-$('volume')
-  .oninput=
-  ()=>{
-
+$('volume').oninput=
+  ()=>
     audio.volume=
       Number(
         $('volume').value
       );
-  };
 
-
-/* =========================================================
-   LOAD CATALOG
-========================================================= */
 
 async function loadCatalog(){
 
@@ -1544,14 +1768,13 @@ async function loadCatalog(){
       await r.json();
 
 
-    if(
-      !r.ok
-    ){
+    if(!r.ok){
 
       throw Error(
         data.error||
         'Could not load songs.'
       );
+
     }
 
 
@@ -1575,7 +1798,6 @@ async function loadCatalog(){
       data.songs.map(
         t=>({
           ...t,
-
           favorite:
             !!favorites[t.id]
         })
@@ -1592,7 +1814,9 @@ async function loadCatalog(){
     const id=
       new URLSearchParams(
         location.search
-      ).get('song');
+      ).get(
+        'song'
+      );
 
 
     if(id){
@@ -1616,9 +1840,10 @@ async function loadCatalog(){
         scrollToSection(
           'library'
         );
-      }
-    }
 
+      }
+
+    }
 
   }catch(e){
 
@@ -1635,9 +1860,12 @@ async function loadCatalog(){
     toast(
       e.message
     );
+
   }
+
 }
 
 
 render();
+
 loadCatalog();
