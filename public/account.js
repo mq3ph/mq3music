@@ -234,6 +234,108 @@
 
 
   /* =========================================================
+     SUPPORTER RANK
+  ========================================================= */
+
+  async function displaySupporterRank(account) {
+    let rankBox = $('account-supporter-rank');
+
+    if (!rankBox) {
+      rankBox = document.createElement('div');
+      rankBox.id = 'account-supporter-rank';
+      rankBox.style.margin = '14px 0';
+      rankBox.style.padding = '12px 14px';
+      rankBox.style.border = '1px solid rgba(212,175,55,.28)';
+      rankBox.style.borderRadius = '12px';
+      rankBox.style.textAlign = 'center';
+
+      const profile =
+        $('account-profile-form');
+
+      if (
+        profile &&
+        profile.parentNode === accountPanel
+      ) {
+        profile.insertAdjacentElement(
+          'afterend',
+          rankBox
+        );
+      } else {
+        accountPanel.prepend(rankBox);
+      }
+    }
+
+    const displayName =
+      account.displayName?.trim() || '';
+
+    const lifetimeGifted =
+      Number(account.lifetimeGifted || 0);
+
+    if (!displayName || lifetimeGifted <= 0) {
+      rankBox.textContent =
+        '🏆 Send gifts to join the Top Supporters leaderboard.';
+      rankBox.style.opacity = '.78';
+      show(rankBox);
+      return;
+    }
+
+    rankBox.textContent =
+      '🏆 Checking your Supporter Rank…';
+    rankBox.style.opacity = '.86';
+    show(rankBox);
+
+    try {
+      const data =
+        await api('/api/gifts/leaderboard');
+
+      const supporters =
+        Array.isArray(data.supporters)
+          ? data.supporters
+          : [];
+
+      const match =
+        supporters.find(
+          supporter =>
+            supporter.displayName === displayName &&
+            Number(supporter.lifetimeGifted || 0) === lifetimeGifted
+        ) ||
+        supporters.find(
+          supporter =>
+            supporter.displayName === displayName
+        );
+
+      if (match) {
+        const rank = Number(match.rank || 0);
+
+        rankBox.textContent =
+          `🏆 Supporter Rank: #${rank} · ` +
+          `${lifetimeGifted.toLocaleString()} lifetime ${
+            lifetimeGifted === 1
+              ? 'Credit'
+              : 'Credits'
+          } gifted`;
+
+        rankBox.style.opacity = '1';
+      } else {
+        rankBox.textContent =
+          '🏆 You are supporting MQ3! Keep gifting to reach the Top 25.';
+        rankBox.style.opacity = '.82';
+      }
+
+    } catch (error) {
+      console.error(
+        'MQ3 supporter rank failed:',
+        error
+      );
+
+      rankBox.textContent =
+        '🏆 Supporter Rank is temporarily unavailable.';
+      rankBox.style.opacity = '.78';
+    }
+  }
+
+
+  /* =========================================================
      ACCOUNT DISPLAY
   ========================================================= */
 
@@ -271,6 +373,7 @@
     creditBalance.textContent = total.toLocaleString();
 
     displayGiftHistory(account);
+    displaySupporterRank(account);
 
     if (promo > 0) {
       welcomeBonus.textContent =
