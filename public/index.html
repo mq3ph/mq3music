@@ -908,6 +908,40 @@
       <p id="account-user-email"></p>
 
 
+      <form id="account-profile-form">
+
+        <label>
+          Display Name
+
+          <input
+            id="account-display-name"
+            type="text"
+            maxlength="80"
+            autocomplete="nickname"
+            placeholder="Name shown to other listeners"
+          >
+        </label>
+
+        <p
+          id="account-profile-message"
+          role="status"
+        ></p>
+
+        <div class="actions">
+
+          <button
+            type="submit"
+            class="button"
+            id="account-save-profile"
+          >
+            Save Display Name
+          </button>
+
+        </div>
+
+      </form>
+
+
       <div
         style="
           margin:22px 0;
