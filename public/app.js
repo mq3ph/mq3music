@@ -997,6 +997,237 @@ function giftStatsText(songId){
     .join(' · ');
 }
 
+/* =========================================================
+   MQ3 TOP SUPPORTERS
+========================================================= */
+
+async function loadLeaderboard(){
+
+  const list=
+    $('leaderboard-list');
+
+  if(!list){
+    return;
+  }
+
+
+  try{
+
+    const response=
+      await fetch(
+        '/api/gifts/leaderboard',
+        {
+          credentials:'same-origin'
+        }
+      );
+
+
+    const data=
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw Error(
+        data.error||
+        'Top Supporters could not be loaded.'
+      );
+    }
+
+
+    const supporters=
+      Array.isArray(
+        data.supporters
+      )
+        ?data.supporters
+        :[];
+
+
+    list.replaceChildren();
+
+
+    if(!supporters.length){
+
+      const empty=
+        node(
+          'div',
+          'No supporters yet. Send a gift and become MQ3’s first Top Supporter. ❤️'
+        );
+
+      empty.style.padding=
+        '16px';
+
+      empty.style.border=
+        '1px solid rgba(212,175,55,.25)';
+
+      empty.style.borderRadius=
+        '14px';
+
+      empty.style.opacity=
+        '.82';
+
+      list.append(
+        empty
+      );
+
+      return;
+    }
+
+
+    supporters.forEach(
+      supporter=>{
+
+        const rank=
+          Number(
+            supporter.rank||
+            0
+          );
+
+        const medal=
+          rank===1
+            ?'🥇'
+            :rank===2
+              ?'🥈'
+              :rank===3
+                ?'🥉'
+                :`#${rank}`;
+
+
+        const credits=
+          Number(
+            supporter.lifetimeGifted||
+            0
+          );
+
+
+        const row=
+          node(
+            'div'
+          );
+
+        row.style.display=
+          'grid';
+
+        row.style.gridTemplateColumns=
+          '56px minmax(0,1fr) auto';
+
+        row.style.alignItems=
+          'center';
+
+        row.style.gap=
+          '12px';
+
+        row.style.padding=
+          '14px 16px';
+
+        row.style.border=
+          '1px solid rgba(212,175,55,.25)';
+
+        row.style.borderRadius=
+          '14px';
+
+        row.style.background=
+          'rgba(255,255,255,.025)';
+
+
+        const rankBox=
+          node(
+            'strong',
+            medal
+          );
+
+        rankBox.style.fontSize=
+          rank<=3
+            ?'1.35rem'
+            :'1rem';
+
+
+        const name=
+          node(
+            'strong',
+            supporter.displayName||
+            'MQ3 Supporter'
+          );
+
+        name.style.overflow=
+          'hidden';
+
+        name.style.textOverflow=
+          'ellipsis';
+
+        name.style.whiteSpace=
+          'nowrap';
+
+
+        const amount=
+          node(
+            'span',
+            `${credits.toLocaleString()} ${
+              credits===1
+                ?'Credit'
+                :'Credits'
+            }`
+          );
+
+        amount.style.opacity=
+          '.88';
+
+        amount.style.textAlign=
+          'right';
+
+
+        row.append(
+          rankBox,
+          name,
+          amount
+        );
+
+
+        list.append(
+          row
+        );
+
+      }
+    );
+
+
+  }catch(error){
+
+    console.error(
+      'MQ3 leaderboard failed:',
+      error
+    );
+
+
+    list.replaceChildren();
+
+
+    const message=
+      node(
+        'div',
+        'Top Supporters are temporarily unavailable.'
+      );
+
+    message.style.padding=
+      '16px';
+
+    message.style.border=
+      '1px solid rgba(212,175,55,.25)';
+
+    message.style.borderRadius=
+      '14px';
+
+    message.style.opacity=
+      '.78';
+
+
+    list.append(
+      message
+    );
+  }
+}
+
+
 function ensureGiftDialog(){
   let dialog=$('mq3-gift-dialog');
   if(dialog) return dialog;
@@ -1075,6 +1306,7 @@ async function sendGift(song,gift){
     );
 
     await loadGiftStats();
+    await loadLeaderboard();
 
   }catch(e){
     toast(e.message||'Gift could not be sent.');
@@ -2235,3 +2467,4 @@ render();
 
 loadCatalog();
 loadGiftStats();
+loadLeaderboard();
