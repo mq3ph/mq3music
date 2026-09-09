@@ -953,7 +953,60 @@ cats.forEach(
 );
 
 
+const listeningKey='mq3-listening-v1';
+let listeningHistory=[];
+try{
+  const saved=JSON.parse(localStorage.getItem(listeningKey)||'[]');
+  if(Array.isArray(saved)) listeningHistory=saved.filter(x=>x && typeof x.id==='string' && Number.isFinite(x.at) && Number.isFinite(x.position) && x.position>=0).slice(0,12);
+}catch{}
+let resumePosition=0;
+let lastListeningSave=0;
+function saveListening(){
+  if(!current || !listeningHistory.some(x=>x.id===current))return;
+  const entry=listeningHistory.find(x=>x.id===current);
+  entry.position=Number.isFinite(audio.currentTime)?audio.currentTime:0;
+  if(audio.ended || (Number.isFinite(audio.duration)&&audio.duration-entry.position<3))entry.position=0;
+  try{localStorage.setItem(listeningKey,JSON.stringify(listeningHistory));}catch{}
+}
+function rememberListening(){
+  if(!current)return;
+  listeningHistory=[{id:current,at:Date.now(),position:audio.currentTime||0},...listeningHistory.filter(x=>x.id!==current)].slice(0,12);
+  saveListening();
+}
+function renderListeningHistory(){
+  let section=$('listening-history');
+  if(!section){
+    section=node('section');section.id='listening-history';section.style.cssText='margin:24px 0;';
+    $('recent-section').insertAdjacentElement('beforebegin',section);
+  }
+  const available=listeningHistory.map(entry=>({entry,song:tracks.find(t=>t.id===entry.id)})).filter(x=>x.song);
+  section.hidden=!available.length || !!filter || onlyFav || !!$('search').value.trim();
+  section.replaceChildren();if(section.hidden)return;
+  const heading=node('div');heading.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;';
+  const clear=node('button','Clear history','text-button');clear.type='button';clear.style.minHeight='44px';
+  clear.onclick=()=>{listeningHistory=[];try{localStorage.removeItem(listeningKey);}catch{}renderListeningHistory();};
+  heading.append(node('h2','Recently Played'),clear);
+  const note=node('p','Saved in this browser. History does not sync between devices.');note.style.cssText='color:#b6aa98;font-size:12px;margin:8px 0 14px;';
+  section.append(heading,note);
+  const latest=available[0];
+  if(latest.entry.position>=3 && current!==latest.song.id){
+    const resume=node('button',`Continue ${latest.song.title} from ${time(latest.entry.position)}`,'button primary');
+    resume.style.cssText='margin-bottom:14px;max-width:100%;white-space:normal;min-height:48px;';
+    resume.onclick=()=>start(latest.song,latest.entry.position);section.append(resume);
+  }
+  const list=node('div');list.style.cssText='display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;';
+  for(const {song,entry} of available){
+    const card=node('button',undefined,'recent-card');card.type='button';card.style.cssText='flex:0 0 150px;';
+    card.setAttribute('aria-label','Play '+song.title+(entry.position>=3?' from '+time(entry.position):''));
+    const art=node('img');art.src=artFor(song);art.alt='';art.loading='lazy';
+    card.append(art,node('strong',song.title),node('small',entry.position>=3?'Resume at '+time(entry.position):song.category));
+    card.onclick=()=>start(song,entry.position);list.append(card);
+  }
+  section.append(list);
+}
+
 function renderRecent(){
+  renderListeningHistory();
 
   const list=
     tracks
@@ -2646,7 +2699,7 @@ audio.volume=
 ensurePlayerLyricsButton();
 
 
-async function start(t){
+async function start(t,position=0){
 
   if(
     current===t.id
@@ -2658,6 +2711,9 @@ async function start(t){
 
   }
 
+
+  saveListening();
+  resumePosition=Number.isFinite(position)?Math.max(0,position):0;
 
   url=
     '/api/songs/'+
@@ -2824,13 +2880,12 @@ $('next').onclick=
     next(1);
 
 
-audio.onended=
-  ()=>
-    next(1);
+audio.onended=()=>{saveListening();next(1);};
 
 
 audio.onplay=
   ()=>{
+    rememberListening();
 
     if(current){
       recordView(current);
@@ -2856,6 +2911,7 @@ audio.onplay=
 
 audio.onpause=
   ()=>{
+    saveListening();
 
     $('play')
       .textContent=
@@ -2895,6 +2951,7 @@ const time=n=>
 
 audio.ontimeupdate=
   ()=>{
+    if(Date.now()-lastListeningSave>5000){saveListening();lastListeningSave=Date.now();}
 
     $('elapsed')
       .textContent=
@@ -2920,14 +2977,17 @@ audio.ontimeupdate=
   };
 
 
-audio.onloadedmetadata=
-  ()=>
-    $('duration')
-      .textContent=
-        time(
-          audio.duration
-        );
-
+audio.onloadedmetadata=()=>{
+  $('duration').textContent=time(audio.duration);
+  if(resumePosition>0 && Number.isFinite(audio.duration)){
+    const target=resumePosition<audio.duration-3?resumePosition:0;
+    resumePosition=0;
+    try{audio.currentTime=target;}catch{}
+  }
+};
+window.addEventListener('pagehide',saveListening);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveListening();});
+audio.addEventListener('seeked',saveListening);
 
 audio.onerror=
   ()=>
