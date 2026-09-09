@@ -2,10 +2,10 @@ const {chromium}=require(process.env.MQ3_PLAYWRIGHT_MODULE || 'playwright');
 const fs=require('node:fs');const assert=require('node:assert/strict');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.MQ3_CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
- const account={email:'test@example.com',displayName:'Tester',credits:{total:50,purchased:50,promo:0},giftHistory:[],creditLoadOrders:[]};
- for(const mode of ['success','failure-retry','signed-out','cancel','already-credited']){
+ const account={email:'test@example.com',displayName:'Tester',credits:{total:50,purchased:50,promo:0},giftHistory:[],creditLoadOrders:[{credits:50,amountPesos:50,paymentProvider:'paypal',status:'approved',createdAt:'2026-09-09T05:00:00Z',paymentReference:'TEST-REF'},{credits:50,amountPesos:50,paymentProvider:'gcash',status:'pending',createdAt:'2026-09-09T05:00:00Z'}]};
+ for(const mode of ['success','failure-retry','signed-out','cancel','already-credited','sandbox']){
   const page=await browser.newPage({viewport:{width:390,height:844}});let captures=0,signedIn=mode!=='signed-out';const errors=[];
-  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.dismiss());
+  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>{errors.push('Unexpected browser popup');d.dismiss();});
   await page.route('https://mq3.test/**',async route=>{
    const url=new URL(route.request().url());let body={};let status=200;
    if(url.pathname==='/')return route.fulfill({contentType:'text/html',body:fs.readFileSync('public/index.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<script src="/mq3-account.js"></script>'});
@@ -13,7 +13,7 @@ const fs=require('node:fs');const assert=require('node:assert/strict');
    if(url.pathname==='/api/account')body={signedIn,account:signedIn?account:undefined};
    if(url.pathname==='/api/account/paypal/capture-order'){
     captures++;assert.equal(route.request().postDataJSON().orderId,'ORDER123');
-    if(mode==='failure-retry'&&captures===1){status=502;body={error:'Temporary failure'};}else body={account,creditsAdded:50,alreadyCredited:mode==='already-credited'};
+    if(mode==='failure-retry'&&captures===1){status=502;body={error:'Temporary failure'};}else body={account,sandbox:mode==='sandbox',creditsAdded:mode==='sandbox'?0:50,alreadyCredited:mode==='already-credited'};
    }
    return route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   });
@@ -25,7 +25,17 @@ const fs=require('node:fs');const assert=require('node:assert/strict');
    await page.waitForFunction(()=>document.getElementById('account-button').textContent.includes('50'));await page.waitForTimeout(150);assert.ok(page.url().includes('token='));await page.reload();
   }
   await page.waitForURL(u=>!u.searchParams.has('mq3_paypal'));
-  assert.equal(captures,mode==='cancel'?0:mode==='failure-retry'?2:1);assert.ok(page.url().includes('keep=yes'));assert.deepEqual(errors,[]);console.log('PASS mobile PayPal '+mode);await page.close();
+  assert.equal(captures,mode==='cancel'?0:mode==='failure-retry'?2:1);assert.ok(page.url().includes('keep=yes'));assert.deepEqual(errors,[]);await page.locator('#mq3-payment-result').waitFor({state:'visible'});if(mode==='success'){assert.equal(await page.locator('#mq3-payment-title').textContent(),'Payment complete');await page.screenshot({path:'payment-confirmation-mobile.png'});}if(mode==='sandbox'){assert.equal(await page.locator('#mq3-payment-title').textContent(),'Sandbox test complete');assert.match(await page.locator('#mq3-payment-copy').textContent(),/no spendable Credits/);}await page.locator('#mq3-payment-result .payment-primary').click();assert.equal(await page.locator('#mq3-payment-result').isVisible(),false);if(mode==='success'){
+   assert.match(await page.locator('#account-purchase-history').textContent(),/Added/);
+   assert.match(await page.locator('#account-purchase-history').textContent(),/Pending/);
+   await page.evaluate(()=>document.querySelector('.mq3-credit-package').click());
+   await page.locator('#mq3-credit-load-provider').selectOption('paypal');
+   assert.equal(await page.locator('#mq3-credit-load-reference-wrap').isVisible(),false);
+   assert.equal(await page.locator('#mq3-credit-load-reference').isDisabled(),true);
+   await page.locator('#mq3-credit-load-provider').selectOption('gcash');
+   assert.equal(await page.locator('#mq3-credit-load-reference-wrap').isVisible(),true);
+   assert.equal(await page.locator('#mq3-credit-load-reference').isEnabled(),true);
+  }console.log('PASS mobile PayPal '+mode);await page.close();
  }
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});

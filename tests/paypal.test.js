@@ -38,10 +38,12 @@ for(const scenario of ['wrong amount','wrong currency','wrong order','pending ca
  const routes=new Map();let writes=0;
  accountRoutes({app:{get(){},post(path,fn){routes.set(path,fn);}},env:{SESSION_SECRET:'test-secret-with-at-least-thirty-two-characters',PAYPAL_CLIENT_ID:'fake',PAYPAL_SECRET:'fake'},sameOrigin(){},limit:async()=>{},query:async(sql)=>{
   if(sql.includes('FROM user_sessions'))return [{user_id:'user-one'}];
-  if(sql.includes('FROM credit_load_orders'))return scenario==='other user'?[]:[{id:'local-order',amount_pesos:50,credits:50,status:'pending'}];
+  if(sql.includes('FROM credit_load_orders'))return scenario==='other user'?[]:[{id:'local-order',amount_pesos:50,credits:50,status:'pending',paypal_environment:'sandbox'}];
   writes++;throw new Error('Unexpected database write');
  }});
  const data=structuredClone(completed);
+ data.purchase_units[0].custom_id='local-order';
+ data.purchase_units[0].amount={currency_code:'PHP',value:'50.00'};
  if(scenario==='wrong amount')data.purchase_units[0].payments.captures[0].amount.value='1.00';
  if(scenario==='wrong currency')data.purchase_units[0].payments.captures[0].amount.currency_code='USD';
  if(scenario==='wrong order')data.id='OTHERORDER';

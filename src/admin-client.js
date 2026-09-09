@@ -2188,7 +2188,7 @@ function render(){
   ){
 
     $('tab-note').textContent=
-      'Manual verification: confirm the exact payment and reference in your actual GCash/PayPal account before approving. Approving adds purchased Credits to the listener wallet.';
+      'New PayPal checkouts are verified automatically. Sandbox tests do not add spendable Credits. Verify manual payments before approving. Legacy records have an unknown environment.';
 
     const body=
       table([

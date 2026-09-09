@@ -1986,7 +1986,8 @@ export function createApp(s=services()){
                clo.payment_reference,
                clo.status,
                clo.created_at,
-               clo.reviewed_at
+               clo.reviewed_at,
+               (SELECT pc.environment FROM paypal_checkouts pc WHERE pc.load_order_id=clo.id) AS payment_environment
              FROM credit_load_orders clo
              JOIN users u
                ON u.id=clo.user_id
@@ -2029,6 +2030,7 @@ export function createApp(s=services()){
 
               paymentProvider:
                 row.payment_provider,
+              paymentEnvironment:row.payment_environment||null,
 
               paymentReference:
                 row.payment_reference||
@@ -2064,6 +2066,9 @@ export function createApp(s=services()){
             req.params.id
           );
 
+
+        const [automatic]=await q('SELECT load_order_id FROM paypal_checkouts WHERE load_order_id=$1',[id]);
+        if(automatic) fail(409,'Automatic PayPal payments are verified by PayPal and cannot be manually approved or rejected.');
 
         const status=
           String(

@@ -1,4 +1,4 @@
-import {capturePaypalOrder} from './paypal.js';
+import {capturePaypalOrder, verifyPaypalWebhook} from './paypal.js';
 import {randomInt,randomUUID} from 'node:crypto';
 import {
   token,
@@ -51,8 +51,14 @@ export function accountRoutes({
     );
 
 
+  const paypalEnvironment=()=>{
+    const mode=String(env.PAYPAL_ENV||'sandbox').trim().toLowerCase();
+    if(!['live','sandbox'].includes(mode)) fail(503,'PAYPAL_ENV must be live or sandbox.');
+    return mode;
+  };
+
   const paypalBaseUrl=()=>
-    String(env.PAYPAL_ENV||'').toLowerCase()==='live'
+    paypalEnvironment()==='live'
       ? 'https://api-m.paypal.com'
       : 'https://api-m.sandbox.paypal.com';
 
@@ -139,7 +145,8 @@ export function accountRoutes({
 
   async function createPaypalCreditOrder(
     amountPesos,
-    credits
+    credits,
+    localId
   ){
 
     const accessToken=
@@ -189,6 +196,7 @@ export function accountRoutes({
 
               purchase_units:[
                 {
+                  custom_id:localId,
                   description:
                     `MQ3 ${credits} Credits`,
                   amount:{
@@ -228,9 +236,9 @@ export function accountRoutes({
   }
 
 
-  async function capturePaypalCreditOrder(orderId){
+  async function capturePaypalCreditOrder(orderId,localId,expectedAmount){
     return capturePaypalOrder({
-      baseUrl:paypalBaseUrl(), accessToken:await paypalAccessToken(), orderId
+      baseUrl:paypalBaseUrl(), accessToken:await paypalAccessToken(), orderId, localId, expectedAmount
     });
   }
 
@@ -316,7 +324,8 @@ export function accountRoutes({
            payment_reference,
            status,
            created_at,
-           reviewed_at
+           reviewed_at,
+           (SELECT pc.environment FROM paypal_checkouts pc WHERE pc.load_order_id=credit_load_orders.id) AS payment_environment
          FROM credit_load_orders
          WHERE user_id=$1
          ORDER BY created_at DESC
@@ -416,6 +425,7 @@ export function accountRoutes({
 
             paymentProvider:
               order.payment_provider,
+            paymentEnvironment:order.payment_environment||null,
 
             paymentReference:
               order.payment_reference||
@@ -1066,222 +1076,18 @@ Music. Quality. 3rd Gen.`,
      AUTOMATIC PAYPAL CREDIT LOAD
   ========================================================= */
 
-  app.post(
-    '/api/account/paypal/create-order',
-    async(req,res,next)=>{
-
-      try{
-
-        sameOrigin(req);
-
-
-        await limit(
-          req,
-          'paypal-create-order',
-          8
-        );
-
-
-        const userId=
-          await requireUser(req);
-
-
-        const amountPesos=
-          Number(
-            req.body.amountPesos
-          );
-
-
-        const expectedCredits=
-          CREDIT_LOAD_PACKAGES[
-            amountPesos
-          ];
-
-
-        if(
-          !Number.isInteger(amountPesos)||
-          !expectedCredits
-        ){
-
-          fail(
-            400,
-            'Choose a valid MQ3 Credit package.'
-          );
-        }
-
-
-        const paypalOrder=
-          await createPaypalCreditOrder(
-            amountPesos,
-            expectedCredits
-          );
-
-
-        const orderId=
-          String(
-            paypalOrder?.id||
-            ''
-          ).trim();
-
-
-        if(!orderId){
-
-          fail(
-            502,
-            'PayPal did not return an order ID.'
-          );
-        }
-
-
-        const id=
-          randomUUID();
-
-
-        await q(
-          `INSERT INTO credit_load_orders(
-             id,
-             user_id,
-             amount_pesos,
-             credits,
-             payment_provider,
-             payment_reference,
-             status
-           )
-           VALUES(
-             $1,
-             $2,
-             $3,
-             $4,
-             'paypal',
-             $5,
-             'pending'
-           )`,
-          [
-            id,
-            userId,
-            amountPesos,
-            expectedCredits,
-            orderId
-          ]
-        );
-
-
-        const approvalUrl=
-          String(
-            paypalOrder?.links?.find(
-              link=>
-                link?.rel==='payer-action'||
-                link?.rel==='approve'
-            )?.href||
-            ''
-          ).trim();
-
-
-        if(!approvalUrl){
-
-          fail(
-            502,
-            'PayPal did not return an approval link.'
-          );
-        }
-
-
-        res.status(
-          201
-        ).json({
-          ok:true,
-          orderId,
-          approvalUrl,
-          creditLoadOrderId:
-            id,
-          amountPesos,
-          credits:
-            expectedCredits
-        });
-
-
-      }catch(error){
-        next(error);
-      }
-    }
-  );
-
-
-  app.post(
-    '/api/account/paypal/capture-order',
-    async(req,res,next)=>{
-
-      try{
-
-        sameOrigin(req);
-
-
-        await limit(
-          req,
-          'paypal-capture-order',
-          12
-        );
-
-
-        const userId=
-          await requireUser(req);
-
-
-        const orderId=
-          String(
-            req.body.orderId||
-            ''
-          ).normalize(
-            'NFKC'
-          ).trim();
-
-
-        if(
-          orderId.length<6||
-          orderId.length>100
-        ){
-
-          fail(
-            400,
-            'Invalid PayPal order.'
-          );
-        }
-
-
-        const [loadOrder]=
-          await q(
-            `SELECT
-               id,
-               amount_pesos,
-               credits,
-               status
-             FROM credit_load_orders
-             WHERE user_id=$1
-               AND payment_provider='paypal'
-               AND payment_reference=$2
-             LIMIT 1`,
-            [
-              userId,
-              orderId
-            ]
-          );
-
-
-        if(!loadOrder){
-
-          fail(
-            404,
-            'MQ3 PayPal Credit Load order not found.'
-          );
-        }
-
-
+  async function settlePaypalCreditOrder(loadOrder,orderId,userId){
+        if(loadOrder.paypal_environment!==paypalEnvironment()) fail(409,'Payment environment does not match this checkout.');
         if(loadOrder.status==='approved'){
-
-          return res.json({
+          if(loadOrder.paypal_environment==='live'){
+            const [ledger]=await q("SELECT id FROM credit_transactions WHERE reference_id=$1 AND user_id=$2 AND transaction_type='credit_purchase'",[loadOrder.id,userId]);
+            if(!ledger) fail(409,'Payment needs support review: wallet transaction is missing.');
+          }
+          return ({
             ok:true,
             status:'approved',
             alreadyCredited:true,
+            sandbox:loadOrder.paypal_environment==='sandbox',
             account:
               await accountData(
                 userId
@@ -1301,7 +1107,7 @@ Music. Quality. 3rd Gen.`,
 
         const capture=
           await capturePaypalCreditOrder(
-            orderId
+            orderId, loadOrder.id, Number(loadOrder.amount_pesos)
           );
 
 
@@ -1335,6 +1141,7 @@ Music. Quality. 3rd Gen.`,
 
 
         if(
+          purchaseUnit?.custom_id!==loadOrder.id||
           capture?.id!==orderId||
           capture?.purchase_units?.length!==1||
           purchaseUnit?.payments?.captures?.length!==1||
@@ -1365,6 +1172,13 @@ Music. Quality. 3rd Gen.`,
           );
         }
 
+
+        const capturedRows=await q(`UPDATE paypal_checkouts SET capture_id=$2 WHERE load_order_id=$1 AND (capture_id IS NULL OR capture_id=$2) RETURNING load_order_id`,[loadOrder.id,captured.id]);
+        if(!capturedRows.length) fail(409,'Capture does not match the stored payment.');
+        if(loadOrder.paypal_environment==='sandbox'){
+          await q(`UPDATE credit_load_orders SET status='approved',reviewed_at=$2 WHERE id=$1 AND status='pending'`,[loadOrder.id,new Date()]);
+          return {ok:true,status:'approved',sandbox:true,creditsAdded:0,testCredits:Number(loadOrder.credits),account:await accountData(userId)};
+        }
 
         const transactionId=
           randomUUID();
@@ -1473,10 +1287,11 @@ Music. Quality. 3rd Gen.`,
             existing?.credited===true
           ){
 
-            return res.json({
+            return ({
               ok:true,
               status:'approved',
               alreadyCredited:true,
+            sandbox:loadOrder.paypal_environment==='sandbox',
               account:
                 await accountData(
                   userId
@@ -1492,7 +1307,7 @@ Music. Quality. 3rd Gen.`,
         }
 
 
-        res.json({
+        return ({
           ok:true,
           status:'approved',
           creditsAdded:
@@ -1510,6 +1325,240 @@ Music. Quality. 3rd Gen.`,
               userId
             )
         });
+  }
+
+  app.post('/api/paypal/webhook',async(req,res,next)=>{
+    try {
+      await verifyPaypalWebhook({baseUrl:paypalBaseUrl(),accessToken:await paypalAccessToken(),webhookId:env.PAYPAL_WEBHOOK_ID,headers:req.headers,event:req.body});
+      const event=req.body;
+      if(!['CHECKOUT.ORDER.APPROVED','PAYMENT.CAPTURE.COMPLETED'].includes(event.event_type)) return res.json({ok:true,ignored:true});
+      const orderId=event.event_type==='CHECKOUT.ORDER.APPROVED' ? event.resource?.id : event.resource?.supplementary_data?.related_ids?.order_id;
+      if(typeof orderId!=='string' || !/^[a-zA-Z0-9]{6,100}$/.test(orderId)) fail(400,'Missing PayPal order ID.');
+      const [loadOrder]=await q(`SELECT clo.id,clo.user_id,clo.amount_pesos,clo.credits,clo.status,pc.environment AS paypal_environment
+        FROM paypal_checkouts pc JOIN credit_load_orders clo ON clo.id=pc.load_order_id
+        WHERE pc.paypal_order_id=$1 AND pc.environment=$2`,[orderId,paypalEnvironment()]);
+      // Events for other products/apps never grant MQ3 credits.
+      if(!loadOrder) return res.json({ok:true,ignored:true});
+      await settlePaypalCreditOrder(loadOrder,orderId,loadOrder.user_id);
+      // Acknowledge only after durable completion; failures stay retryable by PayPal.
+      res.json({ok:true});
+    } catch(error){next(error);}
+  });
+
+  app.post(
+    '/api/account/paypal/create-order',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'paypal-create-order',
+          8
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const amountPesos=
+          Number(
+            req.body.amountPesos
+          );
+
+
+        const expectedCredits=
+          CREDIT_LOAD_PACKAGES[
+            amountPesos
+          ];
+
+
+        if(
+          !Number.isInteger(amountPesos)||
+          !expectedCredits
+        ){
+
+          fail(
+            400,
+            'Choose a valid MQ3 Credit package.'
+          );
+        }
+
+
+        const id=randomUUID();
+        const paymentEnvironment=paypalEnvironment();
+        const paypalOrder=
+          await createPaypalCreditOrder(
+            amountPesos,
+            expectedCredits,
+            id
+          );
+
+
+        const orderId=
+          String(
+            paypalOrder?.id||
+            ''
+          ).trim();
+
+
+        if(!orderId){
+
+          fail(
+            502,
+            'PayPal did not return an order ID.'
+          );
+        }
+
+
+        await q(
+          `WITH inserted AS (INSERT INTO credit_load_orders(
+             id,
+             user_id,
+             amount_pesos,
+             credits,
+             payment_provider,
+             payment_reference,
+             status
+           )
+           VALUES(
+             $1,
+             $2,
+             $3,
+             $4,
+             'paypal',
+             $5,
+             'pending'
+           ) RETURNING id)
+           INSERT INTO paypal_checkouts(load_order_id,paypal_order_id,environment) SELECT id,$5,$6 FROM inserted`,
+          [
+            id,
+            userId,
+            amountPesos,
+            expectedCredits,
+            orderId,
+            paymentEnvironment
+          ]
+        );
+
+
+        const approvalUrl=
+          String(
+            paypalOrder?.links?.find(
+              link=>
+                link?.rel==='payer-action'||
+                link?.rel==='approve'
+            )?.href||
+            ''
+          ).trim();
+
+
+        if(!approvalUrl){
+
+          fail(
+            502,
+            'PayPal did not return an approval link.'
+          );
+        }
+
+
+        res.status(
+          201
+        ).json({
+          ok:true,
+          orderId,
+          approvalUrl,
+          creditLoadOrderId:
+            id,
+          amountPesos,
+          credits:
+            expectedCredits
+        });
+
+
+      }catch(error){
+        next(error);
+      }
+    }
+  );
+
+
+  app.post(
+    '/api/account/paypal/capture-order',
+    async(req,res,next)=>{
+
+      try{
+
+        sameOrigin(req);
+
+
+        await limit(
+          req,
+          'paypal-capture-order',
+          12
+        );
+
+
+        const userId=
+          await requireUser(req);
+
+
+        const orderId=
+          String(
+            req.body.orderId||
+            ''
+          ).normalize(
+            'NFKC'
+          ).trim();
+
+
+        if(
+          orderId.length<6||
+          orderId.length>100
+        ){
+
+          fail(
+            400,
+            'Invalid PayPal order.'
+          );
+        }
+
+
+        const [loadOrder]=
+          await q(
+            `SELECT
+               clo.id,
+               clo.amount_pesos,
+               clo.credits,
+               clo.status,
+               pc.environment AS paypal_environment
+             FROM credit_load_orders clo
+             JOIN paypal_checkouts pc ON pc.load_order_id=clo.id
+             WHERE clo.user_id=$1
+               AND clo.payment_provider='paypal'
+               AND pc.paypal_order_id=$2
+             LIMIT 1`,
+            [
+              userId,
+              orderId
+            ]
+          );
+
+
+        if(!loadOrder){
+
+          fail(
+            404,
+            'MQ3 PayPal Credit Load order not found.'
+          );
+        }
+
+
+        res.json(await settlePaypalCreditOrder(loadOrder,orderId,userId));
 
 
       }catch(error){
@@ -1701,6 +1750,7 @@ Music. Quality. 3rd Gen.`,
 
             paymentProvider:
               order.payment_provider,
+            paymentEnvironment:order.payment_environment||null,
 
             paymentReference:
               order.payment_reference,

@@ -177,14 +177,14 @@
       title.textContent = `${Number(order.credits || 0).toLocaleString()} Credits · ₱${Number(order.amountPesos || 0).toLocaleString()}`;
       const status = document.createElement('span');
       const states = {approved:['Added','#bde8c7'],pending:['Pending','#f0cf83'],rejected:['Not approved','#ffb5ac']};
-      const state = states[order.status] || ['Processing','#f0cf83'];
+      const state = order.paymentEnvironment==='sandbox' && order.status==='approved' ? ['Test completed','#c8bded'] : states[order.status] || ['Processing','#f0cf83'];
       status.textContent = state[0];
       status.style.cssText = `color:${state[1]};font-size:13px;`;
       top.append(title,status);
       const detail = document.createElement('p');
       const date = new Date(order.createdAt);
       const provider = order.paymentProvider === 'paypal' ? 'PayPal' : order.paymentProvider === 'gcash' ? 'GCash' : 'Payment';
-      detail.textContent = provider + (Number.isNaN(date.getTime()) ? '' : ' · ' + date.toLocaleString());
+      detail.textContent = provider + (order.paymentEnvironment==='sandbox' ? ' · SANDBOX TEST' : '') + (Number.isNaN(date.getTime()) ? '' : ' · ' + date.toLocaleString());
       detail.style.cssText = 'font-size:13px;opacity:.8;margin:8px 0;';
       const reference = document.createElement('details');
       const summary = document.createElement('summary');
@@ -949,8 +949,8 @@
       else await loadAccount();
       clearReturn();
       showPaymentConfirmation({
-        title:data.alreadyCredited ? 'Already in your wallet' : 'Payment complete',
-        message:data.alreadyCredited ? 'This payment has already been credited. You’re ready to listen.' : `${Number(data.creditsAdded || 0).toLocaleString()} MQ3 Credits have been added to your wallet.`,
+        title:data.sandbox ? 'Sandbox test complete' : data.alreadyCredited ? 'Already in your wallet' : 'Payment complete',
+        message:data.sandbox ? 'Your test payment was confirmed. No real money was paid and no spendable Credits were added.' : data.alreadyCredited ? 'This payment has already been credited. You’re ready to listen.' : `${Number(data.creditsAdded || 0).toLocaleString()} MQ3 Credits have been added to your wallet.`,
         credits:currentAccount?.credits?.total
       });
     } catch (error) {
