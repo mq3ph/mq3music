@@ -10,6 +10,7 @@ const cats=[
 ];
 
 let tab='Name Request';
+let requestStatusFilter='all';
 let songs=[];
 let requests=[];
 let orders=[];
@@ -1756,7 +1757,7 @@ async function showRequestMessageComposer(request,song){
   subjectInput.className='mq3-request-message-field';
   subjectInput.value=`Your song for ${request.name} is ready 🎵`;
 
-  const listenerUrl=`${location.origin}/results?name=${encodeURIComponent(request.name||'')}`;
+  const listenerUrl=`${location.origin}/?song=${encodeURIComponent(song.id)}`;
   const bodyInput=document.createElement('textarea');
   bodyInput.className='mq3-request-message-field';
   bodyInput.value=`Hi ${request.name}! Good news — the song you requested for ${request.name} is now available on MQ3.
@@ -1823,6 +1824,7 @@ Thank you for being part of MQ3 Music! 🎵`;
 
 async function sendRequestMessage(request,song){
 
+  if(request.status==='notified'){message('This request has already been emailed.');return;}
   const draft=await showRequestMessageComposer(request,song);
   if(!draft)return;
 
@@ -2099,89 +2101,32 @@ function render(){
   }else if(
     tab==='Name Request'
   ){
-
-    const body=
-      table([
-        'Date',
-        'Name',
-        'Email',
-        'Status'
-      ]);
-
-
-    requests
-      .filter(match)
-      .forEach(
-        r=>{
-
-          let song=
-            findMatchingNameSong(r);
-
-
-          if(
-            !song&&
-            r.song_id
-          ){
-
-            song=
-              songs.find(
-                s=>
-
-                  s.id===r.song_id&&
-                  s.category==='NAME SONGS'&&
-                  s.published&&
-                  s.audio_path
-              )||null;
-          }
-
-
-          const visibleStatus=
-            r.status==='notified'
-              ?'notified'
-              :'pending';
-
-
-          const items=[
-            badge(
-              visibleStatus
-            )
-          ];
-
-
-          if(song){
-
-            items.push(
-              button(
-                'Message',
-                ()=>
-                  sendRequestMessage(
-                    r,
-                    song
-                  )
-              )
-            );
-          }
-
-
-          row(
-            body,
-            [
-              date(
-                r.created_at
-              ),
-
-              r.name,
-
-              r.email,
-
-              actions(
-                ...items
-              )
-            ]
-          );
-        }
-      );
-
+    const labels={pending:'Pending',working:'Working on it',available:'Available',notified:'Emailed'};
+    $('tab-note').textContent='Track requests, link a published Name Song, then preview the email before sending.';
+    const filters=node('div');
+    filters.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;';
+    filters.setAttribute('aria-label','Filter name requests');
+    for(const [value,label] of Object.entries({all:'All',...labels})){
+      const count=requests.filter(r=>value==='all'||r.status===value).length;
+      const control=button(`${label} (${count})`,()=>{requestStatusFilter=value;render();});
+      control.setAttribute('aria-pressed',String(requestStatusFilter===value));
+      if(requestStatusFilter===value)control.style.cssText='background:#e4bd70;color:#241609;';
+      filters.append(control);
+    }
+    $('tab-note').append(filters);
+    const body=table(['Date','Name','Email','Song','Status','Actions']);
+    requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter).forEach(r=>{
+      const linked=songs.find(s=>s.id===r.song_id&&s.category==='NAME SONGS'&&s.published&&s.audio_path);
+      const song=linked || (!r.song_id ? findMatchingNameSong(r) : null);
+      const items=[];
+      if(r.status!=='notified') items.push(button('Update request',()=>editRequest(r)));
+      if(song && r.status!=='notified') items.push(button('Preview email',()=>sendRequestMessage(r,song)));
+      const status=node('div');
+      status.append(badge(labels[r.status]||r.status));
+      if(r.notified_at){const sent=node('small',`Sent ${date(r.notified_at)}`);sent.style.display='block';status.append(sent);}
+      row(body,[date(r.created_at),r.name,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
+    });
+    if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=6;tr.append(td);body.append(tr);}
 
   }else if(
     tab==='🪙 Credit Loads'

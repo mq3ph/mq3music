@@ -563,8 +563,8 @@ export function createApp(s=services()){
           );
 
 
-        await q(
-          'INSERT INTO requests(id,name,normalized_name,email) VALUES($1,$2,$3,$4) ON CONFLICT(normalized_name,email) DO NOTHING',
+        const inserted=await q(
+          'INSERT INTO requests(id,name,normalized_name,email) VALUES($1,$2,$3,$4) ON CONFLICT(normalized_name,email) DO NOTHING RETURNING id',
           [
             randomUUID(),
 
@@ -582,7 +582,7 @@ export function createApp(s=services()){
             ok:true,
 
             message:
-              'Your request is recorded. MQ3 can email you when the song is available.'
+              inserted.length ? 'Your request is recorded. MQ3 can email you when the song is available.' : 'This name and email are already on our request list. No duplicate request was created.'
           });
       }
     )
@@ -1393,8 +1393,8 @@ export function createApp(s=services()){
         }
 
 
-        await q(
-          'UPDATE requests SET status=$2,song_id=$3 WHERE id=$1',
+        const updated=await q(
+          "UPDATE requests SET status=$2,song_id=$3 WHERE id=$1 AND status<>'notified' RETURNING id",
           [
             id,
             status,
@@ -1402,6 +1402,8 @@ export function createApp(s=services()){
           ]
         );
 
+
+        if(!updated.length) fail(409,'Request was already emailed or no longer exists. Refresh the list.');
 
         res.json({
           ok:true
@@ -1441,6 +1443,9 @@ export function createApp(s=services()){
           );
         }
 
+
+        if(r.status==='notified') return res.json({ok:true,alreadyNotified:true});
+        if(r.status!=='available') fail(409,'Mark this request Available before sending the notification.');
 
         const [song]=
           await q(
