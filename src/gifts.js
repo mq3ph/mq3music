@@ -334,6 +334,10 @@ export function giftRoutes({
         );
 
 
+      const [song]=await q('SELECT suno_url FROM songs WHERE id=$1 AND published=true',[songId]);
+      if(!song) fail(404,'Song not found.');
+      if(song.suno_url) fail(400,'Gifts are available for uploaded MP3 songs.');
+
       const giftType=
         String(
           req.body?.giftType||

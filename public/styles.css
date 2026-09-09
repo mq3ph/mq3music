@@ -2318,3 +2318,11 @@ dialog p{
   .player #seek{height:28px;min-width:0;flex:1;}
   .player button:focus-visible,.player #seek:focus-visible{outline:2px solid #ffe4ad;outline-offset:3px;}
 }
+
+/* Suno Name Songs: independent embedded player and readable lyrics. */
+.mq3-suno-dialog { box-sizing:border-box; width:min(620px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow:auto; padding:24px; border:1px solid #b28b47; border-radius:24px; background:#171310; color:#f5e7c5; }
+.mq3-suno-dialog::backdrop { background:rgba(0,0,0,.8); }
+.mq3-suno-dialog h2 { overflow-wrap:anywhere; margin-top:0; }
+.mq3-suno-dialog .button { min-height:44px; }
+.mq3-suno-dialog summary { cursor:pointer; min-height:44px; }
+@media(max-width:420px){.mq3-suno-dialog{padding:18px;}.mq3-suno-dialog h2{font-size:28px;}}

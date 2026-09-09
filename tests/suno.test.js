@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import request from 'supertest';
+import {readFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {createApp} from '../src/index.js';
+import {passwordHash} from '../src/security.js';
+import {resolveSunoLink} from '../src/suno.js';
+const require=createRequire(import.meta.url);
+const {PGlite}=require(process.env.MQ3_PGLITE_MODULE);
+const link='https://suno.com/song/657e28fc-df67-4dd1-be2d-24bfaa952503';
+test('Suno links normalize and reject unsafe redirect destinations',async()=>{
+ assert.equal(await resolveSunoLink(link+'?sh=test'),link);
+ assert.equal(await resolveSunoLink('https://suno.com/s/test',async()=>new Response(null,{status:302,headers:{location:link}})),link);
+ let calls=0;await assert.rejects(resolveSunoLink('https://suno.com/s/test',async()=>{calls++;return new Response(null,{status:302,headers:{location:'http://127.0.0.1/private'}})}));assert.equal(calls,1);
+ for(const bad of ['javascript:alert(1)','https://suno.com.evil.test/song/x','https://suno.com/@mq3','https://user:pass@suno.com/s/test'])await assert.rejects(resolveSunoLink(bad));
+});
+test('Suno catalog, publish, lyrics, request linking and existing MP3 preservation',async t=>{
+ const db=new PGlite();t.after(()=>db.close());await db.exec(await readFile(new URL('../schema.sql',import.meta.url),'utf8'));
+ const q=async(sql,p)=>(await db.query(sql,p)).rows;
+ const app=createApp({env:{APP_URL:'http://localhost:3000',BLOB_STORE_ID:'test-store',SESSION_SECRET:'test-secret-more-than-thirty-two-characters',ADMIN_PASSWORD_HASH:passwordHash('test-password')},query:q});
+ const admin=request.agent(app);const post=(url,body)=>admin.post(url).set('Origin','http://localhost:3000').send(body);
+ await post('/api/login',{password:'test-password'});
+ const base={title:'Moses',category:'NAME SONGS',names:'Moses',lyrics:'First line\nSecond line',price:0,suno_url:link};
+ assert.equal((await post('/api/admin/songs',{...base,category:'OPM'})).status,400);
+ const created=await post('/api/admin/songs',base);assert.equal(created.status,200);const id=created.body.id;
+ assert.equal((await post('/api/admin/songs',{...base,id,published:true})).status,200);
+ const catalog=await request(app).get('/api/catalog');assert.equal(catalog.status,200);const song=catalog.body.songs.find(s=>s.id===id);assert.equal(song.suno_url,link);assert.equal(song.lyrics,base.lyrics);
+ assert.equal((await post('/api/admin/upload-ticket',{songId:id,kind:'audio'})).status,404);
+ const mp3='c6f70810-6b85-4b93-a35c-25ab94d8d894';await q("INSERT INTO songs(id,title,category,published,audio_path) VALUES($1,'Old MP3','NAME SONGS',true,'songs/old.mp3')",[mp3]);
+ assert.equal((await post('/api/admin/songs',{...base,id:mp3,published:true})).status,400);
+ assert.equal((await q('SELECT audio_path,published FROM songs WHERE id=$1',[mp3]))[0].audio_path,'songs/old.mp3');
+ const reqId='87efb917-5a9a-4392-af83-70b9499ac352';await q("INSERT INTO requests(id,name,normalized_name,email) VALUES($1,'Moses','moses','test@example.com')",[reqId]);
+ assert.equal((await post('/api/admin/requests/'+reqId,{status:'available',songId:id})).status,200);
+ const updated=await request(app).get('/api/catalog');assert.equal(updated.body.songs.length,2);
+});
+

@@ -27,3 +27,5 @@ CREATE TABLE IF NOT EXISTS upload_tickets (
 -- Run these two lines once on an existing MQ3 database:
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS duration_seconds integer;
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
+
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_url text;

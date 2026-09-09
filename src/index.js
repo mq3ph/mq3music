@@ -1,3 +1,4 @@
+import {resolveSunoLink} from './suno.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import {randomUUID} from 'node:crypto';
@@ -25,7 +26,7 @@ export const categories=[
 ];
 
 const publicFields=
-  'id,title,category,names,lyrics,price,duration_seconds,views,created_at';
+  'id,title,category,names,lyrics,price,duration_seconds,views,created_at,suno_url';
 
 const wrap=fn=>
   (req,res,next)=>
@@ -456,7 +457,7 @@ export function createApp(s=services()){
 
         const songs=
           await q(
-            `SELECT ${publicFields} FROM songs WHERE published=true AND audio_path IS NOT NULL ORDER BY created_at DESC`
+            `SELECT ${publicFields} FROM songs WHERE published=true AND (audio_path IS NOT NULL OR suno_url IS NOT NULL) ORDER BY created_at DESC`
           );
 
 
@@ -706,6 +707,12 @@ export function createApp(s=services()){
           );
 
 
+        let sunoUrl;
+        if (Object.hasOwn(req.body,'suno_url')) {
+          try { sunoUrl=await resolveSunoLink(req.body.suno_url); }
+          catch(error) { fail(400,error.message); }
+        }
+        if(sunoUrl && category!=='NAME SONGS') fail(400,'Suno links are available for Name Songs only.');
         const durationRaw=
           req.body.duration_seconds;
 
@@ -726,7 +733,8 @@ export function createApp(s=services()){
           durationSeconds!==null&&
           (
             !Number.isInteger(
-              durationSeconds
+              durationSeconds,
+              sunoUrl || null
             )||
             durationSeconds<0||
             durationSeconds>86400
@@ -770,19 +778,22 @@ export function createApp(s=services()){
           }
 
 
+          if(sunoUrl===undefined) sunoUrl=existing.suno_url||null;
+          if(sunoUrl && category!=='NAME SONGS') fail(400,'Suno links are available for Name Songs only.');
+          if(sunoUrl && existing.audio_path) fail(400,'Keep this MP3 song. Add a new song for a Suno link.');
           if(
             req.body.published&&
-            !existing.audio_path
+            !existing.audio_path && !sunoUrl
           ){
             fail(
               400,
-              'Upload full audio before publishing.'
+              'Upload full audio or add a Suno link before publishing.'
             );
           }
 
 
           await q(
-            'UPDATE songs SET title=$2,category=$3,names=$4,lyrics=$5,price=$6,published=$7,duration_seconds=COALESCE($8,duration_seconds) WHERE id=$1',
+            'UPDATE songs SET title=$2,category=$3,names=$4,lyrics=$5,price=$6,published=$7,duration_seconds=COALESCE($8,duration_seconds),suno_url=$9 WHERE id=$1',
             [
               id,
 
@@ -799,7 +810,8 @@ export function createApp(s=services()){
               req.body
                 .published===true,
 
-              durationSeconds
+              durationSeconds,
+              sunoUrl || null
             ]
           );
 
@@ -807,7 +819,7 @@ export function createApp(s=services()){
         }else{
 
           await q(
-            'INSERT INTO songs(id,title,category,names,lyrics,price,duration_seconds) VALUES($1,$2,$3,$4,$5,$6,$7)',
+            'INSERT INTO songs(id,title,category,names,lyrics,price,duration_seconds,suno_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',
             [
               id,
 
@@ -821,7 +833,8 @@ export function createApp(s=services()){
 
               price,
 
-              durationSeconds
+              durationSeconds,
+              sunoUrl || null
             ]
           );
         }
@@ -994,7 +1007,7 @@ export function createApp(s=services()){
         if(
           !(
             await q(
-              'SELECT id FROM songs WHERE id=$1',
+              'SELECT id FROM songs WHERE id=$1 AND suno_url IS NULL',
               [
                 songId
               ]
@@ -1391,7 +1404,7 @@ export function createApp(s=services()){
           songId&&
           !(
             await q(
-              "SELECT id FROM songs WHERE id=$1 AND published=true AND category='NAME SONGS' AND audio_path IS NOT NULL",
+              "SELECT id FROM songs WHERE id=$1 AND published=true AND category='NAME SONGS' AND (audio_path IS NOT NULL OR suno_url IS NOT NULL)",
               [
                 songId
               ]
@@ -1461,7 +1474,7 @@ export function createApp(s=services()){
 
         const [song]=
           await q(
-            "SELECT id,title FROM songs WHERE id=$1 AND published=true AND category='NAME SONGS' AND audio_path IS NOT NULL",
+            "SELECT id,title FROM songs WHERE id=$1 AND published=true AND category='NAME SONGS' AND (audio_path IS NOT NULL OR suno_url IS NOT NULL)",
             [
               r.song_id
             ]
@@ -2526,7 +2539,7 @@ Keep this link private. Memberships expire on the stated access date.`,
 
         const rows=
           await q(
-            'UPDATE songs SET views=views+1 WHERE id=$1 AND published=true AND audio_path IS NOT NULL RETURNING views',
+            'UPDATE songs SET views=views+1 WHERE id=$1 AND published=true AND (audio_path IS NOT NULL OR suno_url IS NOT NULL) RETURNING views',
             [
               id
             ]

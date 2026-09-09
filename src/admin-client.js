@@ -1437,7 +1437,7 @@ function findMatchingNameSong(request){
         song.category!==
           'NAME SONGS'||
         !song.published||
-        !song.audio_path
+        !(song.audio_path || song.suno_url)
       ){
         return false;
       }
@@ -2078,7 +2078,7 @@ function render(){
             s.title,
 
             button(
-              'Edit Lyrics',
+              'Edit song / lyrics',
               ()=>editSong(s)
             ),
 
@@ -2091,8 +2091,8 @@ function render(){
             ).toLocaleString(),
 
             button(
-              'Replace',
-              ()=>replaceAudio(s)
+              s.suno_url?'Edit Suno link':'Replace',
+              ()=>s.suno_url?editSong(s):replaceAudio(s)
             ),
 
             button(
@@ -2133,7 +2133,7 @@ function render(){
     $('tab-note').append(filters);
     const body=table(['Date','Name','Email','Song','Status','Actions']);
     requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter).forEach(r=>{
-      const linked=songs.find(s=>s.id===r.song_id&&s.category==='NAME SONGS'&&s.published&&s.audio_path);
+      const linked=songs.find(s=>s.id===r.song_id&&s.category==='NAME SONGS'&&s.published&&(s.audio_path||s.suno_url));
       const song=linked || (!r.song_id ? findMatchingNameSong(r) : null);
       const items=[];
       if(r.status!=='notified') items.push(button('Update request',()=>editRequest(r)));
@@ -2703,6 +2703,15 @@ async function replaceAudio(s){
    SONG EDITOR
 ========================================================= */
 
+function updateSongSource(){
+  const suno=$('song-source').value==='suno';
+  $('song-suno-label').style.display=suno?'':'none';
+  $('song-suno').disabled=!suno;
+  $('song-suno').required=suno;
+  $('full-file').disabled=suno;
+  $('full-file').closest('label').style.display=suno?'none':'';
+}
+$('song-source').onchange=updateSongSource;
 function editSong(s={}){
 
   editingSong=
@@ -2717,6 +2726,10 @@ function editSong(s={}){
 
   $('song-id').value=
     s.id||'';
+  $('song-source').value=s.suno_url?'suno':'mp3';
+  $('song-source').disabled=!!s.audio_path;
+  $('song-suno').value=s.suno_url||'';
+  updateSongSource();
 
 
   $('song-title').value=
@@ -2851,9 +2864,9 @@ $('song-form').onsubmit=
 
     try{
 
-      const fullFile=
-        $('full-file')
-          .files[0];
+      const isSuno=$('song-source').value==='suno';
+      if(isSuno && $('song-category').value!=='NAME SONGS') throw Error('Choose Name Songs for Suno links.');
+      const fullFile=isSuno?null:$('full-file').files[0];
 
 
       if(
@@ -2914,6 +2927,7 @@ $('song-form').onsubmit=
 
 
       const data={
+        suno_url:isSuno?$('song-suno').value.trim():null,
 
         id:
           $('song-id').value||
@@ -3099,7 +3113,7 @@ function editRequest(r){
       s=>
         s.category==='NAME SONGS'&&
         s.published&&
-        s.audio_path
+        (s.audio_path || s.suno_url)
     )
 
     .sort(
