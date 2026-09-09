@@ -810,6 +810,54 @@
     }
   }
 
+  function showPaymentConfirmation({title, message, credits, retry = false}) {
+    let panel = document.getElementById('mq3-payment-result');
+    if (!panel) {
+      const style = document.createElement('style');
+      style.textContent = `
+        #mq3-payment-result { box-sizing:border-box; width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; padding:32px 24px; border:1px solid #96723a; border-radius:24px; background:#15110f; color:#f7ead3; text-align:center; font-family:Arial,sans-serif; box-shadow:0 24px 80px #0009; }
+        #mq3-payment-result::backdrop { background:rgba(0,0,0,.72); backdrop-filter:blur(5px); }
+        #mq3-payment-result .payment-mark { display:grid; place-items:center; width:60px; height:60px; margin:0 auto 20px; border:1px solid #b88c45; border-radius:50%; background:#302416; color:#f3d38a; font-size:30px; }
+        #mq3-payment-result .payment-label { color:#d6b574; font-size:11px; letter-spacing:3px; margin:0 0 12px; }
+        #mq3-payment-result h2 { margin:0 0 12px; font-family:Georgia,serif; font-size:30px; color:#f3d38a; }
+        #mq3-payment-result .payment-copy { color:#c7bbaa; font-size:15px; line-height:1.6; margin:0 0 20px; overflow-wrap:anywhere; }
+        #mq3-payment-result .payment-balance { border:1px solid #443521; border-radius:14px; padding:16px; margin:0 0 24px; color:#c7bbaa; font-size:13px; }
+        #mq3-payment-result .payment-balance strong { display:block; color:#f3d38a; font-size:25px; margin-top:6px; }
+        #mq3-payment-result button { display:block; width:100%; min-height:48px; border:0; border-radius:999px; background:linear-gradient(110deg,#f9dda0,#d2a451); color:#211608; font-size:15px; font-weight:700; cursor:pointer; }
+        #mq3-payment-result button:focus-visible { outline:3px solid #fff; outline-offset:4px; }
+        #mq3-payment-result .payment-secondary { background:transparent; color:#d6b574; margin-top:8px; }
+        #mq3-payment-result [hidden] { display:none; }
+      `;
+      document.head.append(style);
+      panel = document.createElement('dialog');
+      panel.id = 'mq3-payment-result';
+      panel.setAttribute('aria-labelledby', 'mq3-payment-title');
+      panel.setAttribute('aria-describedby', 'mq3-payment-copy');
+      panel.innerHTML = `<div class="payment-mark" aria-hidden="true"></div>
+        <p class="payment-label">MQ3 WALLET</p><h2 id="mq3-payment-title"></h2>
+        <p id="mq3-payment-copy" class="payment-copy"></p>
+        <div class="payment-balance">Your balance<strong></strong></div>
+        <button type="button" class="payment-primary" autofocus></button>
+        <button type="button" class="payment-secondary" hidden>Close</button>`;
+      document.body.append(panel);
+    }
+    const previousFocus = document.activeElement;
+    panel.querySelector('.payment-mark').textContent = retry ? '!' : '✓';
+    panel.querySelector('h2').textContent = title;
+    panel.querySelector('.payment-copy').textContent = message;
+    const balance = panel.querySelector('.payment-balance');
+    balance.hidden = !Number.isFinite(credits);
+    balance.querySelector('strong').textContent = Number.isFinite(credits) ? `${credits.toLocaleString()} Credits` : '';
+    const primary = panel.querySelector('.payment-primary');
+    primary.textContent = retry ? 'Retry confirmation' : 'Continue listening';
+    primary.onclick = () => { panel.close(); if (retry) finishPaypalCreditLoadFromReturn(); };
+    const secondary = panel.querySelector('.payment-secondary');
+    secondary.hidden = !retry;
+    secondary.onclick = () => panel.close();
+    panel.onclose = () => { if (previousFocus?.isConnected) previousFocus.focus(); };
+    if (!panel.open) panel.showModal();
+  }
+
   let paypalCaptureInProgress = false;
 
   async function finishPaypalCreditLoadFromReturn() {
@@ -823,7 +871,7 @@
     };
     if (flow === 'cancel') {
       clearReturn();
-      alert('PayPal checkout was cancelled. No Credits were added.');
+      showPaymentConfirmation({title:'Checkout cancelled', message:'No Credits were added to your wallet.'});
       return;
     }
     if (flow !== 'return' || !orderId || paypalCaptureInProgress) return;
@@ -842,13 +890,14 @@
       if (data.account) displayAccount(data.account);
       else await loadAccount();
       clearReturn();
-      alert(data.alreadyCredited
-        ? 'This PayPal payment has already been added to your MQ3 wallet.'
-        : `PayPal payment complete! ${Number(data.creditsAdded || 0).toLocaleString()} MQ3 Credits added.`);
+      showPaymentConfirmation({
+        title:data.alreadyCredited ? 'Already in your wallet' : 'Payment complete',
+        message:data.alreadyCredited ? 'This payment has already been credited. You’re ready to listen.' : `${Number(data.creditsAdded || 0).toLocaleString()} MQ3 Credits have been added to your wallet.`,
+        credits:currentAccount?.credits?.total
+      });
     } catch (error) {
       // Keep the return token so refresh, reconnect, or sign-in can safely retry.
-      alert((error.message || 'Payment confirmation is temporarily unavailable.') +
-        ' Refresh this page to retry confirmation. Do not make another payment for this order.');
+      showPaymentConfirmation({title:'Confirmation pending', message:(error.message || 'Payment confirmation is temporarily unavailable.') + ' Retry confirmation for this order before starting another payment.', retry:true});
     } finally {
       paypalCaptureInProgress = false;
     }
