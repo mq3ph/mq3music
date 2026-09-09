@@ -32,6 +32,14 @@ test('Suno catalog, publish, lyrics, request linking and existing MP3 preservati
  assert.equal((await q('SELECT audio_path,published FROM songs WHERE id=$1',[mp3]))[0].audio_path,'songs/old.mp3');
  const reqId='87efb917-5a9a-4392-af83-70b9499ac352';await q("INSERT INTO requests(id,name,normalized_name,email) VALUES($1,'Moses','moses','test@example.com')",[reqId]);
  assert.equal((await post('/api/admin/requests/'+reqId,{status:'available',songId:id})).status,200);
+ assert.equal((await post('/api/admin/songs/'+mp3+'/convert-suno',{url:link})).status,400);
+ const before=(await q('SELECT * FROM songs WHERE id=$1',[mp3]))[0];
+ assert.equal((await post('/api/admin/songs/'+mp3+'/convert-suno',{url:link,tested:true})).status,200);
+ const after=(await q('SELECT * FROM songs WHERE id=$1',[mp3]))[0];
+ assert.deepEqual({...after,suno_url:null},before);
+ const order='416952b9-e552-41d4-9c8c-479139a73f61';
+ await q("INSERT INTO orders(id,customer_hash,email,provider,kind,song_id,amount) VALUES($1,'test','test@example.com','paypal','song',$2,50)",[order,mp3]);
+ assert.equal((await post('/api/admin/songs/'+mp3+'/convert-suno',{url:link,tested:true})).status,409);
  const updated=await request(app).get('/api/catalog');assert.equal(updated.body.songs.length,2);
 });
 

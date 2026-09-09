@@ -2091,8 +2091,8 @@ function render(){
             ).toLocaleString(),
 
             button(
-              s.suno_url?'Edit Suno link':'Replace',
-              ()=>s.suno_url?editSong(s):replaceAudio(s)
+              s.suno_url?'Suno (MP3 retained if uploaded)':s.category==='NAME SONGS'?'Convert to Suno / MP3':'Replace',
+              ()=>s.audio_path&&s.category==='NAME SONGS'?convertSuno(s):s.suno_url?editSong(s):replaceAudio(s)
             ),
 
             button(
@@ -2509,6 +2509,36 @@ function render(){
 /* =========================================================
    DELETE SONG
 ========================================================= */
+
+async function convertSuno(song){
+  const dialog=document.createElement('dialog');
+  dialog.style.cssText='width:min(600px,calc(100vw - 32px));max-height:90dvh;overflow:auto';
+  const title=node('h2','Convert '+song.title+' to Suno');
+  const note=node('p','Your title, lyrics, matching names, share link and records stay the same. The old MP3 stays in Blob for now; this step does not free storage yet.');
+  const input=document.createElement('input');input.type='url';input.placeholder='https://suno.com/song/...';input.value=song.suno_url||'';input.setAttribute('aria-label','Suno song link');input.style.width='100%';
+  const preview=node('div');let verified='';
+  const label=node('label');const check=document.createElement('input');check.type='checkbox';label.append(check,document.createTextNode(' I played this preview and confirmed it is the correct song.'));
+  const status=node('p','');status.setAttribute('role','status');
+  const save=button('Use Suno for this song',async()=>{
+    save.disabled=true;
+    try{await api('/api/admin/songs/'+song.id+'/convert-suno',{url:verified,tested:check.checked});dialog.close();await load();message('Converted to Suno. Old MP3 retained; storage cleanup comes separately.');}
+    catch(e){status.textContent=e.message;save.disabled=!check.checked;}
+  });save.disabled=true;
+  check.onchange=()=>save.disabled=!check.checked||!verified;
+  input.oninput=()=>{verified='';check.checked=false;save.disabled=true;preview.replaceChildren();};
+  const test=button('Test Suno link',async()=>{
+    test.disabled=true;save.disabled=true;check.checked=false;verified='';preview.replaceChildren();
+    try{const data=await api('/api/admin/suno-preview',{url:input.value});verified=data.url;
+      const frame=document.createElement('iframe');frame.src=data.embed;frame.title='Suno preview for '+song.title;frame.allow='autoplay; encrypted-media';frame.style.cssText='width:100%;height:240px;border:0';
+      const link=node('a','Open on Suno');link.href=data.url;link.target='_blank';link.rel='noopener noreferrer';preview.append(frame,link);status.textContent='Press Play inside the preview, then confirm below.';
+    }catch(e){status.textContent=e.message;}finally{test.disabled=false;}
+  });
+  const close=button('Cancel',()=>dialog.close());
+  const replace=button('Keep MP3 / replace audio',()=>{dialog.close();replaceAudio(song);});
+  dialog.append(title,note,input,test,preview,label,status,save,close);
+  if(!song.suno_url)dialog.append(replace);
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();input.focus();
+}
 
 async function deleteSong(s){
 

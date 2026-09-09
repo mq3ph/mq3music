@@ -733,8 +733,7 @@ export function createApp(s=services()){
           durationSeconds!==null&&
           (
             !Number.isInteger(
-              durationSeconds,
-              sunoUrl || null
+              durationSeconds
             )||
             durationSeconds<0||
             durationSeconds>86400
@@ -780,7 +779,7 @@ export function createApp(s=services()){
 
           if(sunoUrl===undefined) sunoUrl=existing.suno_url||null;
           if(sunoUrl && category!=='NAME SONGS') fail(400,'Suno links are available for Name Songs only.');
-          if(sunoUrl && existing.audio_path) fail(400,'Keep this MP3 song. Add a new song for a Suno link.');
+          if(sunoUrl && existing.audio_path && sunoUrl!==existing.suno_url) fail(400,'Use Convert to Suno to change the source of this uploaded song.');
           if(
             req.body.published&&
             !existing.audio_path && !sunoUrl
@@ -851,6 +850,28 @@ export function createApp(s=services()){
   /* =========================================================
      DELETE SONG
   ========================================================= */
+
+  app.post('/api/admin/suno-preview',wrap(async(req,res)=>{
+    let link;
+    try {link=await resolveSunoLink(req.body.url);} catch(error){fail(400,error.message);}
+    if(!link) fail(400,'Enter a Suno song link.');
+    res.json({url:link,embed:link.replace('/song/','/embed/')});
+  }));
+
+  app.post('/api/admin/songs/:id/convert-suno',wrap(async(req,res)=>{
+    const id=uuid(req.params.id);
+    if(req.body.tested!==true) fail(400,'Test the Suno player and confirm the correct song first.');
+    let link;
+    try {link=await resolveSunoLink(req.body.url);} catch(error){fail(400,error.message);}
+    if(!link) fail(400,'Enter a Suno song link.');
+    const updated=await q(`UPDATE songs SET suno_url=$2
+      WHERE id=$1 AND category='NAME SONGS' AND audio_path IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM orders WHERE song_id=$1)
+      AND NOT EXISTS (SELECT 1 FROM orders WHERE kind='membership' AND status='paid' AND expires_at>now())
+      RETURNING id`,[id,link]);
+    if(!updated.length) fail(409,'Conversion is unavailable: choose an uploaded Name Song without order history or active paid membership access.');
+    res.json({ok:true,message:'Now using Suno. The old audio is retained until a separate storage cleanup.'});
+  }));
 
   app.delete(
     '/api/admin/songs/:id',
@@ -1608,7 +1629,7 @@ export function createApp(s=services()){
 
           const [song]=
             await q(
-              'SELECT price FROM songs WHERE id=$1 AND published=true AND audio_path IS NOT NULL',
+              'SELECT price FROM songs WHERE id=$1 AND published=true AND audio_path IS NOT NULL AND suno_url IS NULL',
               [
                 songId
               ]
