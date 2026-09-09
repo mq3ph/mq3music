@@ -1266,6 +1266,18 @@ export function createApp(s=services()){
      ADMIN REQUEST LIST
   ========================================================= */
 
+  app.get('/api/admin/listeners',wrap(async(_req,res)=>{
+    const [summary]=await q(`SELECT count(*)::int AS total,
+      count(*) FILTER (WHERE EXISTS(SELECT 1 FROM credit_transactions ct WHERE ct.user_id=u.id AND ct.transaction_type='welcome_bonus' AND ct.promo_change=25))::int AS welcomed,
+      count(*) FILTER (WHERE u.last_login_at >= now()-interval '7 days')::int AS active_seven_days
+      FROM users u`);
+    const listeners=await q(`SELECT u.id,u.email,u.display_name,u.created_at,u.last_login_at,
+      EXISTS(SELECT 1 FROM credit_transactions ct WHERE ct.user_id=u.id AND ct.transaction_type='welcome_bonus' AND ct.promo_change=25) AS welcome_received,
+      (SELECT min(ct.created_at) FROM credit_transactions ct WHERE ct.user_id=u.id AND ct.transaction_type='welcome_bonus' AND ct.promo_change=25) AS welcome_at
+      FROM users u ORDER BY u.created_at DESC LIMIT 500`);
+    res.json({summary,listeners});
+  }));
+
   app.get(
     '/api/admin/requests',
     wrap(

@@ -733,6 +733,28 @@ function showLyrics(t){
    PLAYER LYRICS BUTTON
 ========================================================= */
 
+async function shareSong(song){
+  if(!song)return;
+  const link=new URL('/',location.href);
+  if(['mq3music.com','www.mq3music.com','mq3music-sable.vercel.app'].includes(link.hostname))link.href='https://www.mq3music.com/';
+  link.searchParams.set('song',song.id);
+  if(navigator.share){
+    try{await navigator.share({title:song.title+' · MQ3 Music',text:'Listen to '+song.title+' on MQ3 Music',url:link.href});return;}
+    catch(error){if(error.name==='AbortError')return;}
+  }
+  try{await navigator.clipboard.writeText(link.href);toast('Song link copied.');}
+  catch{
+    let panel=document.getElementById('mq3-share-song');
+    if(!panel){
+      panel=document.createElement('dialog');panel.id='mq3-share-song';panel.setAttribute('aria-labelledby','mq3-share-title');
+      panel.innerHTML='<h2 id="mq3-share-title">Share this song</h2><p>Press and hold the link to copy it, then paste it into your message.</p><input aria-label="Song link" readonly><button type="button" class="button primary">Done</button>';
+      panel.querySelector('button').onclick=()=>panel.close();document.body.append(panel);
+    }
+    const field=panel.querySelector('input');field.value=link.href;field.style.cssText='width:100%;font-size:16px;margin-bottom:16px;';
+    if(!panel.open)panel.showModal();field.focus();field.select();
+  }
+}
+
 function ensurePlayerLyricsButton(){
 
   const nowcat=
@@ -782,6 +804,13 @@ function ensurePlayerLyricsButton(){
     .append(
       button
     );
+
+  if(!document.getElementById('player-share')){
+    const share=node('button','Share','');share.id='player-share';share.type='button';share.disabled=!current;
+    share.setAttribute('aria-label','Share current song');share.style.fontSize='11px';
+    share.onclick=()=>shareSong(tracks.find(t=>t.id===current));
+    document.querySelector('.controls').append(share);
+  }
 
 }
 
@@ -2249,11 +2278,14 @@ function render(){
         '.88rem';
 
 
+      const share=node('button','Share','lyrics-button');
+      share.type='button';share.setAttribute('aria-label','Share '+t.title);share.onclick=()=>shareSong(t);
       info.append(
         title,
         meta,
         lyrics,
         gift,
+        share,
         giftStats
       );
 
@@ -2673,6 +2705,7 @@ async function start(t){
 
   $('play').disabled=
     false;
+  if($('player-share'))$('player-share').disabled=false;
 
 
   $('seek').disabled=

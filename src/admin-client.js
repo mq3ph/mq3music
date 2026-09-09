@@ -15,6 +15,7 @@ let songs=[];
 let requests=[];
 let orders=[];
 let creditLoads=[];
+let listenerData={summary:{},listeners:[]};
 
 /*
   Keeps the currently edited song.
@@ -1471,7 +1472,8 @@ async function load(){
     songs,
     requests,
     orders,
-    creditLoads
+    creditLoads,
+    listenerData
   ]=await Promise.all([
 
     api(
@@ -1488,7 +1490,8 @@ async function load(){
 
     api(
       '/api/admin/credit-loads'
-    )
+    ),
+    api('/api/admin/listeners')
   ]);
 
   render();
@@ -1599,6 +1602,7 @@ $('logout').onclick=
 for(
   const name of [
     'Name Request',
+    'Listeners',
     ...cats,
     'GCash',
     'PayPal',
@@ -1921,6 +1925,8 @@ function setRecordsTitle(){
     title.textContent=
       `Credit Loads · ${pending} pending`;
 
+  }else if(tab==='Listeners'){
+    title.textContent='Listener Accounts';
   }else{
 
     title.textContent=
@@ -1971,6 +1977,7 @@ function render(){
 
   $('summary').textContent=
 
+    `${Number(listenerData.summary?.total||0)} listeners · `+
     `${songs.length} songs · `+
 
     `${requests.filter(
@@ -2098,6 +2105,16 @@ function render(){
     );
 
 
+  }else if(tab==='Listeners'){
+    const summary=listenerData.summary||{};
+    $('tab-note').textContent=`${Number(summary.total||0)} unique accounts · ${Number(summary.welcomed||0)} received 25 welcome Credits · ${Number(summary.active_seven_days||0)} signed in within 7 days. Latest 500 accounts below; repeat sign-ins do not create another account. Search applies to these displayed accounts.`;
+    const body=table(['Joined','Listener','Email','Welcome Credits','Bonus date','Last sign-in']);
+    (listenerData.listeners||[]).filter(match).forEach(listener=>{
+      row(body,[date(listener.created_at),listener.display_name||'—',listener.email,
+        listener.welcome_received?'25 Credits received':'Not recorded',
+        listener.welcome_at?date(listener.welcome_at):'—',listener.last_login_at?date(listener.last_login_at):'—']);
+    });
+    if(!body.children.length){const tr=node('tr');const td=node('td','No listener accounts match.');td.colSpan=6;tr.append(td);body.append(tr);}
   }else if(
     tab==='Name Request'
   ){
