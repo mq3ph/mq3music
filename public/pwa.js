@@ -287,7 +287,7 @@ function isAppleDevice(){
 
 function isTikTokBrowser(){
 
-  return /TikTok/i.test(
+  return /TikTok|musical_ly|Bytedance|BytedanceWebview|Aweme|trill/i.test(
     navigator.userAgent
   );
 
@@ -319,7 +319,7 @@ function isInAppBrowser(){
 
     isTikTokBrowser() ||
     isFacebookBrowser() ||
-    isInstagramBrowser()
+    isInstagramBrowser() || /;\s*wv\)/i.test(navigator.userAgent)
 
   );
 
@@ -382,40 +382,60 @@ function showInstallHelp(){
   }
 
 
-  if(isTikTokBrowser()){
-
-    installInstructions.textContent=
-      'You are viewing MQ3 inside TikTok. Open the browser menu, choose Open in browser or Open in Chrome, then tap Install MQ3 again.';
-
-  }else if(isFacebookBrowser()){
-
-    installInstructions.textContent=
-      'You are viewing MQ3 inside Facebook. Open the browser menu and choose Open in external browser or Open in Chrome, then tap Install MQ3 again.';
-
-  }else if(isInstagramBrowser()){
-
-    installInstructions.textContent=
-      'You are viewing MQ3 inside Instagram. Open the browser menu and choose Open in external browser, then tap Install MQ3 again.';
-
-  }else if(isAppleDevice()){
-
-    installInstructions.textContent=
-      'Open MQ3 in Safari. Tap Share, choose Add to Home Screen, keep Open as Web App enabled if shown, then tap Add.';
-
+  const embedded=isInAppBrowser();
+  const apple=isAppleDevice();
+  const android=/Android/i.test(navigator.userAgent);
+  const browserName=apple ? 'Safari' : android ? 'Chrome' : 'your regular browser';
+  if(embedded){
+    installInstructions.textContent='Click the three dots at the upper right corner of the screen then Click Open in browser';
+  }else if(apple){
+    installInstructions.textContent='Open MQ3 in Safari. Tap Share → Add to Home Screen, then Add. If this page is inside TikTok, Facebook or Instagram: Click the three dots at the upper right corner of the screen then Click Open in browser';
   }else{
-
-    installInstructions.textContent=
-      'Your browser is not offering one-tap installation right now. Open the browser menu and choose Install app or Add to Home screen if available.';
-
+    installInstructions.textContent='In Chrome or another supported browser, open the menu and choose Install app or Add to Home screen if offered. Inside TikTok, Facebook or Instagram? Click the three dots at the upper right corner of the screen then Click Open in browser';
   }
 
+  let tools=document.getElementById('mq3-install-tools');
+  if(!tools){
+    tools=document.createElement('div');
+    tools.id='mq3-install-tools';
+    tools.style.cssText='display:grid;gap:12px;margin:18px 0;';
+    const label=document.createElement('label');
+    label.textContent='MQ3 website link';
+    label.htmlFor='mq3-install-link';
+    const link=document.createElement('input');
+    link.id='mq3-install-link';link.readOnly=true;link.type='text';
+    link.style.cssText='width:100%;box-sizing:border-box;font-size:16px;';
+    // Share only the home page; never forward payment tokens or private access links.
+    const home=new URL('/',location.href);
+    if(['mq3music.com','www.mq3music.com','mq3music-sable.vercel.app'].includes(home.hostname)) home.href='https://www.mq3music.com/';
+    link.value=home.href;
+    link.addEventListener('click',()=>link.select());
+    const copy=document.createElement('button');
+    copy.type='button';copy.className='button primary';copy.textContent='Copy MQ3 link';
+    copy.style.cssText='min-height:48px;background:linear-gradient(120deg,#fae1a8,#d7a24c);color:#241708;font-weight:700;';
+    const status=document.createElement('p');status.id='mq3-install-copy-status';status.setAttribute('role','status');status.style.cssText='font-size:14px;line-height:1.5;margin:0;';
+    copy.onclick=async()=>{
+      try { await navigator.clipboard.writeText(link.value);status.textContent=`Link copied. Open ${browserName} and paste it in the address bar.`; }
+      catch { link.focus();link.select();link.setSelectionRange(0,link.value.length);status.textContent='Press and hold the selected link, choose Copy, then paste it into your browser.'; }
+    };
+    tools.append(label,link,copy);
+    if(android){
+      const open=document.createElement('a');
+      open.className='button';open.textContent='Try opening Chrome';
+      open.href=`intent://${home.host}/#Intent;scheme=${home.protocol.slice(0,-1)};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(home.href)};end`;
+      open.onclick=()=>{status.textContent='If Chrome does not open: Click the three dots at the upper right corner of the screen then Click Open in browser';};
+      tools.append(open);
+    }
+    tools.append(status);
+    installInstructions.insertAdjacentElement('afterend',tools);
+  }
 
   if(
     typeof installHelp.showModal===
     'function'
   ){
 
-    installHelp.showModal();
+    if(!installHelp.open) installHelp.showModal();
 
   }
 
