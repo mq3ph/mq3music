@@ -145,6 +145,60 @@
     return section;
   }
 
+  function displayPurchaseHistory(account) {
+    let section = $('account-purchase-history');
+    if (!section) {
+      section = document.createElement('section');
+      section.id = 'account-purchase-history';
+      section.style.cssText = 'margin-top:20px;padding-top:16px;border-top:1px solid #806330;';
+      accountPanel.insertBefore(section, $('account-gift-history'));
+    }
+    section.replaceChildren();
+    const heading = document.createElement('h3');
+    heading.textContent = 'Credit purchases';
+    heading.style.cssText = 'color:#edd099;margin:0 0 8px;font-size:18px;';
+    const description = document.createElement('p');
+    description.textContent = 'Your latest 25 purchases. Pending payments are not included in your balance.';
+    description.style.cssText = 'font-size:13px;line-height:1.5;opacity:.8;';
+    section.append(heading, description);
+    const orders = Array.isArray(account.creditLoadOrders) ? account.creditLoadOrders : [];
+    if (!orders.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'No credit purchases yet. Your purchases will appear here.';
+      section.append(empty);
+      return;
+    }
+    for (const order of orders) {
+      const item = document.createElement('article');
+      item.style.cssText = 'padding:14px;margin:10px 0;border:1px solid #52402b;border-radius:12px;overflow-wrap:anywhere;';
+      const top = document.createElement('div');
+      top.style.cssText = 'display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;';
+      const title = document.createElement('strong');
+      title.textContent = `${Number(order.credits || 0).toLocaleString()} Credits · ₱${Number(order.amountPesos || 0).toLocaleString()}`;
+      const status = document.createElement('span');
+      const states = {approved:['Added','#bde8c7'],pending:['Pending','#f0cf83'],rejected:['Not approved','#ffb5ac']};
+      const state = states[order.status] || ['Processing','#f0cf83'];
+      status.textContent = state[0];
+      status.style.cssText = `color:${state[1]};font-size:13px;`;
+      top.append(title,status);
+      const detail = document.createElement('p');
+      const date = new Date(order.createdAt);
+      const provider = order.paymentProvider === 'paypal' ? 'PayPal' : order.paymentProvider === 'gcash' ? 'GCash' : 'Payment';
+      detail.textContent = provider + (Number.isNaN(date.getTime()) ? '' : ' · ' + date.toLocaleString());
+      detail.style.cssText = 'font-size:13px;opacity:.8;margin:8px 0;';
+      const reference = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = 'Payment reference';
+      summary.style.cssText = 'cursor:pointer;font-size:13px;padding:8px 0;';
+      const value = document.createElement('p');
+      value.textContent = order.paymentReference || 'No reference available';
+      value.style.cssText = 'font-size:12px;overflow-wrap:anywhere;';
+      reference.append(summary,value);
+      item.append(top,detail,reference);
+      section.append(item);
+    }
+  }
+
   function displayGiftHistory(account) {
     const section = ensureGiftHistory();
     const lifetime = $('account-lifetime-gifted');
@@ -471,10 +525,12 @@
     if (provider === 'paypal') {
       if (referenceWrap) {
         referenceWrap.hidden = true;
+        referenceWrap.style.display = 'none';
       }
 
       if (reference) {
         reference.required = false;
+        reference.disabled = true;
       }
 
       box.innerHTML = `
@@ -498,10 +554,12 @@
 
     if (referenceWrap) {
       referenceWrap.hidden = false;
+      referenceWrap.style.removeProperty('display');
     }
 
     if (reference) {
       reference.required = true;
+      reference.disabled = false;
     }
 
     box.innerHTML = `
@@ -942,6 +1000,7 @@
     creditBalance.textContent = total.toLocaleString();
 
     displayGiftHistory(account);
+    displayPurchaseHistory(account);
     displaySupporterRank(account);
     activateCreditPackages();
 
