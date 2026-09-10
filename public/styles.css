@@ -2326,3 +2326,10 @@ dialog p{
 .mq3-suno-dialog .button { min-height:44px; }
 .mq3-suno-dialog summary { cursor:pointer; min-height:44px; }
 @media(max-width:420px){.mq3-suno-dialog{padding:18px;}.mq3-suno-dialog h2{font-size:28px;}}
+
+/* Keep MQ3 branding over the provider's current outbound-link regions. */
+.mq3-embed-wrap{position:relative;width:100%;height:240px;overflow:hidden;border-radius:16px;isolation:isolate;}
+.mq3-embed-wrap iframe{display:block;}
+.mq3-embed-logo-cover{position:absolute;right:0;bottom:0;width:132px;height:64px;z-index:2;background:#171310;border-radius:16px 0 0 0;display:flex;align-items:center;justify-content:center;pointer-events:auto;user-select:none;}
+.mq3-embed-logo-cover img{width:60px;height:60px;object-fit:contain;pointer-events:none;}
+.mq3-embed-link-cover{position:absolute;right:0;top:0;width:64px;height:64px;z-index:2;background:#202951;pointer-events:auto;user-select:none;}

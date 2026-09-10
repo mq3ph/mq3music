@@ -2718,14 +2718,20 @@ function openSunoSong(t){
   const frame=document.createElement('iframe');
   frame.src='https://suno.com/embed/'+match[1];frame.title=t.title+' - Suno player';
   frame.allow='autoplay; encrypted-media; fullscreen';frame.referrerPolicy='strict-origin-when-cross-origin';
+  frame.setAttribute('sandbox','allow-scripts allow-same-origin');
   frame.style.cssText='width:100%;height:240px;border:0;border-radius:16px;background:#171310';
+  const playerWrap=node('div',undefined,'mq3-embed-wrap');
+  const logoCover=node('div',undefined,'mq3-embed-logo-cover');logoCover.setAttribute('aria-hidden','true');
+  const brand=document.createElement('img');brand.src='/logo.png';brand.alt='';brand.draggable=false;logoCover.append(brand);
+  const linkCover=node('div',undefined,'mq3-embed-link-cover');linkCover.setAttribute('aria-hidden','true');
+  playerWrap.append(frame,logoCover,linkCover);
   const share=node('button','Share','button');share.type='button';share.onclick=()=>shareSong(t);
   const close=node('button','Close player','button');close.type='button';close.onclick=()=>dialog.close();
   const controls=node('div');controls.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:16px 0';controls.append(share,close);
   if(songGiftsEnabled(t)){const gift=node('button','Send a gift','button');gift.type='button';gift.onclick=()=>openGiftDialog(t);controls.prepend(gift);}
   const help=node('p','If playback does not start, close this player and try again.','muted');
   const lyrics=node('details');const summary=node('summary','Lyrics');const body=node('div',t.lyrics||'Lyrics have not been added yet.');body.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px;line-height:1.7';lyrics.append(summary,body);
-  dialog.append(heading,frame,controls,help,lyrics);dialog.showModal();close.focus();
+  dialog.append(heading,playerWrap,controls,help,lyrics);dialog.showModal();close.focus();
 }
 
 async function start(t,position=0){

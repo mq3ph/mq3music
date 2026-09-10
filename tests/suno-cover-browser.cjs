@@ -1,0 +1,21 @@
+const {chromium}=require(process.env.MQ3_PLAYWRIGHT_MODULE);const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});try{const page=await browser.newPage({viewport:{width:1000,height:850}});let popups=0;page.on('popup',p=>{popups++;p.close();});const song={id:'cover-test',title:'Moses',category:'NAME SONGS',lyrics:'Test lyrics',gifts_enabled:true,suno_url:'https://suno.com/song/657e28fc-df67-4dd1-be2d-24bfaa952503'};
+await page.route('https://mq3.test/**',async r=>{const u=new URL(r.request().url());if(u.pathname.startsWith('/api/'))return r.fulfill({json:u.pathname==='/api/catalog'?{songs:[song]}:{songs:{},supporters:[]}});const f=path.join('public',u.pathname==='/'?'index.html':u.pathname.slice(1));if(u.pathname==='/')return r.fulfill({contentType:'text/html',body:fs.readFileSync(f,'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<script src="/app.js"></script>'});return fs.existsSync(f)?r.fulfill({body:fs.readFileSync(f),contentType:f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'image/png'}):r.fulfill({status:404,body:''});});
+await page.goto('https://mq3.test/');await page.waitForFunction(()=>tracks.length===1);await page.evaluate(()=>openSunoSong(tracks[0]));const frame=page.frameLocator('#mq3-suno-dialog iframe');await frame.getByRole('heading',{name:'Moses'}).waitFor();await page.waitForTimeout(4000);await frame.getByRole('button').first().click();await page.waitForTimeout(3000);const f=page.frames().find(f=>f.url().includes('/embed/'));
+assert.ok(await f.evaluate(()=>[...document.querySelectorAll('audio')].some(a=>!a.paused&&a.currentTime>1)));
+await frame.getByRole('button').first().click();
+const beforeSeek=await f.evaluate(()=>document.querySelector('audio').currentTime);
+const slider=frame.getByRole('slider');await slider.focus();await slider.press('ArrowRight');await slider.press('ArrowRight');await page.waitForTimeout(300);
+assert.ok(await f.evaluate(before=>document.querySelector('audio').currentTime>before,beforeSeek));
+await frame.getByRole('button').first().click();
+await frame.getByRole('link',{name:'Go to Suno',exact:true}).focus();await frame.getByRole('link',{name:'Go to Suno',exact:true}).press('Enter');await page.waitForTimeout(200);assert.equal(popups,0);
+await frame.getByRole('link',{name:'Moses',exact:true}).click();await page.waitForTimeout(500);assert.equal(popups,0);assert.equal(page.url(),'https://mq3.test/');
+for(const width of [1000,390,320]){await page.setViewportSize({width,height:850});await page.waitForTimeout(300);const box=await page.locator('.mq3-embed-wrap').boundingBox();const play=await frame.getByRole('button').first().boundingBox();const cover=await page.locator('.mq3-embed-logo-cover').boundingBox();assert.ok(play.y+play.height<=cover.y);assert.ok(await page.locator('.mq3-embed-wrap').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
+assert.equal(await page.evaluate(({x,y})=>document.elementFromPoint(x,y).closest('.mq3-embed-logo-cover')!==null,{x:cover.x+cover.width-20,y:cover.y+cover.height-20}),true);
+await page.mouse.click(cover.x+cover.width-20,cover.y+cover.height-20);assert.equal(popups,0);
+await page.screenshot({path:'suno-covered-'+width+'.png'});}
+await frame.getByRole('button').first().click();assert.ok(await f.evaluate(()=>[...document.querySelectorAll('audio')].every(a=>a.paused)));
+await frame.getByRole('button').first().click();await page.waitForTimeout(500);assert.ok(await f.evaluate(()=>[...document.querySelectorAll('audio')].some(a=>!a.paused)));
+await page.getByRole('button',{name:'Close player',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#mq3-suno-dialog iframe'));
+console.log('PASS real embed playback/pause/resume, covered logo hit area, mobile geometry, blocked title popup and close cleanup');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});
