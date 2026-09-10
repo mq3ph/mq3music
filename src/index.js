@@ -1,3 +1,4 @@
+import {mp3RequestRoutes} from './mp3-requests.js';
 import {storageReport} from './storage-report.js';
 import {resolveSunoLink} from './suno.js';
 import express from 'express';
@@ -446,6 +447,8 @@ export function createApp(s=services()){
     }
   );
 
+
+  mp3RequestRoutes({app,env,query:q,sameOrigin,limit});
 
   /* =========================================================
      PUBLIC CATALOG

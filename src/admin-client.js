@@ -17,6 +17,8 @@ let songs=[];
 let requests=[];
 let orders=[];
 let creditLoads=[];
+let mp3Requests=[];
+let mp3Filter='all';
 let listenerData={summary:{},listeners:[]};
 
 /*
@@ -1475,7 +1477,8 @@ async function load(){
     requests,
     orders,
     creditLoads,
-    listenerData
+    listenerData,
+    mp3Requests
   ]=await Promise.all([
 
     api(
@@ -1493,7 +1496,8 @@ async function load(){
     api(
       '/api/admin/credit-loads'
     ),
-    api('/api/admin/listeners')
+    api('/api/admin/listeners'),
+    api('/api/admin/mp3-requests')
   ]);
 
   render();
@@ -1604,6 +1608,7 @@ $('logout').onclick=
 for(
   const name of [
     'Name Request',
+    'MP3 Requests',
     'Listeners',
     'Storage',
     ...cats,
@@ -1928,6 +1933,8 @@ function setRecordsTitle(){
     title.textContent=
       `Credit Loads · ${pending} pending`;
 
+  }else if(tab==='MP3 Requests'){
+    title.textContent='MP3 + Lyrics Requests';
   }else if(tab==='Storage'){
     title.textContent='Audio Storage';
   }else if(tab==='Listeners'){
@@ -2125,6 +2132,16 @@ function render(){
         listener.welcome_at?date(listener.welcome_at):'—',listener.last_login_at?date(listener.last_login_at):'—']);
     });
     if(!body.children.length){const tr=node('tr');const td=node('td','No listener accounts match.');td.colSpan=6;tr.append(td);body.append(tr);}
+  }else if(tab==='MP3 Requests'){
+    $('tab-note').textContent=`${mp3Requests.filter(r=>r.status==='paid').length} awaiting delivery · 50 Credits per request. Attach the MP3 in your email app before sending, then mark the order sent here.`;
+    const body=table(['Date','Listener','Email','Song','Paid','Status','Actions']);
+    const filters=node('div');filters.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
+    for(const [key,label] of Object.entries({all:'All',paid:'Awaiting email',sent:'Sent',refunded:'Refunded'})){
+      const b=button(`${label} (${mp3Requests.filter(r=>key==='all'||r.status===key).length})`,()=>{mp3Filter=key;render();});b.setAttribute('aria-pressed',String(mp3Filter===key));filters.append(b);
+    }
+    $('tab-note').append(filters);
+    mp3Requests.filter(match).filter(r=>mp3Filter==='all'||r.status===mp3Filter).forEach(r=>row(body,[date(r.created_at),r.display_name||'Listener',r.email,r.song_title,'50 Credits',r.status==='paid'?'Paid · awaiting email':r.status==='sent'?`Sent ${date(r.sent_at)}`:'Refunded',actions(...(r.status==='paid'?[button('Prepare email',()=>prepareMp3Email(r)),button('Refund 50 Credits',async()=>{if(!confirm(`Refund 50 Credits for ${r.song_title}?`))return;await api(`/api/admin/mp3-requests/${r.id}/refund`,{});await load();})]:[]))]));
+    if(!body.children.length){const tr=node('tr');const td=node('td','No MP3 requests yet.');td.colSpan=7;tr.append(td);body.append(tr);}
   }else if(
     tab==='Name Request'
   ){
@@ -3408,3 +3425,29 @@ enter()
       }
     }
   );
+
+function prepareMp3Email(r){
+ const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
+ const subject=node('input');subject.value=`Your MP3 + Lyrics: ${r.song_title}`;subject.setAttribute('aria-label','Email subject');
+ const body=node('textarea');body.setAttribute('aria-label','Email message');body.value=`Hi ${r.display_name||'there'},
+
+Thank you for requesting ${r.song_title}! Your payment of 50 Credits is recorded.
+
+Your MP3 is attached. The lyrics are included below.
+Order: ${r.id}
+
+${r.lyrics||'Lyrics will be included with your song.'}
+
+Thank you for supporting MQ3 Music!`;
+ for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#130806;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
+ const note=node('p','Attach the correct MP3 before sending. Opening the draft does not send email or mark this order delivered.');
+ const open=node('a','Open email draft','button');open.target='_blank';open.rel='noopener';
+ const setLink=()=>open.href=`mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(subject.value)}&body=${encodeURIComponent(body.value)}`;setLink();subject.oninput=setLink;body.oninput=setLink;
+ const copy=button('Copy message',async()=>{await navigator.clipboard.writeText(body.value);note.textContent='Message copied. Paste into Gmail and attach the MP3.';});
+ const lyrics=button('Save lyrics .txt',()=>{const url=URL.createObjectURL(new Blob([r.lyrics||''],{type:'text/plain;charset=utf-8'}));const a=node('a');a.href=url;a.download='lyrics.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+ const check=node('input');check.type='checkbox';const label=node('label');label.append(check,document.createTextNode(' I sent the email with the MP3 and lyrics.'));
+ const sent=button('Mark as sent',async()=>{if(!check.checked){note.textContent='Send the email and confirm the checkbox first.';return;}await api(`/api/admin/mp3-requests/${r.id}/sent`,{});dialog.close();await load();});
+ const close=button('Close',()=>dialog.close());
+ dialog.append(node('h2','Prepare MP3 delivery'),node('p',`To: ${r.email}`),subject,body,note,open,copy,lyrics,node('p'),label,node('p'),sent,close);
+ dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();
+}

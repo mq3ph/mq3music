@@ -1162,17 +1162,19 @@ const MQ3_GIFTS=[
 ];
 
 let mq3GiftStats={};
+let mq3GiftStatsRevision=0;
 
 async function loadGiftStats({
   rerender=true
 }={}){
-
+  const revision=++mq3GiftStatsRevision;
   try{
 
     const response=
       await fetch(
         '/api/gifts/song-stats',
         {
+          cache:'no-store',
           credentials:'same-origin'
         }
       );
@@ -1191,6 +1193,7 @@ async function loadGiftStats({
     }
 
 
+    if(revision!==mq3GiftStatsRevision)return;
     mq3GiftStats=
       data.songs||
       {};
@@ -1522,14 +1525,21 @@ function playGiftAnimation(gift){
       inset:'0',
       zIndex:'99999',
       pointerEvents:'none',
-      overflow:'hidden'
+      overflow:'hidden',
+      margin:'0',padding:'0',border:'0',background:'transparent',
+      width:'100vw',height:'100vh',maxWidth:'none',maxHeight:'none'
     }
   );
 
-
-  document.body.append(
-    overlay
-  );
+  // A body z-index cannot rise above a modal player in the top layer.
+  if(typeof overlay.showPopover==='function'){
+    overlay.setAttribute('popover','manual');
+    document.body.append(overlay);
+    overlay.showPopover();
+  }else{
+    const modals=[...document.querySelectorAll('dialog[open]')];
+    (modals.at(-1)||document.body).append(overlay);
+  }
 
 
   const addParticle=({
@@ -1968,7 +1978,13 @@ async function sendGift(song,gift){
       )
     );
 
-    await loadGiftStats();
+    if(data.songStats?.gifts){
+      ++mq3GiftStatsRevision;
+      mq3GiftStats[song.id]=data.songStats;
+      render();
+    }else{
+      await loadGiftStats();
+    }
     await loadLeaderboard();
 
   }catch(e){
@@ -1997,9 +2013,13 @@ function openGiftDialog(song){
     button.type='button';
 
     button.onclick=async()=>{
-      button.disabled=true;
-      await sendGift(song,gift);
-      button.disabled=false;
+      if(choices.dataset.sending==='true')return;
+      choices.dataset.sending='true';
+      choices.querySelectorAll('button').forEach(item=>item.disabled=true);
+      try{await sendGift(song,gift);}finally{
+        delete choices.dataset.sending;
+        choices.querySelectorAll('button').forEach(item=>item.disabled=false);
+      }
     };
 
     choices.append(button);
@@ -2343,6 +2363,7 @@ function render(){
         lyrics,
         gift,
         share,
+        mp3CopyButton(t),
         giftStats
       );
 
@@ -2729,7 +2750,7 @@ function openSunoSong(t){
   if(songGiftsEnabled(t)){const gift=node('button','Send a gift','button');gift.type='button';gift.onclick=()=>openGiftDialog(t);controls.prepend(gift);}
   const help=node('p','If playback does not start, close this player and try again.','muted');
   const lyrics=node('details');const summary=node('summary','Lyrics');const body=node('div',t.lyrics||'Lyrics have not been added yet.');body.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px;line-height:1.7';lyrics.append(summary,body);
-  dialog.append(heading,playerWrap,controls,help,lyrics);dialog.showModal();close.focus();
+  controls.append(mp3CopyButton(t));dialog.append(heading,playerWrap,controls,help,lyrics);dialog.showModal();close.focus();
 }
 
 async function start(t,position=0){
@@ -3178,3 +3199,37 @@ render();
 loadCatalog();
 loadGiftStats();
 loadLeaderboard();
+
+// Personal copies are manually emailed; this does not download the embedded audio.
+async function requestMp3Copy(song){
+  if(!songGiftsEnabled(song)){toast('MP3 requests are not available for this song.');return;}
+  if(document.querySelector('#mq3-mp3-request[open]'))return;
+  const dialog=node('dialog',undefined,'mq3-gift-dialog');dialog.id='mq3-mp3-request';
+  const box=node('div',undefined,'mq3-gift-box');
+  const title=node('h2','MP3 + Lyrics');const songName=node('p',song.title);
+  const note=node('p','50 Credits · Manual email delivery. Your MP3 will be sent to your MQ3 account email. This is not an instant download.');
+  const status=node('p','Checking your request…');status.setAttribute('role','status');
+  const confirm=node('button','Confirm · 50 Credits','button');confirm.type='button';confirm.disabled=true;
+  const close=node('button','Close','button');close.type='button';close.onclick=()=>dialog.close();
+  box.append(title,songName,note,status,confirm,close);dialog.append(box);document.body.append(dialog);
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
+  const showRequest=r=>{status.textContent=`${r.status==='sent'?'Marked as emailed':r.status==='refunded'?'Refunded — contact MQ3 to request again':'Paid — awaiting email delivery'}. Email: ${r.email}. Order: ${r.id}. No additional charge.`;confirm.hidden=true;};
+  try{
+    const response=await fetch('/api/account/mp3-requests',{cache:'no-store'});const data=await response.json();
+    if(response.status===401){status.textContent='Sign in to MQ3 first, then return to this song.';confirm.textContent='Sign in';confirm.disabled=false;confirm.onclick=()=>{dialog.close();$('account-button')?.click();};return;}
+    if(!response.ok)throw Error(data.error||'Requests are unavailable.');
+    const existing=data.requests.find(r=>r.song_id===song.id);if(existing){showRequest(existing);return;}
+    status.textContent=`Delivery email: ${data.email}. Includes one MP3 copy and lyrics. The same song will only be charged once.`;confirm.disabled=false;
+    confirm.onclick=async()=>{
+      confirm.disabled=true;close.disabled=true;status.textContent='Saving your request…';
+      try{
+        const response=await fetch('/api/account/mp3-requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({songId:song.id})});const data=await response.json();
+        if(!response.ok)throw Error(data.error||'Request failed.');
+        showRequest(data.request);
+        if(Number.isFinite(data.balance)){$('account-button').textContent=`🪙 ${data.balance} Credits`;window.dispatchEvent(new CustomEvent('mq3-wallet-updated'));}
+      }catch(error){status.textContent=error.message+' You can retry safely; an existing request will not be charged again.';confirm.disabled=false;}
+      finally{close.disabled=false;}
+    };
+  }catch(error){status.textContent=error.message;}
+}
+function mp3CopyButton(song){if(!songGiftsEnabled(song))return document.createDocumentFragment();const b=node('button','Get MP3 + Lyrics · 50 Credits','button');b.type='button';b.onclick=()=>requestMp3Copy(song);return b;}

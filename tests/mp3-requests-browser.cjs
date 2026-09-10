@@ -1,0 +1,42 @@
+const {chromium}=require(process.env.MQ3_PLAYWRIGHT_MODULE);const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});try{
+const page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const song={id:'s1',title:'My Song',category:'NAME SONGS',suno_url:'https://suno.com/song/657e28fc-df67-4dd1-be2d-24bfaa952503',gifts_enabled:true};let orders=[],posts=0;
+const fixture={id:'order1',song_id:'s1',song_title:'My Song',email:'buyer@example.com',display_name:'Buyer',lyrics:'First line\nSecond line',credits:50,status:'paid',created_at:new Date().toISOString()};
+await page.route('https://suno.com/**',r=>r.fulfill({body:'Test embedded player'}));
+await page.route('https://mq3.test/**',async r=>{const u=new URL(r.request().url());let data;
+if(u.pathname==='/api/account/mp3-requests'){if(r.request().method()==='POST'){posts++;orders=[{...fixture}];data={ok:true,request:orders[0],balance:25};}else data={email:'buyer@example.com',requests:orders};}
+else if(u.pathname==='/api/admin/mp3-requests')data=orders;
+else if(u.pathname.endsWith('/sent')){orders[0].status='sent';orders[0].sent_at=new Date().toISOString();data={ok:true};}
+else if(u.pathname==='/api/catalog')data={songs:[song]};
+else if(u.pathname.endsWith('/session'))data={setup:{}};
+else if(u.pathname.endsWith('/listeners'))data={summary:{},listeners:[]};
+else if(u.pathname==='/api/gifts/song-stats')data={songs:{}};
+else if(u.pathname==='/api/gifts/leaderboard')data={supporters:[]};
+else if(u.pathname.startsWith('/api/'))data=[];
+if(data!==undefined)return r.fulfill({json:data});
+const file=path.join('public',u.pathname==='/'?'index.html':u.pathname.slice(1));let body=fs.existsSync(file)?fs.readFileSync(file):Buffer.from('');
+if(u.pathname==='/')body=Buffer.from(body.toString().replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<script src="/app.js"></script>');
+return r.fulfill({body,contentType:file.endsWith('.html')?'text/html':file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'image/png'});
+});
+await page.goto('https://mq3.test/');await page.waitForFunction(()=>tracks.length===1);await page.evaluate(()=>openSunoSong(tracks[0]));
+await page.evaluate(()=>{document.querySelector('#mq3-suno-dialog').close();});
+await page.waitForFunction(()=>!document.querySelector('#mq3-suno-dialog iframe'));
+await page.evaluate(()=>{tracks[0].gifts_enabled=false;render();openSunoSong(tracks[0]);});
+assert.equal(await page.getByRole('button',{name:'Get MP3 + Lyrics · 50 Credits',exact:true}).count(),0);
+await page.evaluate(()=>document.querySelector('#mq3-suno-dialog').close());
+await page.waitForFunction(()=>!document.querySelector('#mq3-suno-dialog iframe'));
+await page.evaluate(()=>{tracks[0].gifts_enabled=true;render();openSunoSong(tracks[0]);});
+await page.locator('#mq3-suno-dialog').getByRole('button',{name:'Get MP3 + Lyrics · 50 Credits',exact:true}).click();
+await page.getByRole('button',{name:'Confirm · 50 Credits',exact:true}).click();await page.getByText(/Paid — awaiting email delivery/).waitFor();assert.equal(posts,1);
+await page.locator('#mq3-mp3-request').getByRole('button',{name:'Close',exact:true}).click();
+await page.locator('#mq3-suno-dialog').getByRole('button',{name:'Get MP3 + Lyrics · 50 Credits',exact:true}).click();await page.getByText(/No additional charge/).waitFor();assert.equal(await page.getByRole('button',{name:'Confirm · 50 Credits',exact:true}).count(),0);assert.equal(posts,1);
+await page.screenshot({path:'mp3-request-mobile.png'});
+await page.goto('https://mq3.test/admin.html');await page.getByRole('button',{name:'MP3 Requests',exact:true}).click();
+await page.getByRole('button',{name:'Prepare email',exact:true}).click();assert.equal(await page.getByLabel('Email subject').inputValue(),'Your MP3 + Lyrics: My Song');
+assert.match(await page.getByLabel('Email message').inputValue(),/First line/);
+const href=await page.getByRole('link',{name:'Open email draft'}).getAttribute('href');assert.match(href,/buyer%40example.com/);assert.equal(orders[0].status,'paid');
+await page.getByRole('button',{name:'Mark as sent',exact:true}).click();assert.equal(orders[0].status,'paid');
+await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Mark as sent',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('dialog[open]'));assert.equal(orders[0].status,'sent');
+assert.deepEqual(errors,[]);console.log('PASS mobile purchase, repeat without charge, admin email draft and explicit sent confirmation');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
