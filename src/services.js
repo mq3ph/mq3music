@@ -2,6 +2,7 @@ import {neon} from '@neondatabase/serverless';
 import {handleUpload} from '@vercel/blob/client';
 import {
   get,
+  list,
   del
 } from '@vercel/blob';
 import nodemailer from 'nodemailer';
@@ -267,6 +268,18 @@ export function services(env=process.env){
     /* =========================================================
        DELETE PRIVATE BLOB
     ========================================================= */
+
+    async listAudioFiles(){
+      const blobs=[];let cursor;
+      for(let page=0;page<50;page++) {
+        const result=await list({prefix:'songs/',limit:1000,cursor,token:env.BLOB_READ_WRITE_TOKEN||undefined,storeId:env.BLOB_STORE_ID||undefined});
+        blobs.push(...result.blobs.map(({pathname,size})=>({pathname,size})));
+        if(!result.hasMore)return blobs;
+        if(!result.cursor || result.cursor===cursor)throw Error('Storage scan could not complete. Try again later.');
+        cursor=result.cursor;
+      }
+      throw Error('Storage scan is too large for this dashboard. Check Vercel Storage.');
+    },
 
     async deleteBlob(path){
 

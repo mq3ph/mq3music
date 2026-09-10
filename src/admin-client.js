@@ -1,3 +1,4 @@
+let storageData=null,storageLoading=false,storageError='';
 import {upload} from '@vercel/blob/client';
 
 const $=id=>document.getElementById(id);
@@ -1603,6 +1604,7 @@ for(
   const name of [
     'Name Request',
     'Listeners',
+    'Storage',
     ...cats,
     'GCash',
     'PayPal',
@@ -1925,6 +1927,8 @@ function setRecordsTitle(){
     title.textContent=
       `Credit Loads · ${pending} pending`;
 
+  }else if(tab==='Storage'){
+    title.textContent='Audio Storage';
   }else if(tab==='Listeners'){
     title.textContent='Listener Accounts';
   }else{
@@ -2105,6 +2109,8 @@ function render(){
     );
 
 
+  }else if(tab==='Storage'){
+    renderStorage(match);
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
     $('tab-note').textContent=`${Number(summary.total||0)} unique accounts · ${Number(summary.welcomed||0)} received 25 welcome Credits · ${Number(summary.active_seven_days||0)} signed in within 7 days. Latest 500 accounts below; repeat sign-ins do not create another account. Search applies to these displayed accounts.`;
@@ -2509,6 +2515,32 @@ function render(){
 /* =========================================================
    DELETE SONG
 ========================================================= */
+
+function storageSize(value){return (Number(value||0)/1048576).toLocaleString(undefined,{maximumFractionDigits:2})+' MiB';}
+function renderStorage(match){
+  $('tab-note').textContent='Audio files under songs/ only. These are stored file sizes, not monthly bandwidth, billing usage or your plan limit. Scan results may be reused for 5 minutes. No audio is downloaded or deleted.';
+  const body=table(['Category','Songs','Files','Stored audio']);
+  const controls=node('div');controls.style.cssText='padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center';
+  const scan=button(storageLoading?'Checking storage...':'Check storage',async()=>{
+    storageLoading=true;storageError='';render();
+    try{storageData=await api('/api/admin/storage-report');}catch(e){storageError=e.message;}
+    finally{storageLoading=false;render();}
+  });scan.disabled=storageLoading;controls.append(scan,node('span',storageData?'Last checked: '+new Date(storageData.checkedAt).toLocaleString():'Press Check storage to read file sizes from Blob.'));
+  $('records').prepend(controls);
+  if(storageError){const error=node('p',storageError);error.setAttribute('role','alert');controls.append(error);}
+  if(!storageData)return;
+  const totals=node('p',`Stored audio: ${storageSize(storageData.totalBytes)} in ${storageData.totalFiles} files. Converted audio to review: ${storageSize(storageData.reviewBytes)}.`);totals.style.cssText='flex-basis:100%;font-weight:700';controls.append(totals);
+  storageData.categories.forEach(c=>row(body,[categoryLabel(c.category),c.songs,c.files,storageSize(c.bytes)]));
+  row(body,['Unlinked files (review separately)','—',storageData.unlinkedFiles,storageSize(storageData.unlinkedBytes)]);
+  if(storageData.sharedFiles)row(body,['Shared between categories','—',storageData.sharedFiles,storageSize(storageData.sharedBytes)]);
+  row(body,['Total stored audio','—',storageData.totalFiles,storageSize(storageData.totalBytes)]);
+  const report=node('section');report.style.padding='16px';
+  report.append(node('h3','Converted Name Songs: old audio to review'),node('p',`${storageData.converted.length} songs · ${storageData.reviewFiles} unique stored files · ${storageSize(storageData.reviewBytes)} to review. This is not an automatic deletion list. Check playback and paid access before cleanup.`));
+  if(storageData.missingFiles)report.append(node('p',`${storageData.missingFiles} referenced files were not found in this scan. Review these before relying on the totals.`));
+  const list=node('table');const head=node('tr');['Song','Files','Size','Review notes'].forEach(x=>head.append(node('th',x)));const thead=node('thead');thead.append(head);list.append(thead);const rows=node('tbody');list.append(rows);
+  storageData.converted.filter(match).forEach(s=>row(rows,[s.title,s.files,storageSize(s.bytes),[s.hasOrders?'Has order history':'',s.shared?'Shared file':'',s.missing?`${s.missing} missing file(s)`:''].filter(Boolean).join(' · ')||'Confirm Suno playback before cleanup']));
+  report.append(list);if(!storageData.converted.length)report.append(node('p','No converted Name Songs have retained audio paths.'));$('records').append(report);
+}
 
 async function convertSuno(song){
   const dialog=document.createElement('dialog');
