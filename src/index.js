@@ -2069,6 +2069,7 @@ export function createApp(s=services()){
                clo.status,
                clo.created_at,
                clo.reviewed_at,
+               to_jsonb(clo)->>'admin_deleted_at' AS admin_deleted_at,
                (SELECT pc.environment FROM paypal_checkouts pc WHERE pc.load_order_id=clo.id) AS payment_environment
              FROM credit_load_orders clo
              JOIN users u
@@ -2113,6 +2114,7 @@ export function createApp(s=services()){
               paymentProvider:
                 row.payment_provider,
               paymentEnvironment:row.payment_environment||null,
+              deletedAt:row.admin_deleted_at||null,
 
               paymentReference:
                 row.payment_reference||
@@ -2137,6 +2139,17 @@ export function createApp(s=services()){
   /* =========================================================
      REVIEW CREDIT LOAD
   ========================================================= */
+
+  app.delete('/api/admin/credit-loads/:id',wrap(async(req,res)=>{
+    const rows=await q('UPDATE credit_load_orders SET admin_deleted_at=COALESCE(admin_deleted_at,now()) WHERE id=$1 RETURNING id',[uuid(req.params.id)]).catch(error=>{if(error.code==='42703')fail(503,'Run the Credit Load history SQL update in your MQ3 database, then retry.');throw error;});
+    if(!rows.length)fail(404,'Credit Load order not found.');
+    res.json({ok:true});
+  }));
+  app.post('/api/admin/credit-loads/:id/restore',wrap(async(req,res)=>{
+    const rows=await q('UPDATE credit_load_orders SET admin_deleted_at=NULL WHERE id=$1 RETURNING id',[uuid(req.params.id)]).catch(error=>{if(error.code==='42703')fail(503,'Run the Credit Load history SQL update in your MQ3 database, then retry.');throw error;});
+    if(!rows.length)fail(404,'Credit Load order not found.');
+    res.json({ok:true});
+  }));
 
   app.post(
     '/api/admin/credit-loads/:id/review',

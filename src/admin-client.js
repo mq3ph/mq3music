@@ -1,3 +1,4 @@
+let creditLoadFilter='all';
 let storageData=null,storageLoading=false,storageError='';
 import {upload} from '@vercel/blob/client';
 
@@ -1921,7 +1922,7 @@ function setRecordsTitle(){
     const pending=
       creditLoads.filter(
         creditLoad=>
-          creditLoad.status==='pending'
+          creditLoad.status==='pending'&&!creditLoad.deletedAt
       ).length;
 
     title.textContent=
@@ -2159,7 +2160,7 @@ function render(){
   ){
 
     $('tab-note').textContent=
-      'New PayPal checkouts are verified automatically. Sandbox tests do not add spendable Credits. Verify manual payments before approving. Legacy records have an unknown environment.';
+      'Approved loads remain in Approved and in the GCash/PayPal payment history. Delete only hides a row from this list; it does not refund, cancel PayPal, or change Credits. Sandbox tests are labelled separately.';
 
     const body=
       table([
@@ -2171,12 +2172,20 @@ function render(){
         'Payment',
         'Reference',
         'Status',
+        'Environment',
+        'Reviewed',
         'Actions'
       ]);
 
 
+    const filters=node('div');filters.style.cssText='display:flex;flex-wrap:wrap;gap:8px;padding:16px';
+    for(const [key,label] of [['all','All'],['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['deleted','Deleted']]){
+      const count=creditLoads.filter(x=>key==='deleted'?!!x.deletedAt:!x.deletedAt&&(key==='all'||x.status===key)).length;
+      const b=button(`${label} (${count})`,()=>{creditLoadFilter=key;render();});b.setAttribute('aria-pressed',String(creditLoadFilter===key));if(creditLoadFilter===key)b.classList.add('active');filters.append(b);
+    }
+    $('records').prepend(filters);
     creditLoads
-
+      .filter(x=>creditLoadFilter==='deleted'?!!x.deletedAt:!x.deletedAt&&(creditLoadFilter==='all'||x.status===creditLoadFilter))
       .filter(match)
 
       .forEach(
@@ -2186,7 +2195,7 @@ function render(){
 
 
           if(
-            creditLoad.status==='pending'
+            creditLoad.status==='pending'&&!creditLoad.deletedAt&&!creditLoad.paymentEnvironment
           ){
 
             buttons.push(
@@ -2283,6 +2292,9 @@ function render(){
           }
 
 
+          buttons.push(button(creditLoad.deletedAt?'Restore':'Delete',()=>changeCreditLoadVisibility(creditLoad)));
+          if(creditLoad.status==='pending'&&creditLoad.paymentEnvironment&&!creditLoad.deletedAt)buttons.unshift(node('span','Verified automatically by PayPal'));
+
           row(
             body,
             [
@@ -2319,6 +2331,8 @@ function render(){
                 creditLoad.status
               ),
 
+              creditLoad.paymentProvider==='paypal'?(creditLoad.paymentEnvironment||'Legacy / unknown'):'Manual',
+              date(creditLoad.reviewedAt),
               actions(
                 ...buttons
               )
@@ -2331,24 +2345,28 @@ function render(){
   }else{
 
     $('tab-note').textContent=
-      'Manual verification: check the actual amount and transaction reference in your GCash/PayPal account before approving. Membership access is fixed-term and does not auto-renew.';
+      'Payment history includes Credit Loads and older song/membership payments. Approved non-sandbox Credit Loads stay here even when deleted from the Credit Loads list. Deleted tests and unfinished/rejected loads are hidden here. Sandbox approvals are tests, not revenue.';
 
 
     const body=
       table([
         'Date',
-        'Email',
+        'Email / Listener',
         'Package',
         'Amount',
         'Reference',
         'Status',
-        'Access until',
+        'Environment / Access until',
         'Actions'
       ]);
 
 
-    orders
-
+    const paymentHistory=[...orders,...creditLoads.filter(c=>!c.deletedAt||(c.status==='approved'&&c.paymentEnvironment!=='sandbox')).map(c=>({
+      id:c.id,source:'credit_load',provider:c.paymentProvider,email:c.email,displayName:c.displayName,
+      kind:'credits',credits:c.credits,amount:Number(c.amountPesos)*100,reference:c.paymentReference,
+      status:c.status,created_at:c.reviewedAt||c.createdAt,environment:c.paymentEnvironment,deletedAt:c.deletedAt
+    }))];
+    paymentHistory.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
       .filter(
         o=>
           o.provider===
@@ -2363,7 +2381,7 @@ function render(){
 
 
           if(
-            o.status==='submitted'
+            o.source!=='credit_load'&&o.status==='submitted'
           ){
 
             buttons.push(
@@ -2412,7 +2430,7 @@ function render(){
 
 
           if(
-            o.status==='paid'
+            o.source!=='credit_load'&&o.status==='paid'
           ){
 
             buttons.push(
@@ -2443,6 +2461,7 @@ function render(){
           }
 
 
+          if(o.source==='credit_load')buttons.push(node('span',o.deletedAt?'Credit Load (in Deleted)':'Credit Load record'));
           row(
             body,
             [
@@ -2451,9 +2470,9 @@ function render(){
                 o.created_at
               ),
 
-              o.email,
+              o.displayName?`${o.email} (${o.displayName})`:o.email,
 
-              o.kind==='membership'
+              o.kind==='credits'?`${o.credits} MQ3 Credits`:o.kind==='membership'
                 ?'Membership'
                 :songs.find(
                     s=>
@@ -2468,12 +2487,10 @@ function render(){
               o.reference,
 
               badge(
-                o.status
+                o.source==='credit_load'&&o.status==='approved'?(o.environment==='sandbox'?'Sandbox test approved':'Approved'):o.status
               ),
 
-              date(
-                o.expires_at
-              ),
+              o.source==='credit_load'?(o.provider==='paypal'?(o.environment||'Legacy / unknown'):'Manual GCash'):date(o.expires_at),
 
               actions(
                 ...buttons
@@ -2518,6 +2535,21 @@ function render(){
 /* =========================================================
    DELETE SONG
 ========================================================= */
+
+async function changeCreditLoadVisibility(loadOrder){
+  if(loadOrder.deletedAt){
+    await api('/api/admin/credit-loads/'+loadOrder.id+'/restore',{});await load();message('Credit Load restored.');return;
+  }
+  const dialog=document.createElement('dialog');dialog.style.cssText='width:min(520px,calc(100vw - 32px));max-height:90dvh;overflow:auto';
+  dialog.append(node('h2','Delete from Credit Loads?'),node('p',`${loadOrder.displayName||loadOrder.email} - PHP ${loadOrder.amountPesos} - ${loadOrder.paymentReference||'No reference'}`),node('p','This moves the row to Deleted. Payment records and wallet Credits stay unchanged. It does not refund or cancel an automatic PayPal payment. You can restore the row later.'));
+  const status=node('p','');status.setAttribute('role','status');
+  const remove=button('Delete from list',async()=>{
+    remove.disabled=true;
+    try{await api('/api/admin/credit-loads/'+loadOrder.id,undefined,'DELETE');dialog.close();await load();message('Moved to Deleted. Payment history and Credits retained.');}
+    catch(e){status.textContent=e.message;remove.disabled=false;}
+  });
+  dialog.append(status,remove,button('Cancel',()=>dialog.close()));dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();
+}
 
 function editSunoGifts(song){
   const dialog=document.createElement('dialog');dialog.style.cssText='width:min(540px,calc(100vw - 32px));max-height:90dvh;overflow:auto';
