@@ -19,13 +19,13 @@ export function storageReport(songs, blobs, now=new Date()) {
     else if(groups.size>1){sharedBytes+=file.size;sharedFiles++;}
     else {const group=categories.get(refs[0].category);group.files++;group.bytes+=file.size;}
   }
-  const converted=songs.filter(s=>s.category==='NAME SONGS'&&s.suno_url&&(s.audio_path||s.preview_path)).map(s=>{
+  const converted=songs.filter(s=>s.suno_url&&(s.audio_path||s.preview_path)).map(s=>{
     const paths=[...new Set([s.audio_path,s.preview_path].filter(Boolean))];
     const found=paths.filter(p=>files.has(p));
-    return {id:s.id,title:s.title,files:found.length,bytes:found.reduce((n,p)=>n+files.get(p).size,0),missing:paths.length-found.length,shared:found.some(p=>owners.get(p).length>1),hasOrders:!!s.has_orders};
+    return {id:s.id,title:s.title,category:s.category,files:found.length,bytes:found.reduce((n,p)=>n+files.get(p).size,0),missing:paths.length-found.length,shared:found.some(p=>owners.get(p).length>1),hasOrders:!!s.has_orders};
   });
   const reviewPaths=new Set();
-  for(const song of songs.filter(s=>s.category==='NAME SONGS'&&s.suno_url)) for(const path of [song.audio_path,song.preview_path]) if(path&&files.has(path)) reviewPaths.add(path);
+  for(const song of songs.filter(s=>s.suno_url)) for(const path of [song.audio_path,song.preview_path]) if(path&&files.has(path)) reviewPaths.add(path);
   return {checkedAt:now.toISOString(),totalFiles:files.size,totalBytes,categories:[...categories.values()],converted,
     reviewBytes:[...reviewPaths].reduce((n,p)=>n+files.get(p).size,0),reviewFiles:reviewPaths.size,
     unlinkedBytes,unlinkedFiles,sharedBytes,sharedFiles,missingFiles:[...owners.keys()].filter(p=>!files.has(p)).length};

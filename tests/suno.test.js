@@ -22,7 +22,7 @@ test('Suno catalog, publish, lyrics, request linking and existing MP3 preservati
  const admin=request.agent(app);const post=(url,body)=>admin.post(url).set('Origin','http://localhost:3000').send(body);
  await post('/api/login',{password:'test-password'});
  const base={title:'Moses',category:'NAME SONGS',names:'Moses',lyrics:'First line\nSecond line',price:0,suno_url:link};
- assert.equal((await post('/api/admin/songs',{...base,category:'OPM'})).status,400);
+ assert.equal((await post('/api/admin/songs',{...base,category:'INVALID'})).status,400);
  const created=await post('/api/admin/songs',base);assert.equal(created.status,200);const id=created.body.id;
  assert.equal((await post('/api/admin/songs',{...base,id,published:true})).status,200);
  const catalog=await request(app).get('/api/catalog');assert.equal(catalog.status,200);const song=catalog.body.songs.find(s=>s.id===id);assert.equal(song.suno_url,link);assert.equal(song.lyrics,base.lyrics);

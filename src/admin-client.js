@@ -2097,8 +2097,8 @@ function render(){
             ).toLocaleString(),
 
             button(
-              s.suno_url?'Suno (MP3 retained if uploaded)':s.category==='NAME SONGS'?'Convert to Suno / MP3':'Replace',
-              ()=>s.audio_path&&s.category==='NAME SONGS'?convertSuno(s):s.suno_url?editSong(s):replaceAudio(s)
+              s.suno_url?'Suno (MP3 retained if uploaded)':'Convert to Suno / MP3',
+              ()=>s.audio_path?convertSuno(s):editSong(s)
             ),
 
             s.suno_url?button(s.suno_gifts_enabled?'Gifts ON':s.suno_download_confirmed_at?'Downloaded - Gifts OFF':'Not confirmed - Gifts OFF',()=>editSunoGifts(s)):'MP3 - Gifts available',
@@ -2589,11 +2589,11 @@ function renderStorage(match){
   if(storageData.sharedFiles)row(body,['Shared between categories','—',storageData.sharedFiles,storageSize(storageData.sharedBytes)]);
   row(body,['Total stored audio','—',storageData.totalFiles,storageSize(storageData.totalBytes)]);
   const report=node('section');report.style.padding='16px';
-  report.append(node('h3','Converted Name Songs: old audio to review'),node('p',`${storageData.converted.length} songs · ${storageData.reviewFiles} unique stored files · ${storageSize(storageData.reviewBytes)} to review. This is not an automatic deletion list. Check playback and paid access before cleanup.`));
+  report.append(node('h3','Converted songs: old audio to review'),node('p',`${storageData.converted.length} songs · ${storageData.reviewFiles} unique stored files · ${storageSize(storageData.reviewBytes)} to review. This is not an automatic deletion list. Check playback and paid access before cleanup.`));
   if(storageData.missingFiles)report.append(node('p',`${storageData.missingFiles} referenced files were not found in this scan. Review these before relying on the totals.`));
-  const list=node('table');const head=node('tr');['Song','Files','Size','Review notes'].forEach(x=>head.append(node('th',x)));const thead=node('thead');thead.append(head);list.append(thead);const rows=node('tbody');list.append(rows);
-  storageData.converted.filter(match).forEach(s=>row(rows,[s.title,s.files,storageSize(s.bytes),[s.hasOrders?'Has order history':'',s.shared?'Shared file':'',s.missing?`${s.missing} missing file(s)`:''].filter(Boolean).join(' · ')||'Confirm Suno playback before cleanup']));
-  report.append(list);if(!storageData.converted.length)report.append(node('p','No converted Name Songs have retained audio paths.'));$('records').append(report);
+  const list=node('table');const head=node('tr');['Song','Category','Files','Size','Review notes'].forEach(x=>head.append(node('th',x)));const thead=node('thead');thead.append(head);list.append(thead);const rows=node('tbody');list.append(rows);
+  storageData.converted.filter(match).forEach(s=>row(rows,[s.title,categoryLabel(s.category),s.files,storageSize(s.bytes),[s.hasOrders?'Has order history':'',s.shared?'Shared file':'',s.missing?`${s.missing} missing file(s)`:''].filter(Boolean).join(' · ')||'Confirm Suno playback before cleanup']));
+  report.append(list);if(!storageData.converted.length)report.append(node('p','No converted songs have retained audio paths.'));$('records').append(report);
 }
 
 async function convertSuno(song){
@@ -2981,7 +2981,6 @@ $('song-form').onsubmit=
     try{
 
       const isSuno=$('song-source').value==='suno';
-      if(isSuno && $('song-category').value!=='NAME SONGS') throw Error('Choose Name Songs for Suno links.');
       const fullFile=isSuno?null:$('full-file').files[0];
 
 

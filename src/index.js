@@ -713,7 +713,6 @@ export function createApp(s=services()){
           try { sunoUrl=await resolveSunoLink(req.body.suno_url); }
           catch(error) { fail(400,error.message); }
         }
-        if(sunoUrl && category!=='NAME SONGS') fail(400,'Suno links are available for Name Songs only.');
         const durationRaw=
           req.body.duration_seconds;
 
@@ -779,8 +778,7 @@ export function createApp(s=services()){
 
 
           if(sunoUrl===undefined) sunoUrl=existing.suno_url||null;
-          if(sunoUrl && category!=='NAME SONGS') fail(400,'Suno links are available for Name Songs only.');
-          if(sunoUrl && existing.audio_path && sunoUrl!==existing.suno_url) fail(400,'Use Convert to Suno to change the source of this uploaded song.');
+            if(sunoUrl && existing.audio_path && sunoUrl!==existing.suno_url) fail(400,'Use Convert to Suno to change the source of this uploaded song.');
           if(
             req.body.published&&
             !existing.audio_path && !sunoUrl
@@ -880,11 +878,11 @@ export function createApp(s=services()){
     try {link=await resolveSunoLink(req.body.url);} catch(error){fail(400,error.message);}
     if(!link) fail(400,'Enter a Suno song link.');
     const updated=await q(`UPDATE songs SET suno_gifts_enabled=CASE WHEN suno_url IS NOT DISTINCT FROM $2::text THEN suno_gifts_enabled ELSE false END,suno_download_confirmed_at=CASE WHEN suno_url IS NOT DISTINCT FROM $2::text THEN suno_download_confirmed_at ELSE NULL END,suno_url=$2
-      WHERE id=$1 AND category='NAME SONGS' AND audio_path IS NOT NULL
+      WHERE id=$1 AND audio_path IS NOT NULL
       AND NOT EXISTS (SELECT 1 FROM orders WHERE song_id=$1)
       AND NOT EXISTS (SELECT 1 FROM orders WHERE kind='membership' AND status='paid' AND expires_at>now())
       RETURNING id`,[id,link]);
-    if(!updated.length) fail(409,'Conversion is unavailable: choose an uploaded Name Song without order history or active paid membership access.');
+    if(!updated.length) fail(409,'Conversion is unavailable: choose an uploaded song without order history or active paid membership access.');
     res.json({ok:true,message:'Now using Suno. The old audio is retained until a separate storage cleanup.'});
   }));
 
