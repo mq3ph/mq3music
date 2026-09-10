@@ -334,9 +334,9 @@ export function giftRoutes({
         );
 
 
-      const [song]=await q('SELECT suno_url FROM songs WHERE id=$1 AND published=true',[songId]);
+      const [song]=await q('SELECT suno_url,suno_gifts_enabled,suno_download_confirmed_at FROM songs WHERE id=$1 AND published=true',[songId]);
       if(!song) fail(404,'Song not found.');
-      if(song.suno_url) fail(400,'Gifts are available for uploaded MP3 songs.');
+      if(song.suno_url && !(song.suno_gifts_enabled && song.suno_download_confirmed_at)) fail(400,'Gifts are not enabled for this song.');
 
       const giftType=
         String(
@@ -390,7 +390,11 @@ export function giftRoutes({
         result=
           await q(
           `
-          WITH locked_wallet AS (
+          WITH eligible_song AS (
+            SELECT id FROM songs WHERE id=$4 AND published=true
+            AND (suno_url IS NULL OR (suno_gifts_enabled=true AND suno_download_confirmed_at IS NOT NULL))
+            FOR SHARE
+          ), locked_wallet AS (
 
             SELECT
               user_id,
@@ -401,6 +405,8 @@ export function giftRoutes({
 
             WHERE
               user_id=$1
+              AND EXISTS (SELECT 1 FROM eligible_song)
+            FOR UPDATE
 
           ),
 
@@ -564,7 +570,7 @@ export function giftRoutes({
 
         fail(
           400,
-          'Not enough MQ3 Credits.'
+          'Not enough MQ3 Credits, or gifts are no longer available for this song.'
         );
       }
 

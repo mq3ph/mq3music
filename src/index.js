@@ -27,7 +27,7 @@ export const categories=[
 ];
 
 const publicFields=
-  'id,title,category,names,lyrics,price,duration_seconds,views,created_at,suno_url';
+  'id,title,category,names,lyrics,price,duration_seconds,views,created_at,suno_url,(suno_url IS NULL OR (suno_gifts_enabled AND suno_download_confirmed_at IS NOT NULL)) AS gifts_enabled';
 
 const wrap=fn=>
   (req,res,next)=>
@@ -793,7 +793,7 @@ export function createApp(s=services()){
 
 
           await q(
-            'UPDATE songs SET title=$2,category=$3,names=$4,lyrics=$5,price=$6,published=$7,duration_seconds=COALESCE($8,duration_seconds),suno_url=$9 WHERE id=$1',
+            'UPDATE songs SET title=$2,category=$3,names=$4,lyrics=$5,price=$6,published=$7,duration_seconds=COALESCE($8,duration_seconds),suno_gifts_enabled=CASE WHEN suno_url IS NOT DISTINCT FROM $9::text THEN suno_gifts_enabled ELSE false END,suno_download_confirmed_at=CASE WHEN suno_url IS NOT DISTINCT FROM $9::text THEN suno_download_confirmed_at ELSE NULL END,suno_url=$9 WHERE id=$1',
             [
               id,
 
@@ -852,6 +852,20 @@ export function createApp(s=services()){
      DELETE SONG
   ========================================================= */
 
+  app.post('/api/admin/songs/:id/suno-gifts',wrap(async(req,res)=>{
+    const id=uuid(req.params.id);
+    const {downloadConfirmed,enabled,expectedSunoUrl}=req.body;
+    if(typeof downloadConfirmed!=='boolean'||typeof enabled!=='boolean'||typeof expectedSunoUrl!=='string')fail(400,'Check the download confirmation and gift setting.');
+    if(enabled&&!downloadConfirmed)fail(400,'Confirm that you downloaded this song through Suno before enabling gifts.');
+    const result=await q(`UPDATE songs SET
+      suno_download_confirmed_at=CASE WHEN $2::boolean THEN COALESCE(suno_download_confirmed_at,now()) ELSE NULL END,
+      suno_gifts_enabled=$3
+      WHERE id=$1 AND suno_url IS NOT NULL AND suno_url=$4
+      RETURNING id,suno_download_confirmed_at,suno_gifts_enabled`,[id,downloadConfirmed,enabled,expectedSunoUrl]);
+    if(!result.length)fail(409,'The Suno song link changed or is no longer available. Reload the dashboard and check the song again.');
+    res.json(result[0]);
+  }));
+
   app.post('/api/admin/suno-preview',wrap(async(req,res)=>{
     let link;
     try {link=await resolveSunoLink(req.body.url);} catch(error){fail(400,error.message);}
@@ -865,7 +879,7 @@ export function createApp(s=services()){
     let link;
     try {link=await resolveSunoLink(req.body.url);} catch(error){fail(400,error.message);}
     if(!link) fail(400,'Enter a Suno song link.');
-    const updated=await q(`UPDATE songs SET suno_url=$2
+    const updated=await q(`UPDATE songs SET suno_gifts_enabled=CASE WHEN suno_url IS NOT DISTINCT FROM $2::text THEN suno_gifts_enabled ELSE false END,suno_download_confirmed_at=CASE WHEN suno_url IS NOT DISTINCT FROM $2::text THEN suno_download_confirmed_at ELSE NULL END,suno_url=$2
       WHERE id=$1 AND category='NAME SONGS' AND audio_path IS NOT NULL
       AND NOT EXISTS (SELECT 1 FROM orders WHERE song_id=$1)
       AND NOT EXISTS (SELECT 1 FROM orders WHERE kind='membership' AND status='paid' AND expires_at>now())

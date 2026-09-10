@@ -29,3 +29,6 @@ ALTER TABLE songs ADD COLUMN IF NOT EXISTS duration_seconds integer;
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
 
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_url text;
+
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_download_confirmed_at timestamptz;
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_gifts_enabled boolean NOT NULL DEFAULT false;

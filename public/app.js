@@ -1976,8 +1976,10 @@ async function sendGift(song,gift){
   }
 }
 
+function songGiftsEnabled(song){return song.gifts_enabled===true || (!song.suno_url && song.gifts_enabled!==false);}
+
 function openGiftDialog(song){
-  if(song.suno_url){toast('Gifts are available for uploaded MP3 songs.');return;}
+  if(!songGiftsEnabled(song)){toast('Gifts are not enabled for this song.');return;}
   const dialog=ensureGiftDialog();
 
   $('mq3-gift-song').textContent=song.title;
@@ -2302,7 +2304,7 @@ function render(){
       );
 
 
-      if(t.suno_url)gift.style.display='none';
+      if(!songGiftsEnabled(t))gift.style.display='none';
       gift.onclick=
         ()=>
           openGiftDialog(t);
@@ -2713,18 +2715,17 @@ function openSunoSong(t){
   }
   dialog.replaceChildren();
   const heading=node('h2',t.title);heading.id='mq3-suno-title';dialog.setAttribute('aria-labelledby',heading.id);
-  const note=node('p','Press Play in the Suno player below.','muted');
   const frame=document.createElement('iframe');
   frame.src='https://suno.com/embed/'+match[1];frame.title=t.title+' - Suno player';
   frame.allow='autoplay; encrypted-media; fullscreen';frame.referrerPolicy='strict-origin-when-cross-origin';
   frame.style.cssText='width:100%;height:240px;border:0;border-radius:16px;background:#171310';
-  const fallback=node('a','Listen on Suno');fallback.href=t.suno_url;fallback.target='_blank';fallback.rel='noopener noreferrer';fallback.className='button';
   const share=node('button','Share','button');share.type='button';share.onclick=()=>shareSong(t);
   const close=node('button','Close player','button');close.type='button';close.onclick=()=>dialog.close();
-  const controls=node('div');controls.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:16px 0';controls.append(fallback,share,close);
-  const help=node('p','If the player does not load, choose Listen on Suno.','muted');
+  const controls=node('div');controls.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:16px 0';controls.append(share,close);
+  if(songGiftsEnabled(t)){const gift=node('button','Send a gift','button');gift.type='button';gift.onclick=()=>openGiftDialog(t);controls.prepend(gift);}
+  const help=node('p','If playback does not start, close this player and try again.','muted');
   const lyrics=node('details');const summary=node('summary','Lyrics');const body=node('div',t.lyrics||'Lyrics have not been added yet.');body.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px;line-height:1.7';lyrics.append(summary,body);
-  dialog.append(heading,note,frame,controls,help,lyrics);dialog.showModal();close.focus();
+  dialog.append(heading,frame,controls,help,lyrics);dialog.showModal();close.focus();
 }
 
 async function start(t,position=0){

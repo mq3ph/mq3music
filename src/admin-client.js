@@ -2040,6 +2040,7 @@ function render(){
         'Full Length',
         'Views',
         'Audio',
+        'Gifts / Download status',
         'Actions'
       ]);
 
@@ -2098,6 +2099,8 @@ function render(){
               s.suno_url?'Suno (MP3 retained if uploaded)':s.category==='NAME SONGS'?'Convert to Suno / MP3':'Replace',
               ()=>s.audio_path&&s.category==='NAME SONGS'?convertSuno(s):s.suno_url?editSong(s):replaceAudio(s)
             ),
+
+            s.suno_url?button(s.suno_gifts_enabled?'Gifts ON':s.suno_download_confirmed_at?'Downloaded - Gifts OFF':'Not confirmed - Gifts OFF',()=>editSunoGifts(s)):'MP3 - Gifts available',
 
             button(
               'Delete',
@@ -2515,6 +2518,25 @@ function render(){
 /* =========================================================
    DELETE SONG
 ========================================================= */
+
+function editSunoGifts(song){
+  const dialog=document.createElement('dialog');dialog.style.cssText='width:min(540px,calc(100vw - 32px));max-height:90dvh;overflow:auto';
+  const title=node('h2','Gifts for '+song.title);
+  const note=node('p','Confirm this exact song was downloaded through Suno with the usage rights described in their reply. MQ3 records your confirmation; it cannot verify your Suno download history.');
+  const downloaded=document.createElement('input');downloaded.type='checkbox';downloaded.checked=!!song.suno_download_confirmed_at;
+  const downloadLabel=node('label');downloadLabel.style.display='block';downloadLabel.append(downloaded,document.createTextNode(' I have downloaded this song through Suno and confirmed its commercial-use rights.'));
+  const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=!!song.suno_gifts_enabled;enabled.disabled=!downloaded.checked;
+  const enableLabel=node('label');enableLabel.style.display='block';enableLabel.append(enabled,document.createTextNode(' Enable gifts for this song.'));
+  downloaded.onchange=()=>{enabled.disabled=!downloaded.checked;if(!downloaded.checked)enabled.checked=false;};
+  const status=node('p',song.suno_download_confirmed_at?'Download confirmed in MQ3: '+new Date(song.suno_download_confirmed_at).toLocaleString():'Download not confirmed yet.');status.setAttribute('role','status');
+  const save=button('Save gift setting',async()=>{
+    save.disabled=true;
+    try{await api('/api/admin/songs/'+song.id+'/suno-gifts',{downloadConfirmed:downloaded.checked,enabled:enabled.checked,expectedSunoUrl:song.suno_url});dialog.close();await load();message('Suno gift setting saved.');}
+    catch(e){status.textContent=e.message;save.disabled=false;}
+  });
+  dialog.append(title,note,downloadLabel,enableLabel,status,save,button('Cancel',()=>dialog.close()));
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();downloaded.focus();
+}
 
 function storageSize(value){return (Number(value||0)/1048576).toLocaleString(undefined,{maximumFractionDigits:2})+' MiB';}
 function renderStorage(match){
