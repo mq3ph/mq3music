@@ -3211,7 +3211,7 @@ async function requestMp3Copy(song){
   const status=node('p','Checking your request…');status.setAttribute('role','status');
   const confirm=node('button','Confirm · 50 Credits','button');confirm.type='button';confirm.disabled=true;
   const close=node('button','Close','button');close.type='button';close.onclick=()=>dialog.close();
-  box.append(title,songName,note,status,confirm,close);dialog.append(box);document.body.append(dialog);
+  box.append(title,songName,note,status,confirm,close,mq3SupportLink(song));dialog.append(box);document.body.append(dialog);
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
   const showRequest=r=>{status.textContent=`${r.status==='sent'?'Marked as emailed':r.status==='refunded'?'Refunded — contact MQ3 to request again':'Paid — awaiting email delivery'}. Email: ${r.email}. Order: ${r.id}. No additional charge.`;confirm.hidden=true;};
   try{
@@ -3233,3 +3233,16 @@ async function requestMp3Copy(song){
   }catch(error){status.textContent=error.message;}
 }
 function mp3CopyButton(song){if(!songGiftsEnabled(song))return document.createDocumentFragment();const b=node('button','Get MP3 + Lyrics · 50 Credits','button');b.type='button';b.onclick=()=>requestMp3Copy(song);return b;}
+
+function mq3SupportLink(song){
+ const link=node('a','Message MQ3','button');
+ const message=song?`Hi MQ3! I have a question about "${song.title}".`:'Hi MQ3! I have an inquiry about MQ3 Music.';
+ link.href='https://wa.me/639664815330?text='+encodeURIComponent(message);
+ link.target='_blank';link.rel='noopener noreferrer';
+ link.setAttribute('aria-label','Message MQ3 on WhatsApp');
+ link.title='Opens WhatsApp — review your message before sending';
+ return link;
+}
+const mq3Contact=mq3SupportLink();
+mq3Contact.className='nav';mq3Contact.style.textDecoration='none';
+document.querySelector('.main-nav')?.append(mq3Contact);

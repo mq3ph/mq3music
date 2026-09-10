@@ -1,0 +1,1 @@
+Replace public/app.js in GitHub, commit, and wait for Vercel Ready. No SQL or environment changes. Message MQ3 appears in the main navigation and MP3 request dialog. It opens WhatsApp for +63 966 481 5330 with an editable message. The customer must send the message in WhatsApp. No chat messages are stored by MQ3. Links were tested locally without sending messages.
