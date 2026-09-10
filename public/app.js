@@ -2721,10 +2721,8 @@ function openSunoSong(t){
   frame.setAttribute('sandbox','allow-scripts allow-same-origin');
   frame.style.cssText='width:100%;height:240px;border:0;border-radius:16px;background:#171310';
   const playerWrap=node('div',undefined,'mq3-embed-wrap');
-  const logoCover=node('div',undefined,'mq3-embed-logo-cover');logoCover.setAttribute('aria-hidden','true');
-  const brand=document.createElement('img');brand.src='/logo.png';brand.alt='';brand.draggable=false;logoCover.append(brand);
-  const linkCover=node('div',undefined,'mq3-embed-link-cover');linkCover.setAttribute('aria-hidden','true');
-  playerWrap.append(frame,logoCover,linkCover);
+  playerWrap.append(frame);
+  heading.className='mq3-embed-accessible-title';
   const share=node('button','Share','button');share.type='button';share.onclick=()=>shareSong(t);
   const close=node('button','Close player','button');close.type='button';close.onclick=()=>dialog.close();
   const controls=node('div');controls.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin:16px 0';controls.append(share,close);

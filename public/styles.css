@@ -2327,9 +2327,13 @@ dialog p{
 .mq3-suno-dialog summary { cursor:pointer; min-height:44px; }
 @media(max-width:420px){.mq3-suno-dialog{padding:18px;}.mq3-suno-dialog h2{font-size:28px;}}
 
-/* Keep MQ3 branding over the provider's current outbound-link regions. */
-.mq3-embed-wrap{position:relative;width:100%;height:240px;overflow:hidden;border-radius:16px;isolation:isolate;}
-.mq3-embed-wrap iframe{display:block;}
-.mq3-embed-logo-cover{position:absolute;right:0;bottom:0;width:132px;height:64px;z-index:2;background:#171310;border-radius:16px 0 0 0;display:flex;align-items:center;justify-content:center;pointer-events:auto;user-select:none;}
-.mq3-embed-logo-cover img{width:60px;height:60px;object-fit:contain;pointer-events:none;}
-.mq3-embed-link-cover{position:absolute;right:0;top:0;width:64px;height:64px;z-index:2;background:#202951;pointer-events:auto;user-select:none;}
+/* Compact player: expose the provider's title and transport strip only. */
+.mq3-suno-dialog{width:min(438px,calc(100vw - 28px));}
+.mq3-embed-accessible-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.mq3-embed-wrap{position:relative;width:100%;height:104px;overflow:hidden;overflow:clip;border-radius:10px;isolation:isolate;}
+.mq3-embed-wrap iframe{position:absolute;display:block;left:0;top:-72px;width:100%;height:240px;border-radius:0!important;}
+
+.mq3-embed-wrap{box-sizing:border-box;border:1px solid rgba(226,192,124,.58);border-radius:12px;background:#1e253d;box-shadow:0 10px 24px rgba(0,0,0,.24),0 1px 0 rgba(255,224,162,.08);}
+.mq3-embed-wrap::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 1px 0 rgba(255,239,205,.13),inset 0 0 0 1px rgba(255,255,255,.025);pointer-events:none;z-index:2;}
+
+.mq3-embed-wrap{max-width:316px;margin-inline:auto;}
