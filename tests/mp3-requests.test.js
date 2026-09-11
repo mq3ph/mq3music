@@ -28,10 +28,6 @@ test('MP3 purchases debit once, track delivery and refund the original credit bu
  const buyer=request.agent(app);const buy=()=>buyer.post('/api/account/mp3-requests').set('Origin',origin).set('Cookie','mq3_user=test-session').send({songId:id,credits:1,email:'attacker@example.com'});
  assert.equal((await request(app).post('/api/account/mp3-requests').set('Origin',origin).send({songId:id})).status,401);
  assert.equal((await request(app).get('/api/admin/mp3-requests')).status,401);
- assert.equal((await buy()).status,400);
- assert.equal((await q('SELECT * FROM mp3_requests')).length,0);
- assert.equal((await q('SELECT promo_credits+purchased_credits AS balance FROM wallets'))[0].balance,75);
- await q('UPDATE songs SET suno_gifts_enabled=true,suno_download_confirmed_at=now() WHERE id=$1',[id]);
  const [first,second]=await Promise.all([buy(),buy()]);assert.equal(first.status,200);assert.equal(second.status,200);
  assert.equal(first.body.request.id,second.body.request.id);
  let wallet=(await q('SELECT * FROM wallets'))[0];assert.equal(wallet.promo_credits,0);assert.equal(wallet.purchased_credits,25);assert.equal(wallet.lifetime_gifted,0);

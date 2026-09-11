@@ -23,7 +23,7 @@ await page.goto('https://mq3.test/');await page.waitForFunction(()=>tracks.lengt
 await page.evaluate(()=>{document.querySelector('#mq3-suno-dialog').close();});
 await page.waitForFunction(()=>!document.querySelector('#mq3-suno-dialog iframe'));
 await page.evaluate(()=>{tracks[0].gifts_enabled=false;render();openSunoSong(tracks[0]);});
-assert.equal(await page.getByRole('button',{name:'Get MP3 + Lyrics · 50 Credits',exact:true}).count(),0);
+assert.equal(await page.getByRole('button',{name:'Get MP3 + Lyrics · 50 Credits',exact:true}).count(),1);
 await page.evaluate(()=>document.querySelector('#mq3-suno-dialog').close());
 await page.waitForFunction(()=>!document.querySelector('#mq3-suno-dialog iframe'));
 await page.evaluate(()=>{tracks[0].gifts_enabled=true;render();openSunoSong(tracks[0]);});

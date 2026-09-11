@@ -3202,7 +3202,6 @@ loadLeaderboard();
 
 // Personal copies are manually emailed; this does not download the embedded audio.
 async function requestMp3Copy(song){
-  if(!songGiftsEnabled(song)){toast('MP3 requests are not available for this song.');return;}
   if(document.querySelector('#mq3-mp3-request[open]'))return;
   const dialog=node('dialog',undefined,'mq3-gift-dialog');dialog.id='mq3-mp3-request';
   const box=node('div',undefined,'mq3-gift-box');
@@ -3232,7 +3231,7 @@ async function requestMp3Copy(song){
     };
   }catch(error){status.textContent=error.message;}
 }
-function mp3CopyButton(song){if(!songGiftsEnabled(song))return document.createDocumentFragment();const b=node('button','Get MP3 + Lyrics · 50 Credits','button');b.type='button';b.onclick=()=>requestMp3Copy(song);return b;}
+function mp3CopyButton(song){const b=node('button','Get MP3 + Lyrics · 50 Credits','button');b.type='button';b.onclick=()=>requestMp3Copy(song);return b;}
 
 function mq3SupportLink(song){
  const link=node('a','Message MQ3','button');

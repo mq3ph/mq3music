@@ -12,7 +12,7 @@ SETUP
 No new environment variables or audio storage are needed.
 
 BUYER
-Only songs with gifts enabled show Get MP3 + Lyrics · 50 Credits on their card and embedded player. The server also checks eligibility before charging. Existing paid requests remain available in admin even if gifts are later disabled. Confirmation shows the account email and manual delivery notice. The server charges exactly 50 Credits (bonus credits first, then purchased credits) and saves a paid request atomically. It does not count as a Crown gift. Reopening the button shows the existing order and status without a second charge. Refunded orders remain visible and cannot be purchased again automatically in this first version.
+All published playable songs show Get MP3 + Lyrics · 50 Credits on their card and embedded player, independently of whether gifting is enabled. The server verifies that the song is published and has an audio source before charging. Existing paid requests remain available in admin even if gifts are later disabled. Confirmation shows the account email and manual delivery notice. The server charges exactly 50 Credits (bonus credits first, then purchased credits) and saves a paid request atomically. It does not count as a Crown gift. Reopening the button shows the existing order and status without a second charge. Refunded orders remain visible and cannot be purchased again automatically in this first version.
 
 ADMIN
 Open MP3 Requests. Search or filter Awaiting email / Sent / Refunded. Each row contains buyer, email, song, date, and the 50-credit payment.
