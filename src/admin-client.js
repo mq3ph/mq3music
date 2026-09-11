@@ -457,6 +457,50 @@ function showDeleteConfirm(title){
 
 
 /* =========================================================
+   MQ3 MP3 REFUND CONFIRMATION MODAL
+========================================================= */
+
+function showMp3RefundConfirm(request){
+  return new Promise(resolve=>{
+    const dialog=document.createElement('dialog');
+    dialog.className='mq3-delete-modal';
+
+    const wrap=node('div',undefined,'mq3-delete-wrap');
+    const kicker=node('p','MQ3 · MP3 + LYRICS','mq3-delete-kicker');
+    const heading=node('h2','Refund 50 Credits?','mq3-delete-title');
+    const copy=node('p',undefined,'mq3-delete-copy');
+    const song=node('span',`“${request.song_title}”`,'mq3-delete-song');
+    copy.append('Refund the MP3 + Lyrics order for ',song,'. The order will be marked as refunded and the same 50 Credits will be returned to the listener account.');
+
+    const buttons=node('div',undefined,'mq3-delete-actions');
+    const cancel=node('button','Cancel','mq3-delete-cancel');
+    cancel.type='button';
+    const refund=node('button','Refund 50 Credits','mq3-delete-danger');
+    refund.type='button';
+    buttons.append(cancel,refund);
+    wrap.append(kicker,heading,copy,buttons);
+    dialog.append(wrap);
+    document.body.append(dialog);
+
+    let settled=false;
+    const finish=value=>{
+      if(settled)return;
+      settled=true;
+      if(dialog.open)dialog.close();
+      dialog.remove();
+      resolve(value);
+    };
+    cancel.onclick=()=>finish(false);
+    refund.onclick=()=>finish(true);
+    dialog.addEventListener('cancel',e=>{e.preventDefault();finish(false);});
+    dialog.addEventListener('click',e=>{if(e.target===dialog)finish(false);});
+    dialog.showModal();
+    cancel.focus();
+  });
+}
+
+
+/* =========================================================
    MQ3 PAYMENT CONFIRMATION MODAL
 ========================================================= */
 
@@ -2140,7 +2184,7 @@ function render(){
       const b=button(`${label} (${mp3Requests.filter(r=>key==='all'||r.status===key).length})`,()=>{mp3Filter=key;render();});b.setAttribute('aria-pressed',String(mp3Filter===key));filters.append(b);
     }
     $('tab-note').append(filters);
-    mp3Requests.filter(match).filter(r=>mp3Filter==='all'||r.status===mp3Filter).forEach(r=>row(body,[date(r.created_at),r.display_name||'Listener',r.email,r.song_title,'50 Credits',r.status==='paid'?'Paid · awaiting email':r.status==='sent'?`Sent ${date(r.sent_at)}`:'Refunded',actions(...(r.status==='paid'?[button('Prepare email',()=>prepareMp3Email(r)),button('Refund 50 Credits',async()=>{if(!confirm(`Refund 50 Credits for ${r.song_title}?`))return;await api(`/api/admin/mp3-requests/${r.id}/refund`,{});await load();})]:[]))]));
+    mp3Requests.filter(match).filter(r=>mp3Filter==='all'||r.status===mp3Filter).forEach(r=>row(body,[date(r.created_at),r.display_name||'Listener',r.email,r.song_title,'50 Credits',r.status==='paid'?'Paid · awaiting email':r.status==='sent'?`Sent ${date(r.sent_at)}`:'Refunded',actions(...(r.status==='paid'?[button('Prepare email',()=>prepareMp3Email(r)),button('Refund 50 Credits',async()=>{if(!await showMp3RefundConfirm(r))return;await api(`/api/admin/mp3-requests/${r.id}/refund`,{});await load();})]:[]))]));
     if(!body.children.length){const tr=node('tr');const td=node('td','No MP3 requests yet.');td.colSpan=7;tr.append(td);body.append(tr);}
   }else if(
     tab==='Name Request'
