@@ -2190,7 +2190,7 @@ function render(){
     tab==='Name Request'
   ){
     const labels={pending:'Pending',working:'Working on it',available:'Available',notified:'Emailed'};
-    $('tab-note').textContent='Track requests, link a published Name Song, then preview the email before sending.';
+    $('tab-note').textContent='Priority requests are already PAID 50 Credits and should be handled first. Link a published Name Song, then deliver the included MP3 + Lyrics copy.';
     const filters=node('div');
     filters.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;';
     filters.setAttribute('aria-label','Filter name requests');
@@ -2202,19 +2202,24 @@ function render(){
       filters.append(control);
     }
     $('tab-note').append(filters);
-    const body=table(['Date','Name','Email','Song','Status','Actions']);
-    requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter).forEach(r=>{
+    const body=table(['Date','Name','Request','Email','Song','Status','Actions']);
+    requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter)
+      .sort((a,b)=>Number(!!b.priority)-Number(!!a.priority)||new Date(a.created_at)-new Date(b.created_at))
+      .forEach(r=>{
       const linked=songs.find(s=>s.id===r.song_id&&s.category==='NAME SONGS'&&s.published&&(s.audio_path||s.suno_url));
       const song=linked || (!r.song_id ? findMatchingNameSong(r) : null);
       const items=[];
       if(r.status!=='notified') items.push(button('Update request',()=>editRequest(r)));
       if(song && r.status!=='notified') items.push(button('Preview email',()=>sendRequestMessage(r,song)));
+      if(r.priority && song && !r.priority_delivered_at) items.push(button('Prepare MP3 + Lyrics',()=>preparePriorityNameDelivery(r,song)));
       const status=node('div');
       status.append(badge(labels[r.status]||r.status));
-      if(r.notified_at){const sent=node('small',`Sent ${date(r.notified_at)}`);sent.style.display='block';status.append(sent);}
-      row(body,[date(r.created_at),r.name,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
+      if(r.notified_at){const sent=node('small',`Availability email ${date(r.notified_at)}`);sent.style.display='block';status.append(sent);}
+      if(r.priority_delivered_at){const sent=node('small',`MP3 + Lyrics sent ${date(r.priority_delivered_at)}`);sent.style.display='block';status.append(sent);}
+      const requestType=r.priority?'⭐ PRIORITY · PAID 50 Credits':'Free';
+      row(body,[date(r.created_at),r.name,requestType,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
     });
-    if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=6;tr.append(td);body.append(tr);}
+    if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=7;tr.append(td);body.append(tr);}
 
   }else if(
     tab==='🪙 Credit Loads'
@@ -3469,6 +3474,32 @@ enter()
       }
     }
   );
+
+function preparePriorityNameDelivery(request,song){
+ const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
+ const subject=node('input');subject.value=`Your Priority Name Song: ${song.title}`;subject.setAttribute('aria-label','Email subject');
+ const body=node('textarea');body.setAttribute('aria-label','Email message');body.value=`Hi there,
+
+Your Priority Name Request for ${request.name} is ready. Your payment of 50 Credits was recorded before the request entered the Priority queue.
+
+Your MP3 is attached. The lyrics are included below.
+Priority Request: ${request.id}
+
+${song.lyrics||'Lyrics will be included with your song.'}
+
+Thank you for supporting MQ3 Music!`;
+ for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#130806;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
+ const note=node('p','This is a PAID Priority request. Attach the correct MP3 before sending. Opening the draft does not mark it delivered.');
+ const open=node('a','Open email draft','button');open.target='_blank';open.rel='noopener';
+ const setLink=()=>open.href=`mailto:${encodeURIComponent(request.email)}?subject=${encodeURIComponent(subject.value)}&body=${encodeURIComponent(body.value)}`;setLink();subject.oninput=setLink;body.oninput=setLink;
+ const copy=button('Copy message',async()=>{await navigator.clipboard.writeText(body.value);note.textContent='Message copied. Paste into Gmail and attach the MP3.';});
+ const lyrics=button('Save lyrics .txt',()=>{const url=URL.createObjectURL(new Blob([song.lyrics||''],{type:'text/plain;charset=utf-8'}));const a=node('a');a.href=url;a.download='lyrics.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+ const check=node('input');check.type='checkbox';const label=node('label');label.append(check,document.createTextNode(' I sent the email with the MP3 and lyrics.'));
+ const sent=button('Mark MP3 + Lyrics sent',async()=>{if(!check.checked){note.textContent='Send the email and confirm the checkbox first.';return;}await api(`/api/admin/requests/${request.id}/priority-sent`,{});dialog.close();await load();});
+ const close=button('Close',()=>dialog.close());
+ dialog.append(node('p','MQ3 · PRIORITY NAME REQUEST'),node('h2','Prepare Priority MP3 + Lyrics'),node('p',`To: ${request.email}`),subject,body,note,open,copy,lyrics,node('p'),label,node('p'),sent,close);
+ dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();
+}
 
 function prepareMp3Email(r){
  const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';

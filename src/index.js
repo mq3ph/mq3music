@@ -595,6 +595,148 @@ export function createApp(s=services()){
 
 
   /* =========================================================
+     PRIORITY NAME REQUEST · 50 CREDITS
+  ========================================================= */
+
+  app.post(
+    '/api/account/name-priority',
+    wrap(
+      async(req,res)=>{
+
+        sameOrigin(req);
+        await limit(req,'priority-name-request',12);
+
+        const raw=req.cookies?.mq3_user;
+        if(!raw){
+          fail(401,'Sign in to your MQ3 account before placing a Priority request.');
+        }
+
+        const [user]=await q(
+          `SELECT u.id,u.email,u.display_name
+           FROM user_sessions s
+           JOIN users u ON u.id=s.user_id
+           WHERE s.token_hash=$1 AND s.expires_at>now()`,
+          [hash(raw)]
+        );
+
+        if(!user){
+          fail(401,'Your session expired. Sign in again before placing a Priority request.');
+        }
+
+        const name=text(req.body.name,80);
+        const normalized=normalize(name);
+
+        const [existing]=await q(
+          `SELECT * FROM requests
+           WHERE normalized_name=$1 AND email=$2`,
+          [normalized,user.email]
+        );
+
+        if(existing?.priority){
+          return res.json({ok:true,alreadyPriority:true,request:existing});
+        }
+
+        const requestId=existing?.id||randomUUID();
+        const ledgerId=randomUUID();
+
+        const [result]=await q(
+          `WITH locked AS (
+             SELECT * FROM wallets WHERE user_id=$1 FOR UPDATE
+           ), amounts AS (
+             SELECT user_id,
+                    LEAST(promo_credits,50) AS promo_used,
+                    50-LEAST(promo_credits,50) AS purchased_used
+             FROM locked
+             WHERE promo_credits+purchased_credits>=50
+           ), paid_request AS (
+             INSERT INTO requests(
+               id,name,normalized_name,email,user_id,priority,credits,
+               promo_used,purchased_used,paid_at
+             )
+             SELECT $2,$3,$4,$5,a.user_id,true,50,
+                    a.promo_used,a.purchased_used,now()
+             FROM amounts a
+             ON CONFLICT(normalized_name,email) DO UPDATE SET
+               name=EXCLUDED.name,
+               user_id=EXCLUDED.user_id,
+               priority=true,
+               credits=50,
+               promo_used=EXCLUDED.promo_used,
+               purchased_used=EXCLUDED.purchased_used,
+               paid_at=now()
+             WHERE requests.priority=false
+             RETURNING *
+           ), debited AS (
+             UPDATE wallets w
+             SET promo_credits=w.promo_credits-r.promo_used,
+                 purchased_credits=w.purchased_credits-r.purchased_used,
+                 updated_at=now()
+             FROM paid_request r
+             WHERE w.user_id=r.user_id
+             RETURNING w.promo_credits+w.purchased_credits AS balance
+           ), ledger AS (
+             INSERT INTO credit_transactions(
+               id,user_id,transaction_type,promo_change,purchased_change,description,reference_id
+             )
+             SELECT $6,r.user_id,'name_priority',-r.promo_used,-r.purchased_used,
+                    'Priority Name Request · MP3 + Lyrics included',r.id
+             FROM paid_request r
+             RETURNING id
+           )
+           SELECT r.*,d.balance
+           FROM paid_request r
+           CROSS JOIN debited d
+           CROSS JOIN ledger l`,
+          [user.id,requestId,name,normalized,user.email,ledgerId]
+        );
+
+        if(!result){
+          const [duplicate]=await q(
+            `SELECT * FROM requests
+             WHERE normalized_name=$1 AND email=$2`,
+            [normalized,user.email]
+          );
+          if(duplicate?.priority){
+            return res.json({ok:true,alreadyPriority:true,request:duplicate});
+          }
+          fail(400,'You need 50 Credits for a Priority Name Request. Load Credits first, then try again.');
+        }
+
+        res.json({
+          ok:true,
+          request:result,
+          balance:Number(result.balance)
+        });
+      }
+    )
+  );
+
+
+  /* =========================================================
+     ADMIN: MARK PRIORITY MP3 + LYRICS DELIVERED
+  ========================================================= */
+
+  app.post(
+    '/api/admin/requests/:id/priority-sent',
+    wrap(
+      async(req,res)=>{
+        const [updated]=await q(
+          `UPDATE requests
+           SET priority_delivered_at=COALESCE(priority_delivered_at,now())
+           WHERE id=$1 AND priority=true AND credits=50
+           RETURNING id`,
+          [uuid(req.params.id)]
+        );
+        if(!updated){
+          fail(409,'This is not a paid Priority Name Request.');
+        }
+        res.json({ok:true});
+      }
+    )
+  );
+
+
+  /* =========================================================
      ADMIN SESSION INFO
   ========================================================= */
 
