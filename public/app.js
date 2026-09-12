@@ -3097,11 +3097,45 @@ async function loadCatalog(){
 }
 
 
+/*
+  Best-effort site-visit ping, fired once per page load, so the
+  admin dashboard can show how much daily TikTok traffic actually
+  reaches the site. src=tiktok comes from the TikTok bio link
+  (www.mq3music.com/?src=tiktok); never blocks or breaks the page.
+*/
+function recordSiteVisit(){
+
+  try{
+
+    const source=
+      new URLSearchParams(
+        location.search
+      ).get('src');
+
+    fetch(
+      '/api/site-visit',
+      {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          path:location.pathname,
+          source
+        })
+      }
+    ).catch(()=>{});
+
+  }catch{}
+}
+
+
 render();
 
 loadCatalog();
 loadGiftStats();
 loadLeaderboard();
+recordSiteVisit();
 
 // Personal copies are manually emailed; this does not download the embedded audio.
 async function requestMp3Copy(song){
