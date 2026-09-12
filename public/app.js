@@ -845,7 +845,20 @@ function visible(){
         .includes(
           q.trim()
         )
-  );
+  )
+    // Sally wants every category browsable A-to-Z instead of
+    // newest-upload-first (the order /api/catalog returns them in) — this
+    // runs after the category/search filter above, so each category (and
+    // the search results within it) comes back alphabetized by title,
+    // case-insensitive and locale-aware (handles accented names sensibly).
+    .sort(
+      (a,b)=>
+        a.title.localeCompare(
+          b.title,
+          undefined,
+          {sensitivity:'base'}
+        )
+    );
 
 }
 
