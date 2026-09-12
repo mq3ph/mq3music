@@ -2221,12 +2221,12 @@ function render(){
 
       .sort(
         (a,b)=>
+          Number(b.views||0)-
+            Number(a.views||0)||
           Number(b.plays_today||0)-
             Number(a.plays_today||0)||
           Number(b.plays_last_7_days||0)-
-            Number(a.plays_last_7_days||0)||
-          Number(b.views||0)-
-            Number(a.views||0)
+            Number(a.plays_last_7_days||0)
       )
 
       .forEach(
