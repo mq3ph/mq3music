@@ -1530,6 +1530,24 @@ export function createApp(s=services()){
     res.json({summary,listeners});
   }));
 
+  app.get('/api/admin/site-visits',wrap(async(_req,res)=>{
+    try{
+      const [row]=await q(`SELECT
+        count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date)::int AS today_total,
+        count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date AND source='tiktok')::int AS today_tiktok,
+        count(*) FILTER (WHERE created_at>now()-interval '7 days')::int AS week_total,
+        count(*) FILTER (WHERE created_at>now()-interval '7 days' AND source='tiktok')::int AS week_tiktok,
+        count(*) FILTER (WHERE created_at>now()-interval '30 days')::int AS month_total,
+        count(*) FILTER (WHERE created_at>now()-interval '30 days' AND source='tiktok')::int AS month_tiktok,
+        count(*)::int AS total_total,
+        count(*) FILTER (WHERE source='tiktok')::int AS total_tiktok
+        FROM site_visits`);
+      res.json(row);
+    }catch(error){
+      res.json({today_total:0,today_tiktok:0,week_total:0,week_tiktok:0,month_total:0,month_tiktok:0,total_total:0,total_tiktok:0});
+    }
+  }));
+
   app.get(
     '/api/admin/requests',
     wrap(
@@ -2898,6 +2916,106 @@ Keep this link private. Memberships expire on the stated access date.`,
         res.json({
           ok:true,
           views:rows[0].views
+        });
+      }
+    )
+  );
+
+
+  /* =========================================================
+     SITE VISIT LOG
+
+     Fired once by the public site on page load, so we can see
+     how much of the daily TikTok traffic actually reaches
+     mq3music.com. Best-effort only: never blocks or breaks the
+     page for the visitor, and silently no-ops if site_visits
+     does not exist yet in this database.
+  ========================================================= */
+
+  app.post(
+    '/api/site-visit',
+    wrap(
+      async(req,res)=>{
+
+        sameOrigin(req);
+
+
+        /*
+          Same owner IP exclusion as the song view counter above,
+          so Sally's own testing/browsing does not count as real
+          site traffic.
+        */
+
+        const requestIp=
+          env.VERCEL
+            ?(
+                req.get(
+                  'x-vercel-forwarded-for'
+                )||
+                req.socket.remoteAddress
+              )
+            :req.socket.remoteAddress;
+
+        const excludedIps=
+          String(
+            env.EXCLUDED_VIEW_IPS||
+            ''
+          )
+            .split(',')
+            .map(v=>v.trim())
+            .filter(Boolean);
+
+        const isExcluded=
+          requestIp&&
+          excludedIps.includes(
+            requestIp
+          );
+
+        if(isExcluded){
+          return res.json({
+            ok:true,
+            excluded:true
+          });
+        }
+
+
+        const path=
+          String(
+            req.body?.path||
+            '/'
+          )
+            .slice(0,200);
+
+        const source=
+          req.body?.source
+            ?String(req.body.source)
+              .toLowerCase()
+              .replace(/[^a-z0-9_-]/g,'')
+              .slice(0,40)||null
+            :null;
+
+
+        try{
+
+          await q(
+            'INSERT INTO site_visits(path,source) VALUES($1,$2)',
+            [
+              path,
+              source
+            ]
+          );
+
+        }catch(error){
+
+          console.error(
+            'site_visits insert failed:',
+            error
+          );
+        }
+
+
+        res.json({
+          ok:true
         });
       }
     )
