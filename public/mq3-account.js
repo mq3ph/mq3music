@@ -566,6 +566,8 @@
       <strong>Pay via GCash</strong><br>
       Send <strong>${amount}</strong> to:<br>
       <strong>+63 966 648 15330</strong>
+      <br><br>
+      <span style="font-size:13px;opacity:.85;">Sending from outside the Philippines? You can also send using WorldRemit or Sendwave, funded with your MTN or Airtel Mobile Money balance — straight to the GCash number above. Country: Philippines. If the app asks for the recipient's full legal name, just message me and I'll send it to you.</span>
     `;
 
     if (note) {
