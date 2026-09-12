@@ -779,11 +779,50 @@ export function createApp(s=services()){
     wrap(
       async(_req,res)=>{
 
-        res.json(
-          await q(
-            'SELECT * FROM songs ORDER BY created_at DESC'
-          )
-        );
+        /*
+          The plays_today / plays_last_7_days columns read from
+          song_plays, a table added alongside this feature. If it
+          has not been created yet in this database, fall back to
+          the plain song list (with those two fields at 0) instead
+          of breaking the whole admin Songs tab.
+        */
+
+        try{
+
+          res.json(
+            await q(
+              `SELECT songs.*,
+                 (SELECT count(*)::int FROM song_plays sp
+                   WHERE sp.song_id=songs.id
+                     AND (sp.played_at AT TIME ZONE 'Asia/Manila')::date=
+                         (now() AT TIME ZONE 'Asia/Manila')::date
+                 ) AS plays_today,
+                 (SELECT count(*)::int FROM song_plays sp
+                   WHERE sp.song_id=songs.id
+                     AND sp.played_at>now()-interval '7 days'
+                 ) AS plays_last_7_days
+               FROM songs
+               ORDER BY created_at DESC`
+            )
+          );
+
+        }catch(error){
+
+          const songs=
+            await q(
+              'SELECT * FROM songs ORDER BY created_at DESC'
+            );
+
+          res.json(
+            songs.map(
+              s=>({
+                ...s,
+                plays_today:0,
+                plays_last_7_days:0
+              })
+            )
+          );
+        }
       }
     )
   );
@@ -2760,6 +2799,32 @@ Keep this link private. Memberships expire on the stated access date.`,
           fail(
             404,
             'Song is unavailable.'
+          );
+        }
+
+
+        /*
+          Daily play log, used for the admin "plays today /
+          last 7 days" figures. Kept separate from the try/catch
+          above: if song_plays does not exist yet in this
+          database, the lifetime views counter above should
+          still work normally.
+        */
+
+        try{
+
+          await q(
+            'INSERT INTO song_plays(song_id) VALUES($1)',
+            [
+              id
+            ]
+          );
+
+        }catch(error){
+
+          console.error(
+            'song_plays insert failed:',
+            error
           );
         }
 
