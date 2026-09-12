@@ -2237,6 +2237,9 @@ function render(){
     const container=
       node('div');
 
+    container.style.cssText=
+      'display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start';
+
     sections.forEach(
       (section,index)=>{
 
@@ -2258,7 +2261,7 @@ function render(){
           node('section');
 
         wrap.style.cssText=
-          'margin-top:24px';
+          'flex:1 1 260px;min-width:220px;max-width:100%';
 
         wrap.append(
           node(
@@ -2269,6 +2272,9 @@ function render(){
 
         const list=
           node('table');
+
+        list.style.cssText=
+          'width:100%';
 
         const thead=
           node('thead');
