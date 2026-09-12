@@ -243,6 +243,89 @@ export function accountRoutes({
   }
 
   /* =========================================================
+     CLAIM WELCOME BONUS
+
+     Credits are granted the first time a listener saves a
+     real display name, never before. credit_transactions has
+     a unique partial index for transaction_type='welcome_bonus',
+     so the INSERT below is the authoritative one-time claim
+     and this function is always safe to call more than once
+     for the same user.
+  ========================================================= */
+
+  async function claimWelcomeBonus(userId,now){
+
+    await q(
+      `WITH bonus AS (
+         INSERT INTO credit_transactions(
+           id,
+           user_id,
+           transaction_type,
+           promo_change,
+           purchased_change,
+           description
+         )
+         VALUES(
+           $1,
+           $2,
+           'welcome_bonus',
+           $3,
+           0,
+           'MQ3 Welcome Credits'
+         )
+         ON CONFLICT DO NOTHING
+         RETURNING user_id
+       )
+       UPDATE wallets
+       SET
+         promo_credits=
+           promo_credits+$3,
+         welcome_bonus_claimed=true,
+         updated_at=$4
+       WHERE user_id IN(
+         SELECT user_id
+         FROM bonus
+       )`,
+      [
+        randomUUID(),
+        userId,
+        WELCOME_CREDITS,
+        now
+      ]
+    );
+
+
+    /*
+      Defensive repair:
+
+      If the bonus transaction already exists, the account
+      must also be marked as having claimed the bonus.
+
+      This does NOT add credits.
+    */
+
+    await q(
+      `UPDATE wallets
+       SET
+         welcome_bonus_claimed=true,
+         updated_at=$2
+       WHERE user_id=$1
+         AND welcome_bonus_claimed=false
+         AND EXISTS(
+           SELECT 1
+           FROM credit_transactions
+           WHERE user_id=$1
+             AND transaction_type='welcome_bonus'
+         )`,
+      [
+        userId,
+        now
+      ]
+    );
+  }
+
+
+  /* =========================================================
      ACCOUNT RESPONSE
   ========================================================= */
 
@@ -832,87 +915,14 @@ Music. Quality. 3rd Gen.`,
 
 
         /*
-          CLAIM THE WELCOME BONUS
+          Welcome Credits are intentionally NOT granted here.
 
-          credit_transactions has a unique partial index for
-          transaction_type='welcome_bonus'.
-
-          The INSERT is therefore the authoritative one-time
-          claim.
-
-          This statement also updates the wallet only when
-          the transaction was actually inserted.
-
-          Both actions happen inside one SQL statement.
+          They are granted once, in POST /api/account/profile,
+          the first time this listener saves a real display
+          name. This closes the loophole where an account could
+          sign in and collect the bonus without ever being
+          identified by name.
         */
-
-        await q(
-          `WITH bonus AS (
-             INSERT INTO credit_transactions(
-               id,
-               user_id,
-               transaction_type,
-               promo_change,
-               purchased_change,
-               description
-             )
-             VALUES(
-               $1,
-               $2,
-               'welcome_bonus',
-               $3,
-               0,
-               'MQ3 Welcome Credits'
-             )
-             ON CONFLICT DO NOTHING
-             RETURNING user_id
-           )
-           UPDATE wallets
-           SET
-             promo_credits=
-               promo_credits+$3,
-             welcome_bonus_claimed=true,
-             updated_at=$4
-           WHERE user_id IN(
-             SELECT user_id
-             FROM bonus
-           )`,
-          [
-            randomUUID(),
-            user.id,
-            WELCOME_CREDITS,
-            now
-          ]
-        );
-
-
-        /*
-          Defensive repair:
-
-          If the bonus transaction already exists, the account
-          must also be marked as having claimed the bonus.
-
-          This does NOT add credits.
-        */
-
-        await q(
-          `UPDATE wallets
-           SET
-             welcome_bonus_claimed=true,
-             updated_at=$2
-           WHERE user_id=$1
-             AND welcome_bonus_claimed=false
-             AND EXISTS(
-               SELECT 1
-               FROM credit_transactions
-               WHERE user_id=$1
-                 AND transaction_type='welcome_bonus'
-             )`,
-          [
-            user.id,
-            now
-          ]
-        );
 
 
         /*
@@ -1660,6 +1670,44 @@ Music. Quality. 3rd Gen.`,
         }
 
 
+        /*
+          GCash-specific format check.
+
+          A real GCash transaction reference is a 13-digit
+          numeric code (the app displays it in groups such as
+          "1001 543 610110", but the number itself is 13
+          digits). This rejects obviously fake/placeholder
+          text such as "test123" before it is ever recorded as
+          a pending order, without requiring any external
+          verification call.
+
+          PayPal references keep only the generic length check
+          above, since PayPal's own transaction ID format is
+          different.
+        */
+
+        if(paymentProvider==='gcash'){
+
+          const digitsOnly=
+            paymentReference.replace(
+              /\s+/g,
+              ''
+            );
+
+          if(
+            !/^\d{13}$/.test(
+              digitsOnly
+            )
+          ){
+
+            fail(
+              400,
+              'Enter a valid 13-digit GCash reference number.'
+            );
+          }
+        }
+
+
         const duplicate=
           await q(
             `SELECT id
@@ -1939,6 +1987,25 @@ Music. Quality. 3rd Gen.`,
           fail(
             429,
             'Your display name was changed recently. Please wait 30 days before changing it again.'
+          );
+        }
+
+
+        /*
+          First time this listener has ever set a real display
+          name (currentName was blank going in): this is the
+          moment the 25 Welcome Credits are earned.
+
+          claimWelcomeBonus() is itself exactly-once (unique
+          partial index on credit_transactions), so this is
+          safe even if called again.
+        */
+
+        if(!currentName){
+
+          await claimWelcomeBonus(
+            userId,
+            now
           );
         }
 
