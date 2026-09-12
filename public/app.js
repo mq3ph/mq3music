@@ -2673,6 +2673,7 @@ function openSunoSong(t){
   const match=String(t.suno_url||'').match(/^https:\/\/suno\.com\/song\/([a-f0-9-]{36})$/i);
   if(!match){toast('This Suno link is unavailable.');return;}
   saveListening();audio.pause();
+  recordView(t.id);
   let dialog=$('mq3-suno-dialog');
   if(!dialog){
     dialog=document.createElement('dialog');dialog.id='mq3-suno-dialog';
