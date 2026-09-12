@@ -1,5 +1,4 @@
 import {mp3RequestRoutes} from './mp3-requests.js';
-import {storageReport} from './storage-report.js';
 import {resolveSunoLink} from './suno.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -1501,22 +1500,6 @@ export function createApp(s=services()){
   /* =========================================================
      ADMIN REQUEST LIST
   ========================================================= */
-
-  let storageSnapshot=null;
-  let storageScan=null;
-  app.get('/api/admin/storage-report',wrap(async(_req,res)=>{
-    res.set('Cache-Control','no-store');
-    if(storageSnapshot && Date.now()-Date.parse(storageSnapshot.checkedAt)<300000)return res.json(storageSnapshot);
-    if(!storageScan)storageScan=(async()=>{
-      const [songs,files]=await Promise.all([
-        q('SELECT id,title,category,suno_url,audio_path,preview_path,EXISTS(SELECT 1 FROM orders WHERE song_id=songs.id) AS has_orders FROM songs'),
-        s.listAudioFiles()
-      ]);
-      storageSnapshot=storageReport(songs,files);
-      return storageSnapshot;
-    })().finally(()=>{storageScan=null;});
-    res.json(await storageScan);
-  }));
 
   app.get('/api/admin/listeners',wrap(async(_req,res)=>{
     const [summary]=await q(`SELECT count(*)::int AS total,
