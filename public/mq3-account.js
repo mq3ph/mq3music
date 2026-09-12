@@ -1008,7 +1008,13 @@
     displaySupporterRank(account);
     activateCreditPackages();
 
-    if (promo > 0) {
+    if (!displayName && !account.welcomeBonusClaimed) {
+      welcomeBonus.textContent =
+        '🎁 Enter your name below and save it to claim your ' +
+        '25 FREE Welcome Credits!';
+
+      show(welcomeBonus);
+    } else if (promo > 0) {
       welcomeBonus.textContent =
         `🎁 Your Welcome Credits are ready! ` +
         `You have ${promo.toLocaleString()} promo Credits. ` +
@@ -1283,6 +1289,10 @@
     );
 
     try {
+      const justClaimed =
+        currentAccount &&
+        !currentAccount.welcomeBonusClaimed;
+
       const data = await api(
         '/api/account/profile',
         {
@@ -1303,7 +1313,9 @@
 
       setMessage(
         profileMessage,
-        'Display name saved. ✓'
+        justClaimed && data.account.welcomeBonusClaimed
+          ? 'Display name saved. ✓ Your 25 Welcome Credits have been added! 🎁'
+          : 'Display name saved. ✓'
       );
 
     } catch (error) {
