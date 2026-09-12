@@ -20,6 +20,7 @@ let creditLoads=[];
 let mp3Requests=[];
 let mp3Filter='all';
 let listenerData={summary:{},listeners:[]};
+let siteVisits={};
 
 /*
   Keeps the currently edited song.
@@ -1522,7 +1523,8 @@ async function load(){
     orders,
     creditLoads,
     listenerData,
-    mp3Requests
+    mp3Requests,
+    siteVisits
   ]=await Promise.all([
 
     api(
@@ -1541,7 +1543,8 @@ async function load(){
       '/api/admin/credit-loads'
     ),
     api('/api/admin/listeners'),
-    api('/api/admin/mp3-requests')
+    api('/api/admin/mp3-requests'),
+    api('/api/admin/site-visits')
   ]);
 
   render();
@@ -1657,6 +1660,7 @@ for(
     'Storage',
     ...cats,
     'Song Views',
+    'Site Visits',
     'GCash',
     'PayPal',
     '🪙 Credit Loads'
@@ -1986,6 +1990,8 @@ function setRecordsTitle(){
     title.textContent='Listener Accounts';
   }else if(tab==='Song Views'){
     title.textContent='Song Views';
+  }else if(tab==='Site Visits'){
+    title.textContent='Site Visits';
   }else{
 
     title.textContent=
@@ -2348,6 +2354,27 @@ function render(){
       .replaceChildren(
         container
       );
+
+  }else if(tab==='Site Visits'){
+
+    const v=siteVisits||{};
+
+    $('tab-note').textContent=
+      'How many people who tap the TikTok bio link actually reach the site. "From TikTok" counts visits where the bio link included ?src=tiktok — update the bio link to that address once for this to start counting.';
+
+    const body=
+      table(['Period','Total Visits','From TikTok','Other/Direct']);
+
+    [
+      ['Today', v.today_total, v.today_tiktok],
+      ['This Week', v.week_total, v.week_tiktok],
+      ['This Month', v.month_total, v.month_tiktok],
+      ['Total', v.total_total, v.total_tiktok]
+    ].forEach(([label,total,tiktok])=>{
+      const t=Number(total||0);
+      const tk=Number(tiktok||0);
+      row(body,[label, t.toLocaleString(), tk.toLocaleString(), (t-tk).toLocaleString()]);
+    });
 
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
