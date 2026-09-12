@@ -755,66 +755,6 @@ async function shareSong(song){
   }
 }
 
-function ensurePlayerLyricsButton(){
-
-  const nowcat=
-    $('nowcat');
-
-
-  if(
-    !nowcat||
-    $('player-lyrics')
-  ){
-    return;
-  }
-
-
-  const button=
-    node(
-      'button',
-      '♪ Lyrics',
-      'player-lyrics'
-    );
-
-
-  button.id=
-    'player-lyrics';
-
-
-  button.type=
-    'button';
-
-
-  button.disabled=
-    !current;
-
-
-  button.onclick=
-    ()=>
-      showLyrics(
-        tracks.find(
-          t=>
-            t.id===current
-        )
-      );
-
-
-  nowcat
-    .parentElement
-    .append(
-      button
-    );
-
-  if(!document.getElementById('player-share')){
-    const share=node('button','Share','');share.id='player-share';share.type='button';share.disabled=!current;
-    share.setAttribute('aria-label','Share current song');share.style.fontSize='11px';
-    share.onclick=()=>shareSong(tracks.find(t=>t.id===current));
-    document.querySelector('.controls').append(share);
-  }
-
-}
-
-
 function visible(){
 
   const q=
@@ -2047,11 +1987,6 @@ function render(){
     visible();
 
 
-  $('prev').disabled=
-    $('next').disabled=
-      !list.length;
-
-
   document
     .querySelectorAll(
       '.category'
@@ -2734,9 +2669,6 @@ audio.volume=
   .8;
 
 
-ensurePlayerLyricsButton();
-
-
 function openSunoSong(t){
   const match=String(t.suno_url||'').match(/^https:\/\/suno\.com\/song\/([a-f0-9-]{36})$/i);
   if(!match){toast('This Suno link is unavailable.');return;}
@@ -2896,10 +2828,6 @@ function toggle(){
 }
 
 
-$('play').onclick=
-  toggle;
-
-
 function next(delta){
 
   const list=
@@ -2938,16 +2866,6 @@ function next(delta){
   );
 
 }
-
-
-$('prev').onclick=
-  ()=>
-    next(-1);
-
-
-$('next').onclick=
-  ()=>
-    next(1);
 
 
 audio.onended=()=>{saveListening();next(1);};
@@ -3064,35 +2982,6 @@ audio.onerror=
     toast(
       'Audio unavailable.'
     );
-
-
-$('seek').oninput=
-  ()=>{
-
-    if(
-      Number.isFinite(
-        audio.duration
-      )
-    ){
-
-      audio.currentTime=
-        audio.duration*
-        Number(
-          $('seek').value
-        )/
-        100;
-
-    }
-
-  };
-
-
-$('volume').oninput=
-  ()=>
-    audio.volume=
-      Number(
-        $('volume').value
-      );
 
 
 async function loadCatalog(){
