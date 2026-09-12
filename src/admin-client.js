@@ -2204,53 +2204,144 @@ function render(){
 
     $('tab-note').textContent=
       played.length
-        ?`${played.length} song${played.length===1?'':'s'} have been opened at least once. Songs never opened are not listed here.`
+        ?`${played.length} song${played.length===1?'':'s'} have been opened at least once. Songs never opened are not listed here. Each table below is its own ranking, top plays first.`
         :'No song has been opened yet.';
 
-    const body=
-      table([
-        'Song',
-        'Category',
-        'Today',
-        'This Week',
-        'This Month',
-        'Total'
-      ]);
+    /*
+      Four independent rankings (Today / This Week / This Month /
+      Total), each its own small table, each sorted highest-first
+      by its own metric and only showing songs with at least 1
+      play in that specific window.
+    */
 
-    played
+    const sections=
+      [
+        {
+          heading:'Today',
+          field:'plays_today'
+        },
+        {
+          heading:'This Week',
+          field:'plays_last_7_days'
+        },
+        {
+          heading:'This Month',
+          field:'plays_last_30_days'
+        },
+        {
+          heading:'Total',
+          field:'views'
+        }
+      ];
 
-      .sort(
-        (a,b)=>
-          Number(b.views||0)-
-            Number(a.views||0)||
-          Number(b.plays_today||0)-
-            Number(a.plays_today||0)||
-          Number(b.plays_last_7_days||0)-
-            Number(a.plays_last_7_days||0)
-      )
+    const container=
+      node('div');
 
-      .forEach(
-        s=>
-          row(
-            body,
-            [
-              s.title,
-              categoryLabel(s.category),
-              Number(s.plays_today||0).toLocaleString(),
-              Number(s.plays_last_7_days||0).toLocaleString(),
-              Number(s.plays_last_30_days||0).toLocaleString(),
-              Number(s.views||0).toLocaleString()
-            ]
+    sections.forEach(
+      (section,index)=>{
+
+        const ranked=
+          played
+
+            .filter(
+              s=>
+                Number(s[section.field]||0)>0
+            )
+
+            .sort(
+              (a,b)=>
+                Number(b[section.field]||0)-
+                  Number(a[section.field]||0)
+            );
+
+        const wrap=
+          node('section');
+
+        wrap.style.cssText=
+          'margin-top:24px';
+
+        wrap.append(
+          node(
+            'h3',
+            section.heading
           )
-      );
+        );
 
-    if(!body.children.length){
-      const tr=node('tr');
-      const td=node('td','No song has been opened yet.');
-      td.colSpan=6;
-      tr.append(td);
-      body.append(tr);
-    }
+        const list=
+          node('table');
+
+        const thead=
+          node('thead');
+
+        const hr=
+          node('tr');
+
+        [
+          'Song',
+          section.heading
+        ].forEach(
+          h=>
+            hr.append(
+              node(
+                'th',
+                h
+              )
+            )
+        );
+
+        thead.append(hr);
+
+        list.append(thead);
+
+        const tbody=
+          node('tbody');
+
+        list.append(tbody);
+
+
+        if(ranked.length){
+
+          ranked.forEach(
+            s=>
+              row(
+                tbody,
+                [
+                  s.title,
+                  Number(
+                    s[section.field]||0
+                  ).toLocaleString()
+                ]
+              )
+          );
+
+        }else{
+
+          const tr=
+            node('tr');
+
+          const td=
+            node(
+              'td',
+              'No plays in this window yet.'
+            );
+
+          td.colSpan=2;
+
+          tr.append(td);
+
+          tbody.append(tr);
+        }
+
+        wrap.append(list);
+
+        container.append(wrap);
+      }
+    );
+
+    $('records')
+      .replaceChildren(
+        container
+      );
 
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
