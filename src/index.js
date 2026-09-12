@@ -800,7 +800,11 @@ export function createApp(s=services()){
                  (SELECT count(*)::int FROM song_plays sp
                    WHERE sp.song_id=songs.id
                      AND sp.played_at>now()-interval '7 days'
-                 ) AS plays_last_7_days
+                 ) AS plays_last_7_days,
+                 (SELECT count(*)::int FROM song_plays sp
+                   WHERE sp.song_id=songs.id
+                     AND sp.played_at>now()-interval '30 days'
+                 ) AS plays_last_30_days
                FROM songs
                ORDER BY created_at DESC`
             )
@@ -818,7 +822,8 @@ export function createApp(s=services()){
               s=>({
                 ...s,
                 plays_today:0,
-                plays_last_7_days:0
+                plays_last_7_days:0,
+                plays_last_30_days:0
               })
             )
           );
@@ -2782,6 +2787,67 @@ Keep this link private. Memberships expire on the stated access date.`,
           uuid(
             req.params.id
           );
+
+
+        /*
+          Owner IP exclusion.
+
+          EXCLUDED_VIEW_IPS is an optional, comma-separated env
+          var (set in Vercel, never pasted into this file) of
+          IPs whose visits should not count as real plays, e.g.
+          Sally's own connection while she is testing. Same IP
+          extraction as the rate limiter above, for consistency.
+        */
+
+        const requestIp=
+          env.VERCEL
+            ?(
+                req.get(
+                  'x-vercel-forwarded-for'
+                )||
+                req.socket.remoteAddress
+              )
+            :req.socket.remoteAddress;
+
+        const excludedIps=
+          String(
+            env.EXCLUDED_VIEW_IPS||
+            ''
+          )
+            .split(',')
+            .map(v=>v.trim())
+            .filter(Boolean);
+
+        const isExcluded=
+          requestIp&&
+          excludedIps.includes(
+            requestIp
+          );
+
+
+        if(isExcluded){
+
+          const [current]=
+            await q(
+              'SELECT views FROM songs WHERE id=$1',
+              [
+                id
+              ]
+            );
+
+          if(!current){
+            fail(
+              404,
+              'Song is unavailable.'
+            );
+          }
+
+          return res.json({
+            ok:true,
+            views:current.views,
+            excluded:true
+          });
+        }
 
 
         const rows=
