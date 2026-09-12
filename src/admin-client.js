@@ -2075,13 +2075,6 @@ function render(){
     cats.includes(tab)
   ){
 
-    $('tab-note').textContent=
-
-      tab==='ORIGINAL SONGS'
-        ?'Lyrics & melodies: MQ3. Music & voice: assisted by Suno.'
-        :'Lyrics: AI-generated. Music: generated with Suno. Curated by MQ3.';
-
-
     const body=
       table([
         '#',
@@ -2122,6 +2115,37 @@ function render(){
                 }
               )
         );
+
+
+    const playsToday=
+      list.reduce(
+        (sum,s)=>
+          sum+
+          Number(
+            s.plays_today||0
+          ),
+        0
+      );
+
+    const playsLast7Days=
+      list.reduce(
+        (sum,s)=>
+          sum+
+          Number(
+            s.plays_last_7_days||0
+          ),
+        0
+      );
+
+    $('tab-note').textContent=
+
+      (
+        tab==='ORIGINAL SONGS'
+          ?'Lyrics & melodies: MQ3. Music & voice: assisted by Suno.'
+          :'Lyrics: AI-generated. Music: generated with Suno. Curated by MQ3.'
+      )+
+      ` · ${playsToday.toLocaleString()} plays today · `+
+      `${playsLast7Days.toLocaleString()} in the last 7 days`;
 
 
     list.forEach(
