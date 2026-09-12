@@ -1656,6 +1656,7 @@ for(
     'Listeners',
     'Storage',
     ...cats,
+    'Song Views',
     'GCash',
     'PayPal',
     '🪙 Credit Loads'
@@ -1983,6 +1984,8 @@ function setRecordsTitle(){
     title.textContent='Audio Storage';
   }else if(tab==='Listeners'){
     title.textContent='Listener Accounts';
+  }else if(tab==='Song Views'){
+    title.textContent='Song Views';
   }else{
 
     title.textContent=
@@ -2190,6 +2193,65 @@ function render(){
 
   }else if(tab==='Storage'){
     renderStorage(match);
+  }else if(tab==='Song Views'){
+
+    const played=
+      songs.filter(
+        s=>
+          Number(s.views||0)>0&&
+          match(s)
+      );
+
+    $('tab-note').textContent=
+      played.length
+        ?`${played.length} song${played.length===1?'':'s'} have been opened at least once. Songs never opened are not listed here.`
+        :'No song has been opened yet.';
+
+    const body=
+      table([
+        'Song',
+        'Category',
+        'Today',
+        'This Week',
+        'This Month',
+        'Total'
+      ]);
+
+    played
+
+      .sort(
+        (a,b)=>
+          Number(b.plays_today||0)-
+            Number(a.plays_today||0)||
+          Number(b.plays_last_7_days||0)-
+            Number(a.plays_last_7_days||0)||
+          Number(b.views||0)-
+            Number(a.views||0)
+      )
+
+      .forEach(
+        s=>
+          row(
+            body,
+            [
+              s.title,
+              categoryLabel(s.category),
+              Number(s.plays_today||0).toLocaleString(),
+              Number(s.plays_last_7_days||0).toLocaleString(),
+              Number(s.plays_last_30_days||0).toLocaleString(),
+              Number(s.views||0).toLocaleString()
+            ]
+          )
+      );
+
+    if(!body.children.length){
+      const tr=node('tr');
+      const td=node('td','No song has been opened yet.');
+      td.colSpan=6;
+      tr.append(td);
+      body.append(tr);
+    }
+
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
     $('tab-note').textContent=`${Number(summary.total||0)} unique accounts · ${Number(summary.welcomed||0)} received 25 welcome Credits · ${Number(summary.active_seven_days||0)} signed in within 7 days. Latest 500 accounts below; repeat sign-ins do not create another account. Search applies to these displayed accounts.`;
