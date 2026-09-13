@@ -698,7 +698,7 @@ export function createApp(s=services()){
           if(duplicate?.priority){
             return res.json({ok:true,alreadyPriority:true,request:duplicate});
           }
-          fail(400,'You need 50 Credits for a Priority Name Request. Load Credits first, then try again.');
+          fail(400,'Not enough Credits for this request. Load Credits, then try again.');
         }
 
         res.json({
