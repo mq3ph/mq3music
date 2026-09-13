@@ -31,7 +31,7 @@ export function mp3RequestRoutes({app,env,query:q,sameOrigin,limit}){
      INSERT INTO credit_transactions(id,user_id,transaction_type,promo_change,purchased_change,description,reference_id)
      SELECT $6,user_id,'mp3_purchase',-promo_used,-purchased_used,'MP3 + lyrics email delivery',id FROM inserted RETURNING id
    ) SELECT i.*,d.balance FROM inserted i CROSS JOIN debited d CROSS JOIN ledger l`,[user.id,songId,randomUUID(),user.email,user.display_name,randomUUID()]);
-   if(!result){const [duplicate]=await q('SELECT * FROM mp3_requests WHERE user_id=$1 AND song_id=$2',[user.id,songId]);if(duplicate)return res.json({ok:true,alreadyRequested:true,request:duplicate});fail(400,'You need 50 Credits to request this song.');}
+   if(!result){const [duplicate]=await q('SELECT * FROM mp3_requests WHERE user_id=$1 AND song_id=$2',[user.id,songId]);if(duplicate)return res.json({ok:true,alreadyRequested:true,request:duplicate});fail(400,'Not enough Credits for this request. Load Credits, then try again.');}
    res.json({ok:true,request:result,balance:Number(result.balance)});
  }));
  // Registered after the shared /api/admin authentication and origin middleware.
