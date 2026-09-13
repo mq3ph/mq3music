@@ -1380,7 +1380,10 @@
   });
 
   window.addEventListener('mq3-open-credit-load', (e) => {
-    openCreditLoad(e.detail?.amount || 50);
+    const creditsNeeded = e.detail?.amount || 50;
+    const pesoOptions = Object.keys(creditPackages).map(Number).sort((a, b) => a - b);
+    const bestFit = pesoOptions.find(pesos => creditPackages[pesos] >= creditsNeeded);
+    openCreditLoad(bestFit || pesoOptions[pesoOptions.length - 1]);
   });
 
 
