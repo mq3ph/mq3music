@@ -469,6 +469,26 @@ window.addEventListener(
 
     updateInstallButton();
 
+    /*
+      Best-effort install counter for the admin "Site Visits" tab.
+      Android/Chrome only — iOS "Add to Home Screen" never fires
+      this event, so this undercounts iPhone installs.
+    */
+    try{
+
+      fetch(
+        '/api/app-install',
+        {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json'
+          },
+          body:'{}'
+        }
+      ).catch(()=>{});
+
+    }catch{}
+
   }
 );
 
