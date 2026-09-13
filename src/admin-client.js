@@ -2364,21 +2364,65 @@ function render(){
     const v=siteVisits||{};
 
     $('tab-note').textContent=
-      'How many people who tap the TikTok bio link actually reach the site. "From TikTok" counts visits where the bio link included ?src=tiktok — update the bio link to that address once for this to start counting.';
+      'How many people who tap the TikTok bio link actually reach the site. "From TikTok" counts visits where the bio link included ?src=tiktok. "From Installed App" counts visits opened from an already-installed MQ3 app, not a fresh browser tab — a good chunk of what used to show as "Other/Direct". "App Installs" below counts completed installs (Android/Chrome only — iPhone\'s Add to Home Screen does not report back, so this undercounts iPhone users).';
 
-    const body=
-      table(['Period','Total Visits','From TikTok','Other/Direct']);
+    const container=node('div');
+    container.style.cssText='display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start';
 
-    [
-      ['Today', v.today_total, v.today_tiktok],
-      ['This Week', v.week_total, v.week_tiktok],
-      ['This Month', v.month_total, v.month_tiktok],
-      ['Total', v.total_total, v.total_tiktok]
-    ].forEach(([label,total,tiktok])=>{
+    const buildTable=(heading,headers,rows,emptyText)=>{
+      const wrap=node('section');
+      wrap.style.cssText='flex:1 1 320px;min-width:260px;max-width:100%';
+      wrap.append(node('h3',heading));
+      const list=node('table');
+      list.style.cssText='width:100%';
+      const thead=node('thead');
+      const hr=node('tr');
+      headers.forEach(h=>hr.append(node('th',h)));
+      thead.append(hr);
+      list.append(thead);
+      const tbody=node('tbody');
+      list.append(tbody);
+      if(rows.length){
+        rows.forEach(cells=>row(tbody,cells));
+      }else{
+        const tr=node('tr');
+        const td=node('td',emptyText);
+        td.colSpan=headers.length;
+        tr.append(td);
+        tbody.append(tr);
+      }
+      wrap.append(list);
+      return wrap;
+    };
+
+    const visitRows=[
+      ['Today', v.today_total, v.today_tiktok, v.today_installed_app],
+      ['This Week', v.week_total, v.week_tiktok, v.week_installed_app],
+      ['This Month', v.month_total, v.month_tiktok, v.month_installed_app],
+      ['Total', v.total_total, v.total_tiktok, v.total_installed_app]
+    ].map(([label,total,tiktok,installedApp])=>{
       const t=Number(total||0);
       const tk=Number(tiktok||0);
-      row(body,[label, t.toLocaleString(), tk.toLocaleString(), (t-tk).toLocaleString()]);
+      const ia=Number(installedApp||0);
+      return [label, t.toLocaleString(), tk.toLocaleString(), ia.toLocaleString(), Math.max(0,t-tk-ia).toLocaleString()];
     });
+
+    container.append(
+      buildTable('Site Visits',['Period','Total Visits','From TikTok','From Installed App','Other/Direct'],visitRows,'No visits recorded yet.')
+    );
+
+    const installRows=[
+      ['Today', v.today_installs],
+      ['This Week', v.week_installs],
+      ['This Month', v.month_installs],
+      ['Total', v.total_installs]
+    ].map(([label,count])=>[label, Number(count||0).toLocaleString()]);
+
+    container.append(
+      buildTable('App Installs',['Period','Installs'],installRows,'No installs recorded yet.')
+    );
+
+    $('records').replaceChildren(container);
 
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
