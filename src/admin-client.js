@@ -12,6 +12,7 @@ const cats=[
 
 let tab='Name Request';
 let requestStatusFilter='all';
+let selectedRequestIds=new Set();
 let songs=[];
 let requests=[];
 let orders=[];
@@ -148,7 +149,7 @@ function actions(...items){
    MQ3 DELETE CONFIRMATION MODAL
 ========================================================= */
 
-function showDeleteConfirm(title){
+function showDeleteConfirm(title,options={}){
 
   if(
     !document.getElementById(
@@ -315,32 +316,39 @@ function showDeleteConfirm(title){
       const heading=
         node(
           'h2',
-          'Delete this song?',
+          options.heading||'Delete this song?',
           'mq3-delete-title'
         );
 
 
       const copy=
-        node(
-          'p',
-          undefined,
-          'mq3-delete-copy'
-        );
+        options.copy||
+        (()=>{
+
+          const p=
+            node(
+              'p',
+              undefined,
+              'mq3-delete-copy'
+            );
 
 
-      const songName=
-        node(
-          'span',
-          `"${title}"`,
-          'mq3-delete-song'
-        );
+          const songName=
+            node(
+              'span',
+              `"${title}"`,
+              'mq3-delete-song'
+            );
 
 
-      copy.append(
-        'You are about to permanently delete ',
-        songName,
-        '. This will remove the song record and its stored audio. This action cannot be undone.'
-      );
+          p.append(
+            'You are about to permanently delete ',
+            songName,
+            '. This will remove the song record and its stored audio. This action cannot be undone.'
+          );
+
+          return p;
+        })();
 
 
       const buttons=
@@ -364,7 +372,7 @@ function showDeleteConfirm(title){
       const remove=
         node(
           'button',
-          'Delete Song',
+          options.buttonLabel||'Delete Song',
           'mq3-delete-danger'
         );
 
@@ -1672,6 +1680,8 @@ for(
 
         tab=name;
 
+        selectedRequestIds.clear();
+
         $('admin-search')
           .value='';
 
@@ -2406,10 +2416,33 @@ function render(){
       filters.append(control);
     }
     $('tab-note').append(filters);
-    const body=table(['Date','Name','Request','Email','Song','Status','Actions']);
-    requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter)
-      .sort((a,b)=>Number(!!b.priority)-Number(!!a.priority)||new Date(a.created_at)-new Date(b.created_at))
-      .forEach(r=>{
+
+    const visible=requests.filter(match).filter(r=>requestStatusFilter==='all'||r.status===requestStatusFilter)
+      .sort((a,b)=>Number(!!b.priority)-Number(!!a.priority)||new Date(a.created_at)-new Date(b.created_at));
+    for(const id of [...selectedRequestIds]){
+      if(!visible.some(r=>r.id===id)) selectedRequestIds.delete(id);
+    }
+
+    const bulkBar=node('div');
+    bulkBar.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;';
+    const selectAll=document.createElement('input');selectAll.type='checkbox';
+    selectAll.checked=visible.length>0&&visible.every(r=>selectedRequestIds.has(r.id));
+    selectAll.indeterminate=!selectAll.checked&&visible.some(r=>selectedRequestIds.has(r.id));
+    selectAll.onchange=()=>{
+      if(selectAll.checked) visible.forEach(r=>selectedRequestIds.add(r.id));
+      else visible.forEach(r=>selectedRequestIds.delete(r.id));
+      render();
+    };
+    const selectAllLabel=node('label',` Select all shown (${visible.length})`);
+    selectAllLabel.style.cssText='display:flex;align-items:center;gap:6px;font-size:14px;';
+    selectAllLabel.prepend(selectAll);
+    const deleteSelected=button(`Delete selected (${selectedRequestIds.size})`,()=>bulkDeleteRequests(visible));
+    deleteSelected.disabled=!selectedRequestIds.size;
+    bulkBar.append(selectAllLabel,deleteSelected);
+    $('tab-note').append(bulkBar);
+
+    const body=table(['','Date','Name','Request','Email','Song','Status','Actions']);
+    visible.forEach(r=>{
       const linked=songs.find(s=>s.id===r.song_id&&s.category==='NAME SONGS'&&s.published&&(s.audio_path||s.suno_url));
       const song=linked || (!r.song_id ? findMatchingNameSong(r) : null);
       const items=[];
@@ -2425,9 +2458,16 @@ function render(){
       nameCell.append(document.createTextNode(r.name));
       if(r.requester_name){const by=node('small',`by ${r.requester_name}`);by.style.display='block';by.style.opacity='.75';nameCell.append(by);}
       const requestType=r.priority?(Number(r.credits)===100?'⭐ PRIORITY · PAID 100 Credits':'PAID · 50 Credits'):'Free';
-      row(body,[date(r.created_at),nameCell,requestType,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
+      const pick=document.createElement('input');pick.type='checkbox';pick.checked=selectedRequestIds.has(r.id);
+      pick.setAttribute('aria-label',`Select ${r.name}`);
+      pick.onchange=()=>{
+        if(pick.checked) selectedRequestIds.add(r.id);
+        else selectedRequestIds.delete(r.id);
+        render();
+      };
+      row(body,[pick,date(r.created_at),nameCell,requestType,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
     });
-    if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=7;tr.append(td);body.append(tr);}
+    if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=8;tr.append(td);body.append(tr);}
 
   }else if(
     tab==='🪙 Credit Loads'
@@ -3433,6 +3473,40 @@ $('song-form').onsubmit=
         .disabled=false;
     }
   };
+
+
+/* =========================================================
+   BULK DELETE NAME REQUESTS
+========================================================= */
+
+async function bulkDeleteRequests(visible){
+  const ids=[...selectedRequestIds];
+  const count=ids.length;
+  if(!count) return;
+  const paidCount=visible.filter(r=>selectedRequestIds.has(r.id)&&r.priority).length;
+  const copy=node('p',undefined,'mq3-delete-copy');
+  copy.append(`You are about to permanently delete ${count} name request${count===1?'':'s'}.`);
+  if(paidCount){
+    const warn=node('p',`⚠️ ${paidCount} of these ${paidCount===1?'is':'are'} already PAID. Deleting removes the record permanently — it does NOT refund Credits.`);
+    warn.style.cssText='color:#ffb4a3;font-weight:700;margin-top:10px';
+    copy.append(warn);
+  }
+  copy.append(' This action cannot be undone.');
+  const approved=await showDeleteConfirm(null,{
+    heading:`Delete ${count} name request${count===1?'':'s'}?`,
+    copy,
+    buttonLabel:`Delete ${count}`
+  });
+  if(!approved) return;
+  try{
+    const result=await api('/api/admin/requests/bulk-delete',{ids});
+    selectedRequestIds.clear();
+    message(`${result.deleted} name request${result.deleted===1?'':'s'} deleted.`);
+    await load();
+  }catch(e){
+    message(e.message);
+  }
+}
 
 
 /* =========================================================
