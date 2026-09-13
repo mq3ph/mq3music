@@ -570,7 +570,7 @@ export function giftRoutes({
 
         fail(
           400,
-          'Not enough MQ3 Credits, or gifts are no longer available for this song.'
+          'Not enough Credits for this gift. Load Credits, then try again.'
         );
       }
 
