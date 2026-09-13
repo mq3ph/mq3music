@@ -1520,21 +1520,40 @@ export function createApp(s=services()){
   }));
 
   app.get('/api/admin/site-visits',wrap(async(_req,res)=>{
+    const result={
+      today_total:0,today_tiktok:0,today_installed_app:0,
+      week_total:0,week_tiktok:0,week_installed_app:0,
+      month_total:0,month_tiktok:0,month_installed_app:0,
+      total_total:0,total_tiktok:0,total_installed_app:0,
+      today_installs:0,week_installs:0,month_installs:0,total_installs:0
+    };
     try{
       const [row]=await q(`SELECT
         count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date)::int AS today_total,
         count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date AND source='tiktok')::int AS today_tiktok,
+        count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date AND source='installed_app')::int AS today_installed_app,
         count(*) FILTER (WHERE created_at>now()-interval '7 days')::int AS week_total,
         count(*) FILTER (WHERE created_at>now()-interval '7 days' AND source='tiktok')::int AS week_tiktok,
+        count(*) FILTER (WHERE created_at>now()-interval '7 days' AND source='installed_app')::int AS week_installed_app,
         count(*) FILTER (WHERE created_at>now()-interval '30 days')::int AS month_total,
         count(*) FILTER (WHERE created_at>now()-interval '30 days' AND source='tiktok')::int AS month_tiktok,
+        count(*) FILTER (WHERE created_at>now()-interval '30 days' AND source='installed_app')::int AS month_installed_app,
         count(*)::int AS total_total,
-        count(*) FILTER (WHERE source='tiktok')::int AS total_tiktok
+        count(*) FILTER (WHERE source='tiktok')::int AS total_tiktok,
+        count(*) FILTER (WHERE source='installed_app')::int AS total_installed_app
         FROM site_visits`);
-      res.json(row);
-    }catch(error){
-      res.json({today_total:0,today_tiktok:0,week_total:0,week_tiktok:0,month_total:0,month_tiktok:0,total_total:0,total_tiktok:0});
-    }
+      Object.assign(result,row);
+    }catch(error){}
+    try{
+      const [row]=await q(`SELECT
+        count(*) FILTER (WHERE (created_at AT TIME ZONE 'Asia/Manila')::date=(now() AT TIME ZONE 'Asia/Manila')::date)::int AS today_installs,
+        count(*) FILTER (WHERE created_at>now()-interval '7 days')::int AS week_installs,
+        count(*) FILTER (WHERE created_at>now()-interval '30 days')::int AS month_installs,
+        count(*)::int AS total_installs
+        FROM app_installs`);
+      Object.assign(result,row);
+    }catch(error){}
+    res.json(result);
   }));
 
   app.get(
@@ -3040,6 +3059,76 @@ Keep this link private. Memberships expire on the stated access date.`,
           );
         }
 
+
+        res.json({
+          ok:true
+        });
+      }
+    )
+  );
+
+
+  /* =========================================================
+     APP INSTALL LOG
+
+     Fired once by pwa.js when the native "appinstalled" event
+     fires (Android/Chrome only — iOS Add to Home Screen does
+     not report back). Best-effort only, same IP exclusion as
+     the site-visit counter above.
+  ========================================================= */
+
+  app.post(
+    '/api/app-install',
+    wrap(
+      async(req,res)=>{
+
+        sameOrigin(req);
+
+        const requestIp=
+          env.VERCEL
+            ?(
+                req.get(
+                  'x-vercel-forwarded-for'
+                )||
+                req.socket.remoteAddress
+              )
+            :req.socket.remoteAddress;
+
+        const excludedIps=
+          String(
+            env.EXCLUDED_VIEW_IPS||
+            ''
+          )
+            .split(',')
+            .map(v=>v.trim())
+            .filter(Boolean);
+
+        const isExcluded=
+          requestIp&&
+          excludedIps.includes(
+            requestIp
+          );
+
+        if(isExcluded){
+          return res.json({
+            ok:true,
+            excluded:true
+          });
+        }
+
+        try{
+
+          await q(
+            'INSERT INTO app_installs DEFAULT VALUES'
+          );
+
+        }catch(error){
+
+          console.error(
+            'app_installs insert failed:',
+            error
+          );
+        }
 
         res.json({
           ok:true
