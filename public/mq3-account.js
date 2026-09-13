@@ -1379,6 +1379,10 @@
     loadAccount();
   });
 
+  window.addEventListener('mq3-open-credit-load', (e) => {
+    openCreditLoad(e.detail?.amount || 50);
+  });
+
 
   /* =========================================================
      START
