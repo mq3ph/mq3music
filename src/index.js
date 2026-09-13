@@ -1595,6 +1595,44 @@ export function createApp(s=services()){
 
 
   /* =========================================================
+     BULK DELETE REQUESTS
+  ========================================================= */
+
+  app.post(
+    '/api/admin/requests/bulk-delete',
+    wrap(
+      async(req,res)=>{
+
+        const ids=
+          Array.isArray(req.body.ids)
+            ?req.body.ids
+            :[];
+
+        if(!ids.length){
+          fail(400,'Select at least one request to delete.');
+        }
+
+        if(ids.length>500){
+          fail(400,'Select 500 or fewer requests at a time.');
+        }
+
+        const validIds=ids.map(id=>uuid(id));
+
+        const rows=await q(
+          'DELETE FROM requests WHERE id=ANY($1::uuid[]) RETURNING id',
+          [validIds]
+        );
+
+        res.json({
+          ok:true,
+          deleted:rows.length
+        });
+      }
+    )
+  );
+
+
+  /* =========================================================
      UPDATE REQUEST
   ========================================================= */
 
