@@ -16,6 +16,18 @@ function confirmPriorityName(name){return new Promise(resolve=>{
  let done=false;const finish=v=>{if(done)return;done=true;if(d.open)d.close();d.remove();resolve(v);};
  cancel.onclick=()=>finish(false);confirm.onclick=()=>finish(true);d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});d.addEventListener('click',e=>{if(e.target===d)finish(false)});d.showModal();cancel.focus();
 });}
+function notEnoughCreditsDialog(){return new Promise(resolve=>{
+ const d=document.createElement('dialog');d.style.cssText='width:min(92vw,480px);background:#15110f;color:#ead9bd;border:1px solid #8f7345;border-radius:18px;padding:26px';
+ const kicker=node('p','MQ3 · CREDITS');kicker.style.cssText='font-size:12px;letter-spacing:.16em;color:#d8b36b;font-weight:700';
+ const h=node('h2','Not enough Credits');h.style.cssText='color:#f9dfaa;margin:8px 0 14px';
+ const copy=node('p','You need 50 Credits for this request. Load Credits now to continue.');copy.style.lineHeight='1.55';
+ const actions=node('div');actions.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:20px';
+ const cancel=node('button','Close','button');cancel.type='button';cancel.className='button';
+ const load=node('button','Load Credits','button');load.type='button';load.className='button primary';
+ actions.append(cancel,load);d.append(kicker,h,copy,actions);document.body.append(d);
+ let done=false;const finish=v=>{if(done)return;done=true;if(d.open)d.close();d.remove();resolve(v);};
+ cancel.onclick=()=>finish(false);load.onclick=()=>finish(true);d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});d.addEventListener('click',e=>{if(e.target===d)finish(false)});d.showModal();load.focus();
+});}
 $('priority-name-request').onclick=async()=>{
  const b=$('priority-name-request'),name=$('requested-name').value.trim();
  if(!name){$('request-message').textContent='Enter the name you want to request.';$('requested-name').focus();return;}
@@ -24,10 +36,18 @@ $('priority-name-request').onclick=async()=>{
  try{
   const r=await shopApi('/api/account/name-priority',{name});
   $('request-message').textContent=r.alreadyPriority
-   ? `Priority request already paid for ${r.request?.name||name}. No additional charge.`
-   : `Priority confirmed. 50 Credits paid for ${r.request?.name||name}. Your MP3 + Lyrics copy will be sent to your MQ3 account email when the song is ready.`;
+   ? `Already requested and paid for ${r.request?.name||name}. No additional charge.`
+   : `Request confirmed. 50 Credits paid for ${r.request?.name||name}. Your MP3 + Lyrics copy will be sent to your MQ3 account email when the song is ready.`;
   window.dispatchEvent(new CustomEvent('mq3-wallet-updated'));
- }catch(e){$('request-message').textContent=e.message;}finally{b.disabled=false;}
+ }catch(e){
+  if(/not enough credits/i.test(e.message)){
+   if(await notEnoughCreditsDialog()){
+    window.dispatchEvent(new CustomEvent('mq3-open-credit-load',{detail:{amount:50}}));
+   }
+  }else{
+   $('request-message').textContent=e.message;
+  }
+ }finally{b.disabled=false;}
 };
 function openCheckout(song=null){checkoutSong=song;$('checkout-form').reset();$('checkout-form').classList.remove('hidden');$('reference-form').classList.add('hidden');$('checkout-message').textContent='';$('checkout-title').textContent=song?'Buy '+song.title:'MQ3 membership';const m=window.mq3Catalog?.membership;$('checkout-description').textContent=song?`₱${(song.price/100).toFixed(2)} — full access to this song.`:m?`₱${(m.price/100).toFixed(2)} — ${m.days} days of access to published songs. No automatic renewal.`:'Membership setup is not available yet.';for(const o of $('payment-provider').options)o.disabled=!window.mq3Catalog?.payments?.[o.value];const available=[...$('payment-provider').options].find(o=>!o.disabled);if(available)$('payment-provider').value=available.value;else $('checkout-message').textContent='Payment methods are not connected yet.';$('checkout').showModal();}
 $('membership').onclick=()=>openCheckout();$('close-checkout').onclick=$('close-reference').onclick=()=>$('checkout').close();
