@@ -1941,7 +1941,13 @@ async function sendGift(song,gift){
     await loadLeaderboard();
 
   }catch(e){
-    toast(e.message||'Gift could not be sent.');
+    if(/not enough credits/i.test(e.message)&&typeof notEnoughCreditsDialog==='function'){
+      if(await notEnoughCreditsDialog(gift.credits||50)){
+        window.dispatchEvent(new CustomEvent('mq3-open-credit-load',{detail:{amount:gift.credits||50}}));
+      }
+    }else{
+      toast(e.message||'Gift could not be sent.');
+    }
   }
 }
 
@@ -3163,7 +3169,17 @@ async function requestMp3Copy(song){
         if(!response.ok)throw Error(data.error||'Request failed.');
         showRequest(data.request);
         if(Number.isFinite(data.balance)){$('account-button').textContent=`🪙 ${data.balance} Credits`;window.dispatchEvent(new CustomEvent('mq3-wallet-updated'));}
-      }catch(error){status.textContent=error.message+' You can retry safely; an existing request will not be charged again.';confirm.disabled=false;}
+      }catch(error){
+        confirm.disabled=false;
+        if(/not enough credits/i.test(error.message)&&typeof notEnoughCreditsDialog==='function'){
+          status.textContent='Not enough Credits for this request. You can retry safely; an existing request will not be charged again.';
+          if(await notEnoughCreditsDialog(50)){
+            window.dispatchEvent(new CustomEvent('mq3-open-credit-load',{detail:{amount:50}}));
+          }
+        }else{
+          status.textContent=error.message+' You can retry safely; an existing request will not be charged again.';
+        }
+      }
       finally{close.disabled=false;}
     };
   }catch(error){status.textContent=error.message;}
