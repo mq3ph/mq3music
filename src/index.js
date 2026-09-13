@@ -594,7 +594,7 @@ export function createApp(s=services()){
 
 
   /* =========================================================
-     PRIORITY NAME REQUEST · 50 CREDITS
+     NAME SONG REQUEST · 50 CREDITS, OR PRIORITY REQUEST · 100 CREDITS
   ========================================================= */
 
   app.post(
@@ -607,7 +607,7 @@ export function createApp(s=services()){
 
         const raw=req.cookies?.mq3_user;
         if(!raw){
-          fail(401,'Sign in to your MQ3 account before placing a Priority request.');
+          fail(401,'Sign in to your MQ3 account before placing this request.');
         }
 
         const [user]=await q(
@@ -619,11 +619,15 @@ export function createApp(s=services()){
         );
 
         if(!user){
-          fail(401,'Your session expired. Sign in again before placing a Priority request.');
+          fail(401,'Your session expired. Sign in again before placing this request.');
         }
 
         const name=text(req.body.name,80);
         const normalized=normalize(name);
+        const requesterName=text(req.body.requesterName,80);
+        const ideas=typeof req.body.ideas==='string' ? req.body.ideas.trim().slice(0,800) : '';
+        const credits=Number(req.body.credits)===100 ? 100 : 50;
+        const description=credits===100 ? 'Priority Request · MP3 + Lyrics included' : 'Name Song Request · MP3 + Lyrics included';
 
         const [existing]=await q(
           `SELECT * FROM requests
@@ -643,26 +647,28 @@ export function createApp(s=services()){
              SELECT * FROM wallets WHERE user_id=$1 FOR UPDATE
            ), amounts AS (
              SELECT user_id,
-                    LEAST(promo_credits,50) AS promo_used,
-                    50-LEAST(promo_credits,50) AS purchased_used
+                    LEAST(promo_credits,$7) AS promo_used,
+                    $7-LEAST(promo_credits,$7) AS purchased_used
              FROM locked
-             WHERE promo_credits+purchased_credits>=50
+             WHERE promo_credits+purchased_credits>=$7
            ), paid_request AS (
              INSERT INTO requests(
                id,name,normalized_name,email,user_id,priority,credits,
-               promo_used,purchased_used,paid_at
+               promo_used,purchased_used,paid_at,requester_name,lyric_ideas
              )
-             SELECT $2,$3,$4,$5,a.user_id,true,50,
-                    a.promo_used,a.purchased_used,now()
+             SELECT $2,$3,$4,$5,a.user_id,true,$7,
+                    a.promo_used,a.purchased_used,now(),$8,$9
              FROM amounts a
              ON CONFLICT(normalized_name,email) DO UPDATE SET
                name=EXCLUDED.name,
                user_id=EXCLUDED.user_id,
                priority=true,
-               credits=50,
+               credits=$7,
                promo_used=EXCLUDED.promo_used,
                purchased_used=EXCLUDED.purchased_used,
-               paid_at=now()
+               paid_at=now(),
+               requester_name=EXCLUDED.requester_name,
+               lyric_ideas=EXCLUDED.lyric_ideas
              WHERE requests.priority=false
              RETURNING *
            ), debited AS (
@@ -678,7 +684,7 @@ export function createApp(s=services()){
                id,user_id,transaction_type,promo_change,purchased_change,description,reference_id
              )
              SELECT $6,r.user_id,'name_priority',-r.promo_used,-r.purchased_used,
-                    'Priority Name Request · MP3 + Lyrics included',r.id
+                    $10,r.id
              FROM paid_request r
              RETURNING id
            )
@@ -686,7 +692,7 @@ export function createApp(s=services()){
            FROM paid_request r
            CROSS JOIN debited d
            CROSS JOIN ledger l`,
-          [user.id,requestId,name,normalized,user.email,ledgerId]
+          [user.id,requestId,name,normalized,user.email,ledgerId,credits,requesterName,ideas||null,description]
         );
 
         if(!result){
