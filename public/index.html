@@ -433,12 +433,21 @@
       </h2>
 
       <p>
-        Add your name to the queue for 50 Credits. Your MP3 + Lyrics copy
-        will be sent to your MQ3 account email when the song is ready.
+        Fill in your details, then choose the request below that fits you best.
       </p>
 
       <label>
-        Your name
+        Your Name
+
+        <input
+          id="requester-name"
+          maxlength="80"
+          required
+        >
+      </label>
+
+      <label>
+        Requested Name Song
 
         <input
           id="requested-name"
@@ -448,7 +457,7 @@
       </label>
 
       <label>
-        Your email
+        Your Email
 
         <input
           id="requested-email"
@@ -491,7 +500,18 @@
 
       <div style="border:1px solid #8f7345;border-radius:14px;padding:14px;margin:14px 0;background:rgba(201,162,83,.06)">
         <strong style="display:block;color:#f9dfaa;margin-bottom:5px">🎵 Name Song Request · 50 Credits</strong>
-        <span style="display:block;line-height:1.5">Your name is added to the queue. When the song is ready, your MP3 + Lyrics copy will be sent to your MQ3 account email.</span>
+        <span style="display:block;line-height:1.5">This is a name-only request. No personalized story or extra inputs are required. You will receive the MP3 + Lyrics copy once the song is ready.</span>
+        <button type="button" class="button primary" id="priority-name-request" style="margin-top:12px">
+          Request · 50 Credits
+        </button>
+      </div>
+
+      <div style="border:1px solid #8f7345;border-radius:14px;padding:14px;margin:14px 0;background:rgba(201,162,83,.06)">
+        <strong style="display:block;color:#f9dfaa;margin-bottom:5px">⭐ Priority Request · 100 Credits</strong>
+        <span style="display:block;line-height:1.5">You can share your own ideas or story details to help shape the lyrics. You will receive the MP3 + Lyrics copy once the song is ready.</span>
+        <button type="button" class="button primary" id="priority-request-100" style="margin-top:12px">
+          Priority Request · 100 Credits
+        </button>
       </div>
 
       <p
@@ -507,10 +527,6 @@
           id="cancel-name-request"
         >
           Cancel
-        </button>
-
-        <button type="button" class="button primary" id="priority-name-request">
-          Request · 50 Credits
         </button>
 
       </div>
