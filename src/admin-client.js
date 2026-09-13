@@ -2394,7 +2394,7 @@ function render(){
     tab==='Name Request'
   ){
     const labels={pending:'Pending',working:'Working on it',available:'Available',notified:'Emailed'};
-    $('tab-note').textContent='Priority requests are already PAID 50 Credits and should be handled first. Link a published Name Song, then deliver the included MP3 + Lyrics copy.';
+    $('tab-note').textContent='These requests are already PAID (50 or 100 Credits) and should be handled first. Priority Request (100 Credits) rows may include the requester\'s own lyric ideas — check "View ideas" before writing the song. Link a published Name Song, then deliver the included MP3 + Lyrics copy.';
     const filters=node('div');
     filters.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;';
     filters.setAttribute('aria-label','Filter name requests');
@@ -2416,12 +2416,16 @@ function render(){
       if(r.status!=='notified') items.push(button('Update request',()=>editRequest(r)));
       if(song && r.status!=='notified') items.push(button('Preview email',()=>sendRequestMessage(r,song)));
       if(r.priority && song && !r.priority_delivered_at) items.push(button('Prepare MP3 + Lyrics',()=>preparePriorityNameDelivery(r,song)));
+      if(r.lyric_ideas) items.push(button('View ideas',()=>alert(r.lyric_ideas)));
       const status=node('div');
       status.append(badge(labels[r.status]||r.status));
       if(r.notified_at){const sent=node('small',`Availability email ${date(r.notified_at)}`);sent.style.display='block';status.append(sent);}
       if(r.priority_delivered_at){const sent=node('small',`MP3 + Lyrics sent ${date(r.priority_delivered_at)}`);sent.style.display='block';status.append(sent);}
-      const requestType=r.priority?'⭐ PRIORITY · PAID 50 Credits':'Free';
-      row(body,[date(r.created_at),r.name,requestType,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
+      const nameCell=node('div');
+      nameCell.append(document.createTextNode(r.name));
+      if(r.requester_name){const by=node('small',`by ${r.requester_name}`);by.style.display='block';by.style.opacity='.75';nameCell.append(by);}
+      const requestType=r.priority?(Number(r.credits)===100?'⭐ PRIORITY · PAID 100 Credits':'PAID · 50 Credits'):'Free';
+      row(body,[date(r.created_at),nameCell,requestType,r.email,linked?.title || (song ? `Suggested: ${song.title}` : 'No published song linked'),status,actions(...items)]);
     });
     if(!body.children.length){const tr=node('tr');const td=node('td','No requests match this filter.');td.colSpan=7;tr.append(td);body.append(tr);}
 
@@ -3654,20 +3658,23 @@ enter()
   );
 
 function preparePriorityNameDelivery(request,song){
+ const isPriority=Number(request.credits)===100;
+ const tierLabel=isPriority?'Priority Request':'Name Song Request';
+ const creditsLabel=isPriority?'100':'50';
  const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
- const subject=node('input');subject.value=`Your Priority Name Song: ${song.title}`;subject.setAttribute('aria-label','Email subject');
+ const subject=node('input');subject.value=`Your ${tierLabel}: ${song.title}`;subject.setAttribute('aria-label','Email subject');
  const body=node('textarea');body.setAttribute('aria-label','Email message');body.value=`Hi there,
 
-Your Priority Name Request for ${request.name} is ready. Your payment of 50 Credits was recorded before the request entered the Priority queue.
+Your ${tierLabel} for ${request.name} is ready. Your payment of ${creditsLabel} Credits was recorded before the request entered the queue.
 
 Your MP3 is attached. The lyrics are included below.
-Priority Request: ${request.id}
+Request: ${request.id}
 
 ${song.lyrics||'Lyrics will be included with your song.'}
 
 Thank you for supporting MQ3 Music!`;
  for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#130806;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
- const note=node('p','This is a PAID Priority request. Attach the correct MP3 before sending. Opening the draft does not mark it delivered.');
+ const note=node('p',`This is a PAID ${tierLabel.toLowerCase()}. Attach the correct MP3 before sending. Opening the draft does not mark it delivered.`);
  const open=node('a','Open email draft','button');open.target='_blank';open.rel='noopener';
  const setLink=()=>open.href=`mailto:${encodeURIComponent(request.email)}?subject=${encodeURIComponent(subject.value)}&body=${encodeURIComponent(body.value)}`;setLink();subject.oninput=setLink;body.oninput=setLink;
  const copy=button('Copy message',async()=>{await navigator.clipboard.writeText(body.value);note.textContent='Message copied. Paste into Gmail and attach the MP3.';});
@@ -3675,7 +3682,10 @@ Thank you for supporting MQ3 Music!`;
  const check=node('input');check.type='checkbox';const label=node('label');label.append(check,document.createTextNode(' I sent the email with the MP3 and lyrics.'));
  const sent=button('Mark MP3 + Lyrics sent',async()=>{if(!check.checked){note.textContent='Send the email and confirm the checkbox first.';return;}await api(`/api/admin/requests/${request.id}/priority-sent`,{});dialog.close();await load();});
  const close=button('Close',()=>dialog.close());
- dialog.append(node('p','MQ3 · PRIORITY NAME REQUEST'),node('h2','Prepare Priority MP3 + Lyrics'),node('p',`To: ${request.email}`),subject,body,note,open,copy,lyrics,node('p'),label,node('p'),sent,close);
+ const children=[node('p',`MQ3 · ${tierLabel.toUpperCase()}`),node('h2',`Prepare ${tierLabel} MP3 + Lyrics`),node('p',`To: ${request.email}`),node('p',`Requester: ${request.requester_name||'—'}`)];
+ if(request.lyric_ideas){const ideas=node('p',`Requester's ideas for the lyrics: ${request.lyric_ideas}`);ideas.style.cssText='background:rgba(201,162,83,.12);border-radius:8px;padding:10px';children.push(ideas);}
+ children.push(subject,body,note,open,copy,lyrics,node('p'),label,node('p'),sent,close);
+ dialog.append(...children);
  dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();
 }
 
