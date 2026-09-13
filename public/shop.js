@@ -5,9 +5,9 @@ $('cancel-name-request').onclick=()=>$('name-request').close();
 $('name-request-form').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;try{const r=await shopApi('/api/requests',{name:$('requested-name').value,email:$('requested-email').value,website:$('request-website').value,consent:$('request-consent').checked});$('request-message').textContent=r.message;$('name-request-form').reset();}catch(e){$('request-message').textContent=e.message;}finally{b.disabled=false;}};
 function confirmPriorityName(name){return new Promise(resolve=>{
  const d=document.createElement('dialog');d.style.cssText='width:min(92vw,520px);background:#15110f;color:#ead9bd;border:1px solid #8f7345;border-radius:18px;padding:26px';
- const kicker=node('p','MQ3 · PRIORITY NAME REQUEST');kicker.style.cssText='font-size:12px;letter-spacing:.16em;color:#d8b36b;font-weight:700';
- const h=node('h2','Priority · 50 Credits?');h.style.cssText='color:#f9dfaa;margin:8px 0 14px';
- const copy=node('p',`Move “${name}” to the priority queue for 50 Credits? When the song is ready, your MP3 + Lyrics copy will be sent to your MQ3 account email.`);copy.style.lineHeight='1.55';
+ const kicker=node('p','MQ3 · NAME SONG REQUEST');kicker.style.cssText='font-size:12px;letter-spacing:.16em;color:#d8b36b;font-weight:700';
+ const h=node('h2','Request name song for 50 Credits?');h.style.cssText='color:#f9dfaa;margin:8px 0 14px';
+ const copy=node('p',`Add “${name}” to the queue for 50 Credits? When the song is ready, your MP3 + Lyrics copy will be sent to your MQ3 account email.`);copy.style.lineHeight='1.55';
  const note=node('p','This is a name-only request. No personalized story or extra inputs are required.');note.style.cssText='font-size:13px;opacity:.85';
  const actions=node('div');actions.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:20px';
  const cancel=node('button','Cancel','button');cancel.type='button';cancel.className='button';
