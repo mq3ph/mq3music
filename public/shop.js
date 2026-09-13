@@ -16,11 +16,26 @@ function confirmPriorityName(name){return new Promise(resolve=>{
  let done=false;const finish=v=>{if(done)return;done=true;if(d.open)d.close();d.remove();resolve(v);};
  cancel.onclick=()=>finish(false);confirm.onclick=()=>finish(true);d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});d.addEventListener('click',e=>{if(e.target===d)finish(false)});d.showModal();cancel.focus();
 });}
-function notEnoughCreditsDialog(){return new Promise(resolve=>{
+function confirmPriorityRequest(name){return new Promise(resolve=>{
+ const d=document.createElement('dialog');d.style.cssText='width:min(92vw,520px);background:#15110f;color:#ead9bd;border:1px solid #8f7345;border-radius:18px;padding:26px';
+ const kicker=node('p','MQ3 · PRIORITY REQUEST');kicker.style.cssText='font-size:12px;letter-spacing:.16em;color:#d8b36b;font-weight:700';
+ const h=node('h2','Request Priority song for 100 Credits?');h.style.cssText='color:#f9dfaa;margin:8px 0 14px';
+ const copy=node('p',`Add “${name}” to the queue for 100 Credits. When the song is ready, your MP3 + Lyrics copy will be sent to your MQ3 account email.`);copy.style.lineHeight='1.55';
+ const label=node('label','Your ideas for the lyrics (optional)');label.style.cssText='display:block;font-size:13px;color:#d8b36b;margin-top:6px';
+ const ideas=document.createElement('textarea');ideas.maxLength=800;ideas.rows=4;ideas.placeholder='Share a story, memory, or detail you want reflected in the song.';ideas.style.cssText='box-sizing:border-box;display:block;width:100%;margin-top:6px;padding:10px;background:#0f0c0a;color:#ead9bd;border:1px solid #8f7345;border-radius:8px;font:inherit';
+ label.append(ideas);
+ const actions=node('div');actions.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:20px';
+ const cancel=node('button','Cancel','button');cancel.type='button';cancel.className='button';
+ const confirm=node('button','Confirm · 100 Credits','button');confirm.type='button';confirm.className='button primary';
+ actions.append(cancel,confirm);d.append(kicker,h,copy,label,actions);document.body.append(d);
+ let done=false;const finish=v=>{if(done)return;done=true;if(d.open)d.close();d.remove();resolve(v);};
+ cancel.onclick=()=>finish(null);confirm.onclick=()=>finish({ideas:ideas.value.trim()});d.addEventListener('cancel',e=>{e.preventDefault();finish(null)});d.addEventListener('click',e=>{if(e.target===d)finish(null)});d.showModal();cancel.focus();
+});}
+function notEnoughCreditsDialog(amount=50){return new Promise(resolve=>{
  const d=document.createElement('dialog');d.style.cssText='width:min(92vw,480px);background:#15110f;color:#ead9bd;border:1px solid #8f7345;border-radius:18px;padding:26px';
  const kicker=node('p','MQ3 · CREDITS');kicker.style.cssText='font-size:12px;letter-spacing:.16em;color:#d8b36b;font-weight:700';
  const h=node('h2','Not enough Credits');h.style.cssText='color:#f9dfaa;margin:8px 0 14px';
- const copy=node('p','You need 50 Credits for this request. Load Credits now to continue.');copy.style.lineHeight='1.55';
+ const copy=node('p',`You need ${amount} Credits for this request. Load Credits now to continue.`);copy.style.lineHeight='1.55';
  const actions=node('div');actions.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:20px';
  const cancel=node('button','Close','button');cancel.type='button';cancel.className='button';
  const load=node('button','Load Credits','button');load.type='button';load.className='button primary';
@@ -28,21 +43,50 @@ function notEnoughCreditsDialog(){return new Promise(resolve=>{
  let done=false;const finish=v=>{if(done)return;done=true;if(d.open)d.close();d.remove();resolve(v);};
  cancel.onclick=()=>finish(false);load.onclick=()=>finish(true);d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});d.addEventListener('click',e=>{if(e.target===d)finish(false)});d.showModal();load.focus();
 });}
+function requesterNameOrFocus(){
+ const requesterName=$('requester-name').value.trim();
+ if(!requesterName){$('request-message').textContent='Enter your name.';$('requester-name').focus();return null;}
+ return requesterName;
+}
 $('priority-name-request').onclick=async()=>{
  const b=$('priority-name-request'),name=$('requested-name').value.trim();
  if(!name){$('request-message').textContent='Enter the name you want to request.';$('requested-name').focus();return;}
+ const requesterName=requesterNameOrFocus();if(!requesterName)return;
  if(!await confirmPriorityName(name))return;
  b.disabled=true;
  try{
-  const r=await shopApi('/api/account/name-priority',{name});
+  const r=await shopApi('/api/account/name-priority',{name,requesterName,credits:50});
   $('request-message').textContent=r.alreadyPriority
    ? `Already requested and paid for ${r.request?.name||name}. No additional charge.`
    : `Request confirmed. 50 Credits paid for ${r.request?.name||name}. Your MP3 + Lyrics copy will be sent to your MQ3 account email when the song is ready.`;
   window.dispatchEvent(new CustomEvent('mq3-wallet-updated'));
  }catch(e){
   if(/not enough credits/i.test(e.message)){
-   if(await notEnoughCreditsDialog()){
+   if(await notEnoughCreditsDialog(50)){
     window.dispatchEvent(new CustomEvent('mq3-open-credit-load',{detail:{amount:50}}));
+   }
+  }else{
+   $('request-message').textContent=e.message;
+  }
+ }finally{b.disabled=false;}
+};
+$('priority-request-100').onclick=async()=>{
+ const b=$('priority-request-100'),name=$('requested-name').value.trim();
+ if(!name){$('request-message').textContent='Enter the name you want to request.';$('requested-name').focus();return;}
+ const requesterName=requesterNameOrFocus();if(!requesterName)return;
+ const choice=await confirmPriorityRequest(name);
+ if(!choice)return;
+ b.disabled=true;
+ try{
+  const r=await shopApi('/api/account/name-priority',{name,requesterName,credits:100,ideas:choice.ideas});
+  $('request-message').textContent=r.alreadyPriority
+   ? `Already requested and paid for ${r.request?.name||name}. No additional charge.`
+   : `Priority Request confirmed. 100 Credits paid for ${r.request?.name||name}. Your MP3 + Lyrics copy will be sent to your MQ3 account email when the song is ready.`;
+  window.dispatchEvent(new CustomEvent('mq3-wallet-updated'));
+ }catch(e){
+  if(/not enough credits/i.test(e.message)){
+   if(await notEnoughCreditsDialog(100)){
+    window.dispatchEvent(new CustomEvent('mq3-open-credit-load',{detail:{amount:100}}));
    }
   }else{
    $('request-message').textContent=e.message;
