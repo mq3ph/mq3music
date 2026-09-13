@@ -3113,10 +3113,23 @@ function recordSiteVisit(){
 
   try{
 
-    const source=
+    let source=
       new URLSearchParams(
         location.search
       ).get('src');
+
+    /*
+      Already running as the installed app (not a browser tab)?
+      Label it as such regardless of ?src=, so the admin "Site
+      Visits" tab can tell returning installed users apart from
+      fresh TikTok/direct browser visits.
+    */
+    if(
+      typeof isInstalled==='function'&&
+      isInstalled()
+    ){
+      source='installed_app';
+    }
 
     fetch(
       '/api/site-visit',
