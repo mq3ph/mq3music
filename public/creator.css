@@ -154,3 +154,17 @@ section#home .note{
   #home > .note,
   section#home .note{font-size:14px!important}
 }
+
+/* Hero reassurance — target the actual SMALL element */
+#home.hero > small{
+  display:block!important;
+  margin-top:13px!important;
+  color:#eee8f4!important;
+  font-size:17px!important;
+  font-weight:600!important;
+  line-height:1.5!important;
+  opacity:1!important;
+}
+@media(max-width:520px){
+  #home.hero > small{font-size:16px!important}
+}
