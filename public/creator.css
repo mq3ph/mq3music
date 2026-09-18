@@ -34,3 +34,11 @@ header .brand small{
   header .brand small{font-size:19px}
   .credits{font-size:10px;padding:7px 9px}
 }
+/* Modern premium Song Creator brand lockup */
+header .brand{gap:12px}
+header .brand-copy{display:flex;flex-direction:column;align-items:flex-start;gap:5px;line-height:1}
+header .brand-copy strong{font-family:Georgia,"Times New Roman",serif;font-size:27px;font-weight:500;letter-spacing:-.045em;white-space:nowrap;background:linear-gradient(100deg,#f7f4ff 5%,#b8c7ff 38%,#e99af0 76%,#ff8ecf 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 3px 18px rgba(168,104,238,.16)}
+header .brand-copy strong em{font-style:normal;font-weight:500}
+header .brand-copy small{font-family:Inter,system-ui,sans-serif;font-size:7px;font-weight:600;letter-spacing:.27em;color:#a99ac2;white-space:nowrap}
+@media(max-width:420px){header .brand-copy{gap:4px}header .brand-copy strong{font-size:23px}header .brand-copy small{font-size:6px;letter-spacing:.22em}}
+@media(max-width:350px){header .brand-copy strong{font-size:20px}header .brand-copy small{font-size:5.5px}}
