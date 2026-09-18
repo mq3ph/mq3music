@@ -311,3 +311,39 @@ section#home .note{
     0 7px 16px rgba(29,12,48,.38),
     0 0 20px rgba(151,82,230,.34)!important;
 }
+
+/* MQ3 overnight polish: clearer hierarchy, tactile controls, mobile comfort */
+.screen:not(.hero){padding-bottom:28px}
+.screen:not(.hero)>h2{color:#f7f2fb;line-height:1.12}
+.screen:not(.hero)>p{font-size:14px;color:#b8afc4}
+.types button,.grid button,.song-card,.result-card{transition:border-color .16s ease,background .16s ease,transform .16s ease,box-shadow .16s ease}
+.types button:hover,.grid button:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(0,0,0,.18)}
+.types button:active,.grid button:active{transform:translateY(1px)}
+.types button b{font-size:14px}.types small{font-size:11px;color:#aaa0b7}
+input,select,textarea{border-color:#443657;background:#120e20}
+input::placeholder,textarea::placeholder{color:#746b80}
+input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3px rgba(157,121,241,.13)}
+.screen>button:not(.ghost-home):not(#account-button),form>button,#ownContinue,#generate,#download{
+  box-shadow:0 5px 14px rgba(68,31,117,.28),inset 0 1px 0 rgba(255,255,255,.18)
+}
+#generate{min-height:58px;font-size:15px}
+.cost{border-color:#49365f;background:linear-gradient(135deg,#1b142c,#151020)}
+.cost strong{font-size:14px;color:#ead6ff}
+.grid .sel,.voice .sel{box-shadow:inset 0 0 0 1px rgba(184,145,255,.18),0 0 14px rgba(123,82,210,.12)}
+.gallery-filter{padding-bottom:3px;scrollbar-width:none}.gallery-filter::-webkit-scrollbar{display:none}
+.gallery-filter button{font-size:11px}
+.song-card,.result-card{background:linear-gradient(145deg,#181229,#120e20)}
+.song-card:hover,.result-card:hover{border-color:#5a437a}
+.feature-box,.made{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+#toast{z-index:1000}
+@media(max-width:520px){
+  main{padding-left:18px;padding-right:18px}
+  .hero{padding-top:36px}
+  h1{font-size:36px}
+  h2{font-size:28px}
+  .hero>p{font-size:13.5px}
+  .types button{padding:15px 13px;min-height:78px}
+  .grid button{min-height:90px}
+  input,select,textarea{font-size:16px}
+  .screen:not(.hero)>p{font-size:13.5px}
+}
