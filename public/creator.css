@@ -283,3 +283,31 @@ section#home .note{
 @media(prefers-reduced-motion:reduce){
   #home.hero > button:not(.ghost-home)::after{animation:none!important;opacity:0!important}
 }
+
+/* Primary CTA v4 — clean premium satin finish (remove ink-like gloss) */
+#home.hero > button:not(.ghost-home){
+  overflow:visible!important;
+  isolation:auto!important;
+  border:1px solid rgba(213,178,255,.62)!important;
+  background:linear-gradient(180deg,#9f63e8 0%,#8748d4 48%,#7136bd 100%)!important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.30) inset,
+    0 -1px 0 rgba(58,20,103,.35) inset,
+    0 5px 12px rgba(29,12,48,.34),
+    0 0 16px rgba(151,82,230,.28)!important;
+  text-shadow:0 1px 1px rgba(49,17,81,.35)!important;
+}
+#home.hero > button:not(.ghost-home)::before,
+#home.hero > button:not(.ghost-home)::after{
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+}
+#home.hero > button:not(.ghost-home):hover{
+  filter:brightness(1.05)!important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.34) inset,
+    0 -1px 0 rgba(58,20,103,.35) inset,
+    0 7px 16px rgba(29,12,48,.38),
+    0 0 20px rgba(151,82,230,.34)!important;
+}
