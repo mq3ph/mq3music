@@ -62,3 +62,8 @@ header .brand-copy small{font-size:8.5px;letter-spacing:.27em}
   header .brand-copy strong{font-size:24px}
   header .brand-copy small{font-size:6px}
 }
+
+/* Credits are a primary account action */
+header .credits{font-size:15px;font-weight:700;padding:11px 15px;border-color:#594177;background:linear-gradient(180deg,#211832,#171121);box-shadow:0 7px 22px rgba(0,0,0,.18);white-space:nowrap}
+header .credits i{font-size:17px;font-weight:800}
+@media(max-width:420px){header .credits{font-size:12px;padding:9px 11px}header .credits i{font-size:14px}}
