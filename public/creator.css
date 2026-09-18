@@ -18,11 +18,18 @@
 
 /* v3.1 header-only adjustment: preserve original /logo.png, remove duplicate MQ3 text */
 header .brand{gap:10px}
-header .brand img{width:52px;height:52px;object-fit:contain;flex:0 0 52px}
+header .brand img{
+  width:50px;
+  height:50px;
+  object-fit:contain;
+  flex:0 0 50px;
+}
 header .brand small{
-  font-size:16px;
-  font-weight:800;
-  letter-spacing:.12em;
-  color:#f4efff;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:20px;
+  font-weight:600;
+  letter-spacing:.01em;
+  line-height:1;
+  color:#f3eefb;
   white-space:nowrap;
 }
