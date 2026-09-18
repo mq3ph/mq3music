@@ -168,3 +168,7 @@ section#home .note{
 @media(max-width:520px){
   #home.hero > small{font-size:16px!important}
 }
+
+/* Fine-tune hero reassurance size */
+#home.hero > small{font-size:15px!important}
+@media(max-width:520px){#home.hero > small{font-size:14px!important}}
