@@ -42,3 +42,23 @@ header .brand-copy strong em{font-style:normal;font-weight:500}
 header .brand-copy small{font-family:Inter,system-ui,sans-serif;font-size:7px;font-weight:600;letter-spacing:.27em;color:#a99ac2;white-space:nowrap}
 @media(max-width:420px){header .brand-copy{gap:4px}header .brand-copy strong{font-size:23px}header .brand-copy small{font-size:6px;letter-spacing:.22em}}
 @media(max-width:350px){header .brand-copy strong{font-size:20px}header .brand-copy small{font-size:5.5px}}
+
+/* Larger header branding */
+header{height:104px}
+header .brand{gap:15px}
+header .brand img{width:62px;height:62px;flex:0 0 62px}
+header .brand-copy{gap:7px}
+header .brand-copy strong{font-size:34px}
+header .brand-copy small{font-size:8.5px;letter-spacing:.27em}
+@media(max-width:420px){
+  header{height:96px}
+  header .brand{gap:11px}
+  header .brand img{width:54px;height:54px;flex-basis:54px}
+  header .brand-copy strong{font-size:28px}
+  header .brand-copy small{font-size:7px;letter-spacing:.22em}
+}
+@media(max-width:350px){
+  header .brand img{width:48px;height:48px;flex-basis:48px}
+  header .brand-copy strong{font-size:24px}
+  header .brand-copy small{font-size:6px}
+}
