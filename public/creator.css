@@ -229,3 +229,57 @@ section#home .note{
     0 3px 8px rgba(20,7,35,.4),
     inset 0 2px 5px rgba(48,15,82,.35)!important;
 }
+
+/* Primary CTA v3 — polished jewel/glass finish */
+#home.hero > button:not(.ghost-home){
+  overflow:hidden!important;
+  isolation:isolate!important;
+  color:#fff!important;
+  border:1px solid rgba(239,220,255,.72)!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.07) 23%,rgba(255,255,255,0) 45%),
+    linear-gradient(135deg,#b873ff 0%,#8b49df 42%,#6829b6 72%,#8c43db 100%)!important;
+  box-shadow:
+    0 0 0 1px rgba(123,62,194,.35),
+    0 0 18px rgba(185,112,255,.58),
+    0 0 42px rgba(132,61,215,.28),
+    0 9px 22px rgba(22,7,39,.48),
+    inset 0 2px 1px rgba(255,255,255,.55),
+    inset 0 -2px 3px rgba(55,13,103,.38)!important;
+  text-shadow:0 1px 2px rgba(44,9,79,.55)!important;
+}
+#home.hero > button:not(.ghost-home)::before{
+  content:""!important;
+  position:absolute!important;
+  z-index:-1!important;
+  left:7%!important;
+  right:7%!important;
+  top:3px!important;
+  height:42%!important;
+  border-radius:9px 9px 45% 45%!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.05))!important;
+  pointer-events:none!important;
+}
+#home.hero > button:not(.ghost-home)::after{
+  content:""!important;
+  position:absolute!important;
+  z-index:2!important;
+  top:-55%!important;
+  left:-35%!important;
+  width:26%!important;
+  height:210%!important;
+  transform:rotate(24deg)!important;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent)!important;
+  filter:blur(1px)!important;
+  animation:mq3CtaShine 3.8s ease-in-out infinite!important;
+  pointer-events:none!important;
+}
+@keyframes mq3CtaShine{
+  0%,58%{left:-35%;opacity:0}
+  64%{opacity:.85}
+  82%{left:115%;opacity:.7}
+  83%,100%{left:115%;opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+  #home.hero > button:not(.ghost-home)::after{animation:none!important;opacity:0!important}
+}
