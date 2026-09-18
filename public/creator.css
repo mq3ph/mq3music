@@ -139,3 +139,18 @@ header #account-button.credits{
     color:#fff!important;
   }
 }
+
+/* Improve readability of the reassurance note below hero actions */
+.hero .note,
+#home > .note,
+section#home .note{
+  color:#d8d1e2!important;
+  font-size:15px!important;
+  line-height:1.5!important;
+  opacity:1!important;
+}
+@media(max-width:520px){
+  .hero .note,
+  #home > .note,
+  section#home .note{font-size:14px!important}
+}
