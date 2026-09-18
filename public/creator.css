@@ -67,3 +67,19 @@ header .brand-copy small{font-size:8.5px;letter-spacing:.27em}
 header .credits{font-size:15px;font-weight:700;padding:11px 15px;border-color:#594177;background:linear-gradient(180deg,#211832,#171121);box-shadow:0 7px 22px rgba(0,0,0,.18);white-space:nowrap}
 header .credits i{font-size:17px;font-weight:800}
 @media(max-width:420px){header .credits{font-size:12px;padding:9px 11px}header .credits i{font-size:14px}}
+
+/* MQ3 account + real credit wallet */
+#account-dialog,#mq3-credit-load-dialog{width:min(470px,calc(100vw - 28px));max-height:90dvh;overflow:auto;padding:26px;background:#151020;color:#f8f4fb;border:1px solid #5a4079;border-radius:20px;box-shadow:0 30px 90px #000b}
+#account-dialog::backdrop,#mq3-credit-load-dialog::backdrop{background:#05030bd9;backdrop-filter:blur(6px)}
+#account-dialog h2,#mq3-credit-load-dialog h2{font-family:Georgia,serif;font-size:29px;margin:8px 0 10px;color:#f8f3fb}
+#account-dialog h3{margin:24px 0 10px}
+#account-dialog p,#mq3-credit-load-dialog p{font-size:12px;color:#aaa1b7}
+#account-dialog label,#mq3-credit-load-dialog label{display:block;margin:14px 0 6px}
+#account-dialog input,#account-dialog select,#mq3-credit-load-dialog input,#mq3-credit-load-dialog select{width:100%;min-height:46px;background:#0d0917;color:#fff;border:1px solid #443358;border-radius:11px;padding:11px}
+.account-x{position:absolute;right:15px;top:14px;width:36px;height:36px;border-radius:50%;border:1px solid #49375e;background:#1b1429;color:#ddd;font-size:22px}
+.account-primary,#mq3-credit-load-submit{min-height:46px;border:0!important;border-radius:12px!important;background:linear-gradient(100deg,#7654e8,#b562d9)!important;color:#fff!important;font-weight:800;padding:10px 18px}
+.account-actions,#mq3-credit-load-dialog .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.account-actions>button,#mq3-credit-load-dialog .actions>button{min-height:44px;padding:9px 16px;border:1px solid #49375e;border-radius:11px;background:#1a1428;color:#eee}
+.wallet-card{padding:17px;margin:17px 0;border:1px solid #604685;border-radius:16px;background:linear-gradient(135deg,#211536,#171022)}.wallet-card small{display:block;color:#a995c0;font-size:9px;letter-spacing:.16em}.wallet-card strong{display:block;font-size:25px;margin-top:5px}
+.credit-packages{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.credit-packages button{min-height:74px;padding:10px;border:1px solid #44325e;border-radius:13px;background:#171022;color:#fff;text-align:left}.credit-packages button b,.credit-packages button small{display:block}.credit-packages button b{font-size:18px;color:#d7b2ff}.credit-packages button small{font-size:9px;color:#94889f}
+#account-button.credits{cursor:pointer;border:1px solid #594177}
+@media(max-width:420px){#account-dialog,#mq3-credit-load-dialog{padding:22px 18px}.credit-packages{grid-template-columns:1fr 1fr}}
