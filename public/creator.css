@@ -16,20 +16,21 @@
 .mini-play{width:38px;height:38px;border:0;border-radius:50%;background:#7654f7;color:white}
 #gallery>button{width:100%;min-height:52px;border:0;border-radius:15px;background:linear-gradient(100deg,#7654f7,#b15ee7);color:white;font-weight:800;margin-top:18px}
 
-/* v3.1 header-only adjustment: preserve original /logo.png, remove duplicate MQ3 text */
-header .brand{gap:10px}
-header .brand img{
-  width:50px;
-  height:50px;
-  object-fit:contain;
-  flex:0 0 50px;
-}
+/* Premium MQ3 header */
+header .brand{gap:12px}
+header .brand img{width:46px;height:46px;object-fit:contain;flex:0 0 46px}
 header .brand small{
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-  font-size:20px;
-  font-weight:600;
-  letter-spacing:.01em;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:22px;
+  font-weight:400;
+  letter-spacing:-.015em;
   line-height:1;
-  color:#f3eefb;
+  color:#f6f0fa;
   white-space:nowrap;
+}
+@media(max-width:390px){
+  header .brand{gap:9px}
+  header .brand img{width:42px;height:42px;flex-basis:42px}
+  header .brand small{font-size:19px}
+  .credits{font-size:10px;padding:7px 9px}
 }
