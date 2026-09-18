@@ -172,3 +172,30 @@ section#home .note{
 /* Fine-tune hero reassurance size */
 #home.hero > small{font-size:15px!important}
 @media(max-width:520px){#home.hero > small{font-size:14px!important}}
+
+/* Hero CTAs: clearly raised, tactile buttons */
+#home.hero > button{
+  position:relative!important;
+  transform:translateY(0);
+  border-radius:12px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+  transition:transform .14s ease, box-shadow .14s ease, filter .14s ease!important;
+}
+#home.hero > button:not(.ghost-home){
+  border:1px solid rgba(255,255,255,.22)!important;
+  box-shadow:0 6px 0 #4b2674,0 11px 22px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.28)!important;
+}
+#home.hero > .ghost-home{
+  border:1px solid #76559b!important;
+  background:linear-gradient(180deg,#2a2038 0%,#1c1527 100%)!important;
+  box-shadow:0 5px 0 #100b17,0 10px 20px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+#home.hero > button:hover{
+  transform:translateY(-2px)!important;
+  filter:brightness(1.08);
+}
+#home.hero > button:active{
+  transform:translateY(4px)!important;
+  box-shadow:0 2px 0 rgba(20,10,30,.9),0 4px 9px rgba(0,0,0,.28)!important;
+}
