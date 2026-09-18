@@ -120,3 +120,22 @@ header .brand-copy small{line-height:1.25}
 @media(max-width:380px){
   header #account-button.credits{max-width:105px!important;padding:7px 8px!important;font-size:10px!important}
 }
+
+/* Account/Credits pill: readable and substantial on all screens */
+header #account-button.credits{
+  color:#fff!important;
+  min-height:48px!important;
+  padding-top:12px!important;
+  padding-bottom:12px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+@media(min-width:521px){
+  header #account-button.credits{
+    min-height:52px!important;
+    padding:13px 16px!important;
+    font-size:15px!important;
+    color:#fff!important;
+  }
+}
