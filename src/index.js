@@ -215,6 +215,99 @@ export function createApp(s=services()){
 
 
   /* =========================================================
+     AI SONG LYRICS
+  ========================================================= */
+
+  app.post(
+    '/api/song-creator/lyrics',
+    wrap(async(req,res)=>{
+      sameOrigin(req);
+      await limit(req,'song-creator-lyrics',20);
+
+      const apiKey=String(env.OPENAI_API_KEY||'').trim();
+      if(!apiKey) fail(503,'AI lyrics are not configured yet.');
+
+      const mode=String(req.body?.mode||'create').trim().toLowerCase();
+      const allowedModes=new Set(['create','rewrite','emotional','simple','chorus','shorter','longer']);
+      if(!allowedModes.has(mode)) fail(400,'Invalid lyrics request.');
+
+      const songType=String(req.body?.songType||'original').slice(0,40);
+      const name=String(req.body?.name||'').trim().slice(0,120);
+      const story=String(req.body?.story||'').trim().slice(0,4000);
+      const title=String(req.body?.title||'').trim().slice(0,160);
+      const lyrics=String(req.body?.lyrics||'').trim().slice(0,12000);
+
+      if(mode==='create'&&!story) fail(400,'Tell us what the song should be about.');
+      if(mode!=='create'&&!lyrics) fail(400,'There are no lyrics to rewrite.');
+
+      const modeInstruction={
+        create:'Write a complete original song from the supplied story.',
+        rewrite:'Rewrite the complete lyrics while preserving the important facts and intended message.',
+        emotional:'Rewrite the lyrics with warmer, deeper emotion while keeping them natural and singable.',
+        simple:'Rewrite using simpler, clearer language without making the song childish.',
+        chorus:'Keep the song generally intact but replace the chorus with a stronger, memorable new chorus.',
+        shorter:'Make the complete song shorter and tighter while preserving its core story.',
+        longer:'Expand the song naturally with useful lyrical detail, not filler.'
+      }[mode];
+
+      const prompt=[
+        'You are the lyric writer for MQ3 Song Creator.',
+        modeInstruction,
+        'Write polished, emotionally natural, singable lyrics. Avoid generic AI-sounding filler, forced rhymes, clichés, and invented personal facts.',
+        'Use section labels such as [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], and [Bridge] only when musically useful.',
+        'Return only JSON with exactly two string fields: title and lyrics.',
+        'Song type: '+songType,
+        name?'Person/recipient: '+name:'',
+        story?'Story/details from customer:\n'+story:'',
+        title?'Current title: '+title:'',
+        lyrics?'Current lyrics:\n'+lyrics:''
+      ].filter(Boolean).join('\n\n');
+
+      let response;
+      try{
+        response=await fetch('https://api.openai.com/v1/responses',{
+          method:'POST',
+          headers:{
+            Authorization:'Bearer '+apiKey,
+            'Content-Type':'application/json'
+          },
+          body:JSON.stringify({
+            model:String(env.OPENAI_LYRICS_MODEL||'gpt-5.4-mini'),
+            input:prompt,
+            text:{format:{type:'json_schema',name:'mq3_song',strict:true,schema:{type:'object',properties:{title:{type:'string'},lyrics:{type:'string'}},required:['title','lyrics'],additionalProperties:false}}},
+            max_output_tokens:3000
+          })
+        });
+      }catch(error){
+        console.error('[mq3/lyrics/network]',error);
+        fail(502,'AI lyrics service could not be reached. Please try again.');
+      }
+
+      let data={};
+      try{data=await response.json();}catch{}
+      if(!response.ok){
+        console.error('[mq3/lyrics/openai]',response.status,data?.error?.message||data);
+        fail(response.status===429?429:502,response.status===429?'AI lyrics are busy right now. Please try again shortly.':'AI lyrics could not be created. Please try again.');
+      }
+
+      const outputText=
+        data.output_text||
+        data.output?.flatMap(item=>item.content||[]).find(item=>item.type==='output_text')?.text;
+
+      if(!outputText) fail(502,'AI returned an empty lyrics response.');
+
+      let result;
+      try{result=JSON.parse(outputText);}catch{fail(502,'AI returned lyrics in an unexpected format.');}
+      const nextTitle=String(result.title||title||'Your MQ3 Song').trim().slice(0,160);
+      const nextLyrics=String(result.lyrics||'').trim();
+      if(!nextLyrics) fail(502,'AI returned empty lyrics.');
+
+      res.json({ok:true,title:nextTitle,lyrics:nextLyrics});
+    })
+  );
+
+
+  /* =========================================================
      VIRTUAL GIFTS
   ========================================================= */
 
