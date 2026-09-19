@@ -236,6 +236,9 @@ export function createApp(s=services()){
       const story=String(req.body?.story||'').trim().slice(0,4000);
       const title=String(req.body?.title||'').trim().slice(0,160);
       const lyrics=String(req.body?.lyrics||'').trim().slice(0,12000);
+      const language=String(req.body?.language||'English').trim().slice(0,40);
+      const relationship=String(req.body?.relationship||'').trim().slice(0,80);
+      const occasion=String(req.body?.occasion||'').trim().slice(0,80);
 
       if(mode==='create'&&!story) fail(400,'Tell us what the song should be about.');
       if(mode!=='create'&&!lyrics) fail(400,'There are no lyrics to rewrite.');
@@ -261,6 +264,9 @@ export function createApp(s=services()){
         structureInstruction,
         'Return only JSON with exactly two string fields: title and lyrics.',
         'Song type: '+songType,
+        'Language: '+language,
+        relationship?'Relationship: '+relationship:'',
+        occasion?'Occasion: '+occasion:'',
         name?'Person/recipient: '+name:'',
         story?'Story/details from customer:\n'+story:'',
         title?'Current title: '+title:'',
