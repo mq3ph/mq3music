@@ -1,18 +1,4 @@
-i
-
-        const displayName=
-          String(req.body.displayName||'').trim().replace(/\\s+/g,' ').slice(0,80);
-
-        if(!displayName){
-          fail(400,'Enter your name before signing in.');
-        }
-
-        const displayName=
-          String(req.body.displayName||'').trim().replace(/\\s+/g,' ').slice(0,80);
-
-        if(!displayName){
-          fail(400,'Enter your name before signing in.');
-        }mport {capturePaypalOrder, verifyPaypalWebhook} from './paypal.js';
+import {capturePaypalOrder, verifyPaypalWebhook} from './paypal.js';
 import {randomInt,randomUUID} from 'node:crypto';
 import {
   token,
@@ -639,6 +625,13 @@ export function accountRoutes({
           );
 
 
+        const displayName=
+          String(req.body.displayName||'').trim().replace(/\s+/g,' ').slice(0,80);
+
+        if(!displayName){
+          fail(400,'Enter your name before signing in.');
+        }
+
         /*
           A second limiter tied to the email address.
 
@@ -805,6 +798,13 @@ Music. Quality. 3rd Gen.`,
           );
 
 
+        const displayName=
+          String(req.body.displayName||'').trim().replace(/\s+/g,' ').slice(0,80);
+
+        if(!displayName){
+          fail(400,'Enter your name before signing in.');
+        }
+
         const code=
           String(
             req.body.code||
@@ -890,7 +890,8 @@ Music. Quality. 3rd Gen.`,
              VALUES($1,$2,$3,$4)
              ON CONFLICT(email)
              DO UPDATE SET
-               last_login_at=EXCLUDED.last_login_at
+               last_login_at=EXCLUDED.last_login_at,
+               display_name=CASE WHEN NULLIF(users.display_name,'') IS NULL THEN EXCLUDED.display_name ELSE users.display_name END
              RETURNING
                id,
                email,
