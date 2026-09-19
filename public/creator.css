@@ -466,3 +466,7 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .song-wave.wave-short{width:min(145px,76%)}
 #gallery .gallery-list .song-card .mini-play{grid-column:4;grid-row:1;justify-self:end}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,auto) minmax(0,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:185px}#gallery .gallery-list .song-card .song-wave.wave-long{width:min(165px,92%)}#gallery .gallery-list .song-card .song-wave.wave-medium{width:min(140px,84%)}#gallery .gallery-list .song-card .song-wave.wave-short{width:min(115px,76%)}}
+
+/* Featured Songs is now an anchor; keep the original homepage secondary-button styling. */
+#home.hero>a.ghost-home{display:flex!important;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none!important;min-height:54px;padding:0 18px;margin:10px 0 0;border:1px solid #72509b;border-radius:11px;background:#21182f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+#home.hero>a.ghost-home:hover{filter:brightness(1.08)}
