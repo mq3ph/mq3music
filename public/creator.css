@@ -347,3 +347,5 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
   input,select,textarea{font-size:16px}
   .screen:not(.hero)>p{font-size:13.5px}
 }
+
+.gallery-search{display:block;margin:20px 0 14px}.gallery-search span{display:block;margin-bottom:7px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.78}.gallery-search input{width:100%;box-sizing:border-box;padding:14px 16px;border-radius:14px;border:1px solid rgba(190,160,255,.28);background:rgba(255,255,255,.035);color:#fff;font:inherit;outline:none}.gallery-search input::placeholder{color:rgba(235,226,255,.48)}.gallery-search input:focus{border-color:rgba(166,112,255,.75);box-shadow:0 0 0 3px rgba(130,78,255,.12)}
