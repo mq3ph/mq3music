@@ -372,3 +372,10 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 .catalog-brand-copy strong em{font-style:normal;color:#e7a4e9}
 .catalog-brand-copy small{margin-top:8px;font-size:9px;letter-spacing:.24em;color:#c7a8ef;white-space:nowrap}
 @media(max-width:420px){.catalog-brand{gap:9px}.catalog-brand img{width:48px;height:48px}.catalog-brand-copy strong{font-size:24px}.catalog-brand-copy small{font-size:8px;letter-spacing:.18em}}
+
+/* Animated visualizer fills the open space on Featured Songs cards. */
+.song-wave{height:42px;min-width:150px;flex:1;display:flex;align-items:center;justify-content:center;gap:3px;overflow:hidden;padding:0 8px;pointer-events:none}
+.song-wave i{display:block;width:3px;height:calc(7px + (var(--n) * 2px));max-height:34px;border-radius:999px;background:linear-gradient(180deg,#e98ee9,#7958ff);opacity:.82;transform-origin:center;animation:mq3Wave 1.05s ease-in-out infinite;animation-delay:calc(var(--d) * -55ms)}
+@keyframes mq3Wave{0%,100%{transform:scaleY(.38);opacity:.48}50%{transform:scaleY(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.song-wave i{animation:none}}
+@media(max-width:520px){.song-wave{min-width:78px;gap:2px;padding:0 3px}.song-wave i{width:2px}}
