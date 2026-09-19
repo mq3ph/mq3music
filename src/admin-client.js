@@ -2086,17 +2086,34 @@ function render(){
   if(tab==='Song Requests'){
     $('tab-note').textContent=songCreatorRequests.length?songCreatorRequests.length+' Create My Song request'+(songCreatorRequests.length===1?'':'s'):'No Create My Song requests yet.';
     const labels={someone:'Song for Someone',wedding:'Wedding / Anniversary',celebration:'Celebration Song',faith:'Inspirational / Faith',story:'Song About My Story',original:'Create My Own Song',jingle:'Jingle'};
+    const commands={someone:'/someone',wedding:'/wedding',celebration:'/celebration',faith:'/inspirational',story:'/mystory',original:'/ownsong',jingle:'/jingle'};
     const statusLabels={queued:'Queued',creating:'Creating Your Song',ready:'Ready'};
-    const body=table(['Date','Customer','Song Type','For / Subject','Request Details','Credits','Status']);
+    const makeCommand=r=>[
+      commands[r.song_type]||'/song',
+      r.subject_name&&('Name / subject: '+r.subject_name),
+      r.relationship&&('Relationship: '+r.relationship),
+      r.occasion&&('Occasion: '+r.occasion),
+      'Language: '+(r.language||'English'),
+      'Customer details: '+r.story,
+      '',
+      'Create an original, polished, emotionally natural and singable song from these details. Do not invent personal facts. Avoid generic AI clichés, forced rhymes, and repetitive template wording. Give me a strong song title followed by the complete lyrics.'
+    ].filter(v=>v!==null&&v!==undefined&&v!==false).join('\n');
+    const body=table(['Date','Customer','Song Type','For / Subject','Request Details','ChatGPT Command','Credits','Status']);
     songCreatorRequests.filter(match).forEach(r=>{
       const details=node('div');
       details.className='song-request-details';
       details.append(node('strong',r.story));
       const meta=[r.relationship&&('Relationship: '+r.relationship),r.occasion&&('Occasion: '+r.occasion),r.language&&('Language: '+r.language)].filter(Boolean);
       if(meta.length)details.append(node('small',meta.join(' · ')));
+      const command=makeCommand(r);
+      const commandBox=node('div');
+      commandBox.className='song-request-command';
+      const preview=node('code',command);
+      const copy=button('Copy Command',async()=>{await navigator.clipboard.writeText(command);message('ChatGPT command copied.');});
+      commandBox.append(preview,copy);
       const state=badge(statusLabels[r.status]||r.status);
       state.classList.add('song-request-status');
-      row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,labels[r.song_type]||r.song_type,r.subject_name||'—',details,r.credits,state]);
+      row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,labels[r.song_type]||r.song_type,r.subject_name||'—',details,commandBox,r.credits,state]);
     });
 
   }else if(
