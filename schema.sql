@@ -51,3 +51,10 @@ CREATE TABLE IF NOT EXISTS song_creator_requests (
  updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS song_creator_requests_user_created_idx ON song_creator_requests(user_id,created_at DESC);
+ALTER TABLE song_creator_requests ADD COLUMN IF NOT EXISTS version_1_url text;
+ALTER TABLE song_creator_requests ADD COLUMN IF NOT EXISTS version_2_url text;
+ALTER TABLE song_creator_requests ADD COLUMN IF NOT EXISTS revision_notes text;
+ALTER TABLE song_creator_requests ADD COLUMN IF NOT EXISTS revision_used boolean NOT NULL DEFAULT false;
+ALTER TABLE song_creator_requests DROP CONSTRAINT IF EXISTS song_creator_requests_status_check;
+ALTER TABLE song_creator_requests ADD CONSTRAINT song_creator_requests_status_check CHECK(status IN ('queued','creating','ready','revision'));
+
