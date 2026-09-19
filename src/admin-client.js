@@ -2102,12 +2102,12 @@ function render(){
       '',
       'Create an original, polished, emotionally natural and singable song from these details. Do not invent personal facts. Avoid generic AI clichés, filler, forced rhymes, and repetitive template wording. MQ3 STRUCTURE RULES: Verse 1 = 4 lines; Pre-Chorus 1 = 4 lines; Chorus = exactly 8 lines; Verse 2 = 4 lines; Pre-Chorus 2 = 4 lines; repeat the same 8-line Chorus exactly; Bridge = 4 lines; repeat the same 8-line Chorus exactly as the Final Chorus; Outro = 2 to 4 lines. MELODY CONSISTENCY RULES: Verse 2 must match Verse 1 line-by-line in approximate syllable count, rhythmic phrasing, stress pattern, and rhyme scheme so both verses can naturally use the same melody. Establish a clear rhyme scheme in Verse 1 and preserve that same scheme in Verse 2, using different rhyme words where appropriate. Pre-Chorus 2 should preferably repeat Pre-Chorus 1 exactly. If new Pre-Chorus 2 lyrics are genuinely needed, match Pre-Chorus 1 line-by-line in approximate syllable count, rhythmic phrasing, stress pattern, and rhyme scheme. Every Chorus, including the Final Chorus, must be verbatim identical; do not rewrite, extend, shorten, or vary its wording. The Bridge may use a different rhythmic and melodic shape. Prioritize natural meaning and singability while keeping the paired sections metrically compatible. NAME-ONLY RULE: when the request mainly supplies a person’s name with little personal story, base the concept on the commonly accepted meaning, origin, or positive significance of the name and never invent biography or memories. OUTPUT: Give a strong TITLE, then COMPLETE LYRICS with section labels, then a separate SUNO STYLE PROMPT tailored specifically to the finished lyrics. The Suno prompt should specify suitable genre/subgenre, mood, approximate tempo or energy, instrumentation, vocal character and delivery, arrangement/build, production feel, and ending. Do not use copyrighted artist names in the Suno prompt.'
     ].filter(v=>v!==null&&v!==undefined&&v!==false).join('\n');
-    const body=table(['Date','Customer','Song Type','For / Subject','Request Details','ChatGPT Command','Credits','Status']);
+    const body=table(['Date','Customer','Song Type','For / Subject','Request Details','ChatGPT Command','Credits','Delivery / Status']);
     songCreatorRequests.filter(match).forEach(r=>{
       const details=node('div');
       details.className='song-request-details';
       details.append(node('strong',r.story));
-      const meta=[r.relationship&&('Relationship: '+r.relationship),r.occasion&&('Occasion: '+r.occasion),r.language&&('Language: '+r.language)].filter(Boolean);
+      const meta=[r.relationship&&('Relationship: '+r.relationship),r.occasion&&('Occasion: '+r.occasion),r.language&&('Language: '+r.language),r.revision_notes&&('Revision: '+r.revision_notes)].filter(Boolean);
       if(meta.length)details.append(node('small',meta.join(' · ')));
       const command=makeCommand(r);
       const commandBox=node('div');
@@ -2115,9 +2115,19 @@ function render(){
       const preview=node('code',command);
       const copy=button('Copy Command',async()=>{await navigator.clipboard.writeText(command);message('ChatGPT command copied.');});
       commandBox.append(preview,copy);
+      const delivery=node('div');
+      delivery.style.cssText='display:grid;gap:7px;min-width:220px';
       const state=badge(statusLabels[r.status]||r.status);
       state.classList.add('song-request-status');
-      row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,labels[r.song_type]||r.song_type,r.subject_name||'—',details,commandBox,r.credits,state]);
+      const v1=document.createElement('input');v1.type='url';v1.placeholder='Version 1 Suno link';v1.value=r.version_1_url||'';
+      const v2=document.createElement('input');v2.type='url';v2.placeholder='Version 2 Suno link';v2.value=r.version_2_url||'';
+      const save=async status=>{
+        await api('/api/admin/song-creator-requests/'+r.id,{status,version1Url:v1.value.trim(),version2Url:v2.value.trim()},'PATCH');
+        message(status==='ready'?'Songs marked Ready and customer notification sent.':'Song request updated.');
+        await load();
+      };
+      delivery.append(state,v1,v2,actions(button('Creating',()=>save('creating')),button('Ready',()=>save('ready'))));
+      row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,labels[r.song_type]||r.song_type,r.subject_name||'—',details,commandBox,r.credits,delivery]);
     });
 
   }else if(
