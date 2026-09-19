@@ -128,3 +128,20 @@ input:focus,select:focus,textarea:focus{border-color:#87939a!important;box-shado
   border-color:#56646c!important;
 }
 #gallery .gallery-list:empty::after{background:#101c24;border-color:#3b4951;color:#aeb8bf}
+
+
+/* Dark green primary actions — stronger contrast against the midnight canvas. */
+.screen>button,.hero>button,form>button,#ownContinue,#generate,#download,#gallery>button{
+  background:linear-gradient(180deg,#183d35 0%,#0f302a 52%,#0a2722 100%)!important;
+  border-color:#315e53!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.32),inset 0 1px 0 rgba(157,205,191,.13)!important;
+}
+#home.hero>button:not(.ghost-home){
+  background:linear-gradient(180deg,#1b463c 0%,#11362f 52%,#0b2924 100%)!important;
+  border-color:#3c6a5f!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.34),inset 0 1px 0 rgba(174,218,205,.15)!important;
+}
+#home.hero>button:not(.ghost-home):hover{
+  background:linear-gradient(180deg,#225247 0%,#174138 52%,#0e302a 100%)!important;
+  filter:none!important;
+}
