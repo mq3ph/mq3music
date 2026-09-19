@@ -363,3 +363,12 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 .catalog-player{width:min(438px,calc(100vw - 28px));}
 .catalog-embed-wrap{position:relative;width:100%;max-width:316px;height:104px;margin-inline:auto;overflow:hidden;overflow:clip;border-radius:10px;isolation:isolate;background:#1e253d;}
 .catalog-embed-wrap iframe{position:absolute;display:block;left:0;top:-72px;width:100%;height:240px;border:0;border-radius:0!important;background:#171310;}
+
+/* MQ3 branded header above the cropped catalog player. */
+.catalog-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 16px;padding:8px 4px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.catalog-brand img{width:58px;height:58px;object-fit:contain;flex:0 0 auto}
+.catalog-brand-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.catalog-brand-copy strong{font-family:Georgia,'Times New Roman',serif;font-size:29px;line-height:1;color:#f4efff;font-weight:600;white-space:nowrap}
+.catalog-brand-copy strong em{font-style:normal;color:#e7a4e9}
+.catalog-brand-copy small{margin-top:8px;font-size:9px;letter-spacing:.24em;color:#c7a8ef;white-space:nowrap}
+@media(max-width:420px){.catalog-brand{gap:9px}.catalog-brand img{width:48px;height:48px}.catalog-brand-copy strong{font-size:24px}.catalog-brand-copy small{font-size:8px;letter-spacing:.18em}}
