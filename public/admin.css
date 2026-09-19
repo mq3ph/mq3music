@@ -1411,3 +1411,89 @@ dialog .eyebrow{
 .song-request-details{min-width:260px;max-width:480px;display:grid;gap:7px;white-space:normal;line-height:1.45}.song-request-details strong{font-weight:650;color:#f2eaff}.song-request-details small{color:#b9abc9}.song-request-status{white-space:nowrap}.badge.queued{background:rgba(185,149,244,.12);color:#d9c4ff}.badge.creating{background:rgba(129,87,199,.2);color:#eadcff}.badge.ready{background:rgba(83,190,139,.14);color:#a9e9c9}
 
 .song-request-command{min-width:300px;max-width:460px;display:grid;gap:10px}.song-request-command code{display:block;max-height:180px;overflow:auto;white-space:pre-wrap;padding:12px;border:1px solid rgba(185,149,244,.25);border-radius:12px;background:rgba(9,5,22,.55);color:#ddd0f2;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace}.song-request-command .button{justify-self:start}
+
+
+/* =========================================================
+   MQ3 LIVE-SITE DARK THEME · 2026-09-20
+   Matches the public MQ3 Music palette.
+========================================================= */
+:root{
+  --admin-bg:#090909;
+  --admin-bg-deep:#050505;
+  --admin-panel:#120d0b;
+  --admin-panel-soft:#141414;
+  --admin-gold:#ebc77e;
+  --admin-gold-light:#f4db9c;
+  --admin-gold-dark:#9b7138;
+  --admin-text:#f4eee4;
+  --admin-muted:#aaa5a0;
+  --admin-line:#e5c18426;
+  --admin-line-soft:#ffffff14;
+}
+body{
+  background:
+    radial-gradient(circle at 50% -18%,rgba(155,113,56,.10),transparent 34%),
+    linear-gradient(180deg,#0b0b0b 0%,#070707 58%,#050505 100%);
+  color:var(--admin-text);
+}
+body::before{
+  opacity:.22;
+  background:linear-gradient(115deg,transparent 0 47%,rgba(235,199,126,.025) 47.2%,transparent 47.5%);
+}
+.admin-head .eyebrow,.summary-label,.records-kicker{color:var(--admin-gold)}
+.admin-head h1{
+  color:#f1d79f;
+  background:linear-gradient(180deg,#fff1c5 0%,#e8b85a 65%,#926014 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.admin-tagline,.dashboard-summary p,.tab-note{color:var(--admin-muted)}
+.admin-head-actions .button,.backup-button{
+  border-color:#857047;background:#0d0d0d;color:#ebd7b4;
+}
+.dashboard-summary,.connection-panel{
+  border-color:var(--admin-line);
+  background:linear-gradient(110deg,#141414,#0d0d0d);
+}
+.connection-title{color:#f1d79f}
+.tabs button{
+  border-color:#ffffff20;background:#101010;color:#aaa7a3;
+}
+.tabs button:hover{border-color:#857047;background:#e8c37812;color:#ebc77e}
+.tabs button.active{
+  color:#241a09;border-color:#e6bd71;
+  background:linear-gradient(110deg,#f4db9c,#dba94e);
+  box-shadow:inset 0 1px #fff5,0 7px 24px #0008;
+}
+.admin-tools .admin-search-wrap input{
+  border-color:#ffffff20;background:#141414;color:#fff;
+}
+.admin-search-wrap input:focus{border-color:#857047}
+.records-panel{
+  border-color:#c99c493e;
+  background:linear-gradient(155deg,#15110f 0%,#0d0c0b 50%,#080808 100%);
+  box-shadow:0 24px 70px #0007,inset 0 1px #ffffff08;
+}
+.records-panel::after{background:radial-gradient(ellipse at center,rgba(235,199,126,.10),transparent 65%)}
+.records-heading{border-bottom-color:#ffffff10}
+.records-heading h2{color:#f1d79f}
+.table-wrap{border-color:#ffffff18;background:#0b0b0b}
+th{color:#b9aa94;background:#101010;border-bottom-color:#ffffff12}
+td{color:#ded7cd;border-bottom-color:#ffffff0e}
+td:nth-child(2){color:#f4eee4}
+td:nth-child(3){color:#c9c1b8}
+tbody tr:hover{background:#e8c3780a}
+td .button{border-color:#857047;color:#ebc77e;background:#e8c37808}
+td .button:hover{border-color:#ebc77e;background:#e8c37816}
+input,select,textarea{border-color:#ffffff20;background:#111;color:#f4eee4}
+.login-panel{
+  border-color:#c99c493e;
+  background:linear-gradient(145deg,#15110f,#080808);
+}
+.login-panel h1{color:#f1d79f}
+dialog{
+  border-color:#c99c493e;
+  background:linear-gradient(150deg,#17120f,#080808);
+}
+dialog h2{color:#f1d79f}
+.admin-footer{color:#776f66}
+.admin-footer strong,.footer-motto{color:#b89658}
