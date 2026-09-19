@@ -1,4 +1,18 @@
-import {capturePaypalOrder, verifyPaypalWebhook} from './paypal.js';
+i
+
+        const displayName=
+          String(req.body.displayName||'').trim().replace(/\\s+/g,' ').slice(0,80);
+
+        if(!displayName){
+          fail(400,'Enter your name before signing in.');
+        }
+
+        const displayName=
+          String(req.body.displayName||'').trim().replace(/\\s+/g,' ').slice(0,80);
+
+        if(!displayName){
+          fail(400,'Enter your name before signing in.');
+        }mport {capturePaypalOrder, verifyPaypalWebhook} from './paypal.js';
 import {randomInt,randomUUID} from 'node:crypto';
 import {
   token,
@@ -884,7 +898,7 @@ Music. Quality. 3rd Gen.`,
             [
               randomUUID(),
               address,
-              '',
+              displayName,
               now
             ]
           );
