@@ -1407,3 +1407,5 @@ dialog .eyebrow{
 
 .song-request-empty{min-height:330px;display:grid;place-content:center;text-align:center;gap:10px;padding:40px;border:1px dashed rgba(185,149,244,.28);border-radius:16px;background:radial-gradient(circle at center,rgba(185,149,244,.08),transparent 65%)}
 .song-request-empty strong{font-size:24px;color:#eee6f5}.song-request-empty span{color:#c9bdd8}.song-request-empty small{color:#b995f4;font-weight:800;letter-spacing:.08em}
+
+.song-request-details{min-width:260px;max-width:480px;display:grid;gap:7px;white-space:normal;line-height:1.45}.song-request-details strong{font-weight:650;color:#f2eaff}.song-request-details small{color:#b9abc9}.song-request-status{white-space:nowrap}.badge.queued{background:rgba(185,149,244,.12);color:#d9c4ff}.badge.creating{background:rgba(129,87,199,.2);color:#eadcff}.badge.ready{background:rgba(83,190,139,.14);color:#a9e9c9}
