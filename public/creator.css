@@ -439,3 +439,10 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .mini-play{grid-column:4;grid-row:1;justify-self:end;position:static}
 #gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 104px 40px!important}#gallery .gallery-list .song-card>span{max-width:none;padding-right:0}#gallery .gallery-list .song-card .song-wave{position:static;width:104px;max-width:104px}}
+
+/* Compact the middle row so the waveform visually sits between title and Play. */
+#gallery .gallery-list .song-card{grid-template-columns:54px minmax(150px,190px) minmax(110px,1fr) 40px!important}
+#gallery .gallery-list .song-card>span{grid-column:2;max-width:190px}
+#gallery .gallery-list .song-card .song-wave{grid-column:3;width:100%;max-width:150px;justify-self:start;justify-content:center}
+#gallery .gallery-list .song-card .mini-play{grid-column:4;justify-self:end}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(140px,180px) minmax(90px,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:180px}#gallery .gallery-list .song-card .song-wave{width:100%;max-width:125px;justify-self:center}}
