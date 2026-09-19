@@ -10,7 +10,7 @@ const cats=[
   'ORIGINAL SONGS'
 ];
 
-let tab='Name Request';
+let tab='Song Requests';
 let requestStatusFilter='all';
 let selectedRequestIds=new Set();
 let songs=[];
@@ -168,13 +168,13 @@ function showDeleteConfirm(title,options={}){
     style.textContent=`
       .mq3-delete-modal{
         width:min(92vw,460px);
-        border:1px solid rgba(232,184,91,.55);
+        border:1px solid rgba(185,149,244,.55);
         border-radius:22px;
         padding:0;
-        color:#f8e7bd;
+        color:#eee6f5;
         background:
-          radial-gradient(circle at top right,rgba(130,56,30,.24),transparent 42%),
-          linear-gradient(180deg,#240706 0%,#120504 100%);
+          radial-gradient(circle at top right,rgba(91,53,151,.24),transparent 42%),
+          linear-gradient(180deg,#160d2f 0%,#090516 100%);
         box-shadow:
           0 28px 80px rgba(0,0,0,.62),
           inset 0 1px 0 rgba(255,255,255,.04);
@@ -191,7 +191,7 @@ function showDeleteConfirm(title,options={}){
 
       .mq3-delete-kicker{
         margin:0 0 10px;
-        color:#e8b85b;
+        color:#b995f4;
         font-size:12px;
         font-weight:800;
         letter-spacing:.18em;
@@ -200,7 +200,7 @@ function showDeleteConfirm(title,options={}){
 
       .mq3-delete-title{
         margin:0;
-        color:#ffe6a6;
+        color:#eadcff;
         font-family:Georgia,serif;
         font-size:26px;
         line-height:1.2;
@@ -214,7 +214,7 @@ function showDeleteConfirm(title,options={}){
       }
 
       .mq3-delete-song{
-        color:#fff0c5;
+        color:#f4edff;
         font-weight:800;
       }
 
@@ -237,8 +237,8 @@ function showDeleteConfirm(title,options={}){
       }
 
       .mq3-delete-cancel{
-        border:1px solid rgba(232,184,91,.5);
-        color:#f8e7bd;
+        border:1px solid rgba(185,149,244,.5);
+        color:#eee6f5;
         background:transparent;
       }
 
@@ -250,7 +250,7 @@ function showDeleteConfirm(title,options={}){
       }
 
       .mq3-delete-cancel:hover{
-        background:rgba(232,184,91,.08);
+        background:rgba(185,149,244,.08);
       }
 
       .mq3-delete-danger:hover{
@@ -538,13 +538,13 @@ function showPaymentConfirm({
     style.textContent=`
       .mq3-payment-modal{
         width:min(92vw,500px);
-        border:1px solid rgba(232,184,91,.58);
+        border:1px solid rgba(185,149,244,.58);
         border-radius:24px;
         padding:0;
-        color:#f8e7bd;
+        color:#eee6f5;
         background:
-          radial-gradient(circle at top right,rgba(145,66,31,.28),transparent 42%),
-          linear-gradient(180deg,#2a0807 0%,#120504 100%);
+          radial-gradient(circle at top right,rgba(91,53,151,.28),transparent 42%),
+          linear-gradient(180deg,#1b0f38 0%,#090516 100%);
         box-shadow:
           0 30px 90px rgba(0,0,0,.68),
           inset 0 1px 0 rgba(255,255,255,.05);
@@ -561,7 +561,7 @@ function showPaymentConfirm({
 
       .mq3-payment-kicker{
         margin:0 0 9px;
-        color:#e8b85b;
+        color:#b995f4;
         font-size:11px;
         font-weight:900;
         letter-spacing:.2em;
@@ -570,7 +570,7 @@ function showPaymentConfirm({
 
       .mq3-payment-title{
         margin:0;
-        color:#ffe7a8;
+        color:#eadcff;
         font-family:Georgia,serif;
         font-size:28px;
         line-height:1.18;
@@ -587,7 +587,7 @@ function showPaymentConfirm({
         display:grid;
         gap:0;
         overflow:hidden;
-        border:1px solid rgba(232,184,91,.25);
+        border:1px solid rgba(185,149,244,.25);
         border-radius:17px;
         background:rgba(0,0,0,.18);
       }
@@ -597,7 +597,7 @@ function showPaymentConfirm({
         justify-content:space-between;
         gap:20px;
         padding:12px 15px;
-        border-bottom:1px solid rgba(232,184,91,.12);
+        border-bottom:1px solid rgba(185,149,244,.12);
       }
 
       .mq3-payment-line:last-child{
@@ -613,7 +613,7 @@ function showPaymentConfirm({
       }
 
       .mq3-payment-value{
-        color:#fff0c5;
+        color:#f4edff;
         font-weight:800;
         text-align:right;
         overflow-wrap:anywhere;
@@ -624,7 +624,7 @@ function showPaymentConfirm({
         padding:12px 14px;
         border-radius:14px;
         color:#e4d4bb;
-        background:rgba(232,184,91,.07);
+        background:rgba(185,149,244,.07);
         font-size:13px;
         line-height:1.55;
       }
@@ -649,15 +649,15 @@ function showPaymentConfirm({
       }
 
       .mq3-payment-cancel{
-        border:1px solid rgba(232,184,91,.5);
-        color:#f8e7bd;
+        border:1px solid rgba(185,149,244,.5);
+        color:#eee6f5;
         background:transparent;
       }
 
       .mq3-payment-approve{
-        border:1px solid #f3cf77;
+        border:1px solid #c9a7ff;
         color:#2a1603;
-        background:linear-gradient(180deg,#f5d37e,#dcae4e);
+        background:linear-gradient(180deg,#c9a7ff,#8157c7);
         box-shadow:0 9px 24px rgba(218,166,68,.2);
       }
 
@@ -1661,8 +1661,7 @@ $('logout').onclick=
 
 for(
   const name of [
-    'Name Request',
-    'MP3 Requests',
+    'Song Requests',
     'Listeners',
     ...cats,
     'Song Views',
@@ -1798,22 +1797,22 @@ async function showRequestMessageComposer(request,song){
     const style=document.createElement('style');
     style.id='mq3-request-message-style';
     style.textContent=`
-      .mq3-request-message-modal{width:min(94vw,560px);border:1px solid rgba(232,184,91,.55);border-radius:24px;padding:0;color:#f8e7bd;background:radial-gradient(circle at top right,rgba(130,56,30,.25),transparent 42%),linear-gradient(180deg,#2a0807 0%,#140504 100%);box-shadow:0 30px 90px rgba(0,0,0,.7)}
+      .mq3-request-message-modal{width:min(94vw,560px);border:1px solid rgba(185,149,244,.55);border-radius:24px;padding:0;color:#eee6f5;background:radial-gradient(circle at top right,rgba(91,53,151,.25),transparent 42%),linear-gradient(180deg,#1b0f38 0%,#0d071c 100%);box-shadow:0 30px 90px rgba(0,0,0,.7)}
       .mq3-request-message-modal::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(4px)}
       .mq3-request-message-wrap{padding:28px}
-      .mq3-request-message-kicker{margin:0 0 8px;color:#e8b85b;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
-      .mq3-request-message-title{margin:0 0 8px;color:#ffe7a8;font-family:Georgia,serif;font-size:27px}
+      .mq3-request-message-kicker{margin:0 0 8px;color:#b995f4;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+      .mq3-request-message-title{margin:0 0 8px;color:#eadcff;font-family:Georgia,serif;font-size:27px}
       .mq3-request-message-copy{margin:0 0 20px;color:#cdbba4;font-size:14px;line-height:1.55}
       .mq3-request-message-label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 7px;color:#bda98e;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-      .mq3-request-message-field{width:100%;box-sizing:border-box;border:1px solid rgba(232,184,91,.28);border-radius:14px;padding:13px 14px;color:#fff0c5;background:#260807;font:inherit;line-height:1.5}
+      .mq3-request-message-field{width:100%;box-sizing:border-box;border:1px solid rgba(185,149,244,.28);border-radius:14px;padding:13px 14px;color:#f4edff;background:#160d2f;font:inherit;line-height:1.5}
       textarea.mq3-request-message-field{min-height:190px;resize:vertical}
-      .mq3-request-message-copybtn{border:1px solid rgba(232,184,91,.55);border-radius:999px;padding:5px 11px;color:#f5cf73;background:transparent;font:inherit;font-size:11px;font-weight:900;cursor:pointer;text-transform:none;letter-spacing:0}
-      .mq3-request-message-to{margin-top:20px;padding:14px;border:1px solid rgba(232,184,91,.2);border-radius:15px;background:rgba(232,184,91,.06);color:#d8c8b2;font-size:13px;overflow-wrap:anywhere}
-      .mq3-request-message-to strong{color:#fff0c5}
+      .mq3-request-message-copybtn{border:1px solid rgba(185,149,244,.55);border-radius:999px;padding:5px 11px;color:#c9a7ff;background:transparent;font:inherit;font-size:11px;font-weight:900;cursor:pointer;text-transform:none;letter-spacing:0}
+      .mq3-request-message-to{margin-top:20px;padding:14px;border:1px solid rgba(185,149,244,.2);border-radius:15px;background:rgba(185,149,244,.06);color:#d8c8b2;font-size:13px;overflow-wrap:anywhere}
+      .mq3-request-message-to strong{color:#f4edff}
       .mq3-request-message-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:22px;flex-wrap:wrap}
       .mq3-request-message-cancel,.mq3-request-message-send{border-radius:999px;padding:12px 18px;font:inherit;font-weight:900;cursor:pointer}
-      .mq3-request-message-cancel{border:1px solid rgba(232,184,91,.5);color:#f8e7bd;background:transparent}
-      .mq3-request-message-send{border:1px solid #f3cf77;color:#2a1603;background:linear-gradient(180deg,#f5d37e,#dcae4e)}
+      .mq3-request-message-cancel{border:1px solid rgba(185,149,244,.5);color:#eee6f5;background:transparent}
+      .mq3-request-message-send{border:1px solid #c9a7ff;color:#2a1603;background:linear-gradient(180deg,#c9a7ff,#8157c7)}
       @media(max-width:520px){.mq3-request-message-wrap{padding:23px 18px}.mq3-request-message-actions{display:grid;grid-template-columns:1fr 1fr}.mq3-request-message-cancel,.mq3-request-message-send{width:100%}}
     `;
     document.head.append(style);
@@ -1958,11 +1957,11 @@ function setRecordsTitle(){
   }
 
   if(
-    tab==='Name Request'
+    tab==='Song Requests'
   ){
 
     title.textContent=
-      'Name Requests';
+      'Song Requests';
 
   }else if(
     cats.includes(tab)
@@ -2051,11 +2050,6 @@ function render(){
     `${Number(listenerData.summary?.total||0)} listeners · `+
     `${songs.length} songs · `+
 
-    `${requests.filter(
-      r=>
-        r.status!=='notified'
-    ).length} pending name requests · `+
-
     `${paid.length} verified payments · `+
 
     `${money(
@@ -2086,7 +2080,14 @@ function render(){
     .textContent='';
 
 
-  if(
+  if(tab==='Song Requests'){
+    $('tab-note').textContent='New Create My Song requests will appear here. Legacy Name Requests and MP3 Requests are hidden from the working dashboard; their old data has not been deleted.';
+    const empty=node('div');
+    empty.className='song-request-empty';
+    empty.innerHTML='<strong>Song Creator Requests</strong><span>Waiting for the new Create My Song request flow to be connected.</span><small>Queued → Creating Your Song → Ready</small>';
+    $('records').replaceChildren(empty);
+
+  }else if(
     cats.includes(tab)
   ){
 
@@ -3779,7 +3780,7 @@ function preparePriorityNameDelivery(request,song){
  const isPriority=Number(request.credits)===100;
  const tierLabel=isPriority?'Priority Request':'Name Song Request';
  const creditsLabel=isPriority?'100':'50';
- const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
+ const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#160d2f;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
  const subject=node('input');subject.value=`Your ${tierLabel}: ${song.title}`;subject.setAttribute('aria-label','Email subject');
  const body=node('textarea');body.setAttribute('aria-label','Email message');body.value=`Hi there,
 
@@ -3791,7 +3792,7 @@ Request: ${request.id}
 ${song.lyrics||'Lyrics will be included with your song.'}
 
 Thank you for supporting MQ3 Music!`;
- for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#130806;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
+ for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#100824;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
  const note=node('p',`This is a PAID ${tierLabel.toLowerCase()}. Attach the correct MP3 before sending. Opening the draft does not mark it delivered.`);
  const open=node('a','Open email draft','button');open.target='_blank';open.rel='noopener';
  const setLink=()=>open.href=`mailto:${encodeURIComponent(request.email)}?subject=${encodeURIComponent(subject.value)}&body=${encodeURIComponent(body.value)}`;setLink();subject.oninput=setLink;body.oninput=setLink;
@@ -3808,7 +3809,7 @@ Thank you for supporting MQ3 Music!`;
 }
 
 function prepareMp3Email(r){
- const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#210b08;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
+ const dialog=node('dialog');dialog.style.cssText='width:min(92vw,600px);max-height:85vh;overflow:auto;background:#160d2f;color:#f9dfaa;border:1px solid #c9a253;border-radius:20px;padding:24px';
  const subject=node('input');subject.value=`Your MP3 + Lyrics: ${r.song_title}`;subject.setAttribute('aria-label','Email subject');
  const body=node('textarea');body.setAttribute('aria-label','Email message');body.value=`Hi ${r.display_name||'there'},
 
@@ -3820,7 +3821,7 @@ Order: ${r.id}
 ${r.lyrics||'Lyrics will be included with your song.'}
 
 Thank you for supporting MQ3 Music!`;
- for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#130806;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
+ for(const field of [subject,body])field.style.cssText='box-sizing:border-box;width:100%;margin:8px 0;padding:12px;background:#100824;color:#ffebbd;border:1px solid #8f7345;border-radius:8px';body.style.minHeight='230px';
  const note=node('p','Attach the correct MP3 before sending. Opening the draft does not send email or mark this order delivered.');
  const open=node('a','Open email draft','button');open.target='_blank';open.rel='noopener';
  const setLink=()=>open.href=`mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(subject.value)}&body=${encodeURIComponent(body.value)}`;setLink();subject.oninput=setLink;body.oninput=setLink;
