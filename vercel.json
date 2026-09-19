@@ -108,27 +108,27 @@
   "rewrites": [
     {
       "source": "/create",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/details",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/lyrics",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/music",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/results",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/own",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     },
     {
       "source": "/featuredsongs",
@@ -136,7 +136,7 @@
     },
     {
       "source": "/mysongs",
-      "destination": "/creator.html"
+      "destination": "/index.html"
     }
   ],
   "redirects": []
