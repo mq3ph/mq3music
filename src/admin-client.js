@@ -1527,7 +1527,6 @@ async function load(){
   [
     songs,
     requests,
-    songCreatorRequests,
     orders,
     creditLoads,
     listenerData,
@@ -1543,8 +1542,6 @@ async function load(){
       '/api/admin/requests'
     ),
 
-    api('/api/admin/song-creator-requests'),
-
     api(
       '/api/admin/orders'
     ),
@@ -1556,6 +1553,13 @@ async function load(){
     api('/api/admin/mp3-requests'),
     api('/api/admin/site-visits')
   ]);
+
+  try{
+    songCreatorRequests=await api('/api/admin/song-creator-requests');
+  }catch(error){
+    console.warn('Song Requests are temporarily unavailable:',error);
+    songCreatorRequests=[];
+  }
 
   render();
 }
@@ -2084,7 +2088,7 @@ function render(){
 
 
   if(tab==='Song Requests'){
-    $('tab-note').textContent=songCreatorRequests.length?songCreatorRequests.length+' Create My Song request'+(songCreatorRequests.length===1?'':'s'):'No Create My Song requests yet.';
+    $('tab-note').textContent=songCreatorRequests.length?songCreatorRequests.length+' Create My Song request'+(songCreatorRequests.length===1?'':'s'):'Song Requests will appear here once the request database is connected.';
     const labels={someone:'Song for Someone',wedding:'Wedding / Anniversary',celebration:'Celebration Song',faith:'Inspirational / Faith',story:'Song About My Story',original:'Create My Own Song',jingle:'Jingle'};
     const commands={someone:'/someone',wedding:'/wedding',celebration:'/celebration',faith:'/inspirational',story:'/mystory',original:'/ownsong',jingle:'/jingle'};
     const statusLabels={queued:'Queued',creating:'Creating Your Song',ready:'Ready'};
