@@ -14,7 +14,7 @@ let tab='Song Requests';
 let requestStatusFilter='all';
 let selectedRequestIds=new Set();
 let songs=[];
-let requests=[];
+let requests=[];let songCreatorRequests=[];
 let orders=[];
 let creditLoads=[];
 let mp3Requests=[];
@@ -1527,6 +1527,7 @@ async function load(){
   [
     songs,
     requests,
+    songCreatorRequests,
     orders,
     creditLoads,
     listenerData,
@@ -1541,6 +1542,8 @@ async function load(){
     api(
       '/api/admin/requests'
     ),
+
+    api('/api/admin/song-creator-requests'),
 
     api(
       '/api/admin/orders'
@@ -2081,11 +2084,9 @@ function render(){
 
 
   if(tab==='Song Requests'){
-    $('tab-note').textContent='New Create My Song requests will appear here. Legacy Name Requests and MP3 Requests are hidden from the working dashboard; their old data has not been deleted.';
-    const empty=node('div');
-    empty.className='song-request-empty';
-    empty.innerHTML='<strong>Song Creator Requests</strong><span>Waiting for the new Create My Song request flow to be connected.</span><small>Queued → Creating Your Song → Ready</small>';
-    $('records').replaceChildren(empty);
+    $('tab-note').textContent=songCreatorRequests.length?songCreatorRequests.length+' Create My Song request'+(songCreatorRequests.length===1?'':'s'):'No Create My Song requests yet.';
+    const body=table(['Date','Customer','Song Type','For / Subject','Details','Credits','Status']);
+    songCreatorRequests.filter(match).forEach(r=>row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,r.song_type,r.subject_name||'—',r.story,r.credits,badge(r.status)]));
 
   }else if(
     cats.includes(tab)
