@@ -492,3 +492,60 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 .credit-prompt-balance span{font-size:12px;color:#a99db7}.credit-prompt-balance strong{font-size:16px;color:#ead7ff}
 .credit-prompt-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:10px}.credit-prompt-actions button{margin:0;min-height:50px;border-radius:12px;font-weight:800}.credit-prompt-actions [data-credit-load]{background:linear-gradient(180deg,#a468e8,#7c43c5);border:1px solid #bd8cf0;color:#fff;box-shadow:0 7px 18px rgba(91,44,145,.34)}
 @media(max-width:420px){.credit-prompt{padding:26px 20px 20px}.credit-prompt-actions{grid-template-columns:1fr}.credit-prompt-actions [data-credit-load]{grid-row:1}}
+
+
+/* Premium MQ3 credit modal v2 — integrated with Song Creator visual language */
+.credit-prompt{
+  width:min(460px,calc(100% - 28px))!important;
+  padding:0!important;
+  overflow:hidden!important;
+  text-align:left!important;
+  border:1px solid rgba(183,132,255,.52)!important;
+  border-radius:26px!important;
+  background:
+    radial-gradient(circle at 88% 5%,rgba(163,91,238,.20),transparent 34%),
+    linear-gradient(155deg,#21152f 0%,#171021 48%,#100b19 100%)!important;
+  box-shadow:0 32px 90px rgba(0,0,0,.72),0 0 0 1px rgba(255,255,255,.025) inset,0 0 42px rgba(126,66,197,.16)!important;
+}
+.credit-prompt::backdrop{background:rgba(5,2,12,.86)!important;backdrop-filter:blur(9px)!important}
+.credit-prompt-icon{
+  width:58px!important;height:58px!important;margin:28px 28px 15px!important;
+  display:grid!important;place-items:center!important;border-radius:17px!important;
+  font-size:27px!important;background:linear-gradient(145deg,#a264e6,#6f39b8)!important;
+  border:1px solid rgba(222,190,255,.58)!important;
+  box-shadow:0 10px 25px rgba(100,49,158,.38),inset 0 1px 0 rgba(255,255,255,.26)!important;
+}
+.credit-prompt .eyebrow{margin:0 28px 8px!important;color:#cda9ff!important;font-size:11px!important;letter-spacing:.19em!important;font-weight:900!important}
+.credit-prompt h2{margin:0 28px 12px!important;font-size:30px!important;line-height:1.08!important;color:#fff!important;letter-spacing:-.02em!important}
+.credit-prompt-copy{
+  margin:0 28px 22px!important;max-width:none!important;color:#eee6f5!important;
+  font-size:17px!important;line-height:1.55!important;font-weight:600!important;
+}
+.credit-prompt-balance{
+  margin:0 28px 25px!important;padding:17px 18px!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  border:1px solid rgba(178,132,235,.28)!important;border-radius:16px!important;
+  background:linear-gradient(135deg,rgba(120,74,171,.16),rgba(255,255,255,.025))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.credit-prompt-balance span{font-size:13px!important;color:#bfb3ca!important;font-weight:600!important}
+.credit-prompt-balance strong{font-size:18px!important;color:#f0dcff!important;font-weight:900!important}
+.credit-prompt-actions{
+  display:grid!important;grid-template-columns:1fr 1.35fr!important;gap:11px!important;
+  padding:20px 28px 28px!important;border-top:1px solid rgba(255,255,255,.07)!important;
+  background:rgba(5,2,10,.20)!important;
+}
+.credit-prompt-actions button{min-height:54px!important;margin:0!important;border-radius:13px!important;font-size:14px!important;font-weight:850!important}
+.credit-prompt-actions [data-credit-cancel]{background:#21182f!important;border:1px solid #60487d!important;color:#e8dff0!important}
+.credit-prompt-actions [data-credit-load]{
+  background:linear-gradient(180deg,#a56ae9 0%,#8548d1 52%,#7036bb 100%)!important;
+  border:1px solid rgba(215,176,255,.72)!important;color:#fff!important;
+  box-shadow:0 7px 18px rgba(70,29,118,.45),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+@media(max-width:420px){
+  .credit-prompt-icon{margin:23px 22px 14px!important}
+  .credit-prompt .eyebrow,.credit-prompt h2,.credit-prompt-copy,.credit-prompt-balance{margin-left:22px!important;margin-right:22px!important}
+  .credit-prompt h2{font-size:27px!important}.credit-prompt-copy{font-size:16px!important}
+  .credit-prompt-actions{padding:18px 22px 22px!important;grid-template-columns:1fr!important}
+  .credit-prompt-actions [data-credit-load]{grid-row:1!important}
+}
