@@ -409,3 +409,9 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .song-wave{justify-content:center;width:100%;max-width:none}
 #gallery .gallery-list .song-card .song-wave i{flex:0 1 4px;width:3px}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(145px,1.35fr) minmax(80px,.9fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:none}#gallery .gallery-list .song-card .song-wave{min-width:0}}
+
+/* Final visual balance: keep waveform closer to song info while play stays pinned right. */
+#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 150px 40px!important}
+#gallery .gallery-list .song-card .song-wave{width:150px;justify-self:start;justify-content:center}
+#gallery .gallery-list .song-card .mini-play{justify-self:end}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 118px 40px!important}#gallery .gallery-list .song-card .song-wave{width:118px}}
