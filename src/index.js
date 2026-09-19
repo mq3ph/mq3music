@@ -276,7 +276,7 @@ export function createApp(s=services()){
             'Content-Type':'application/json'
           },
           body:JSON.stringify({
-            model:String(env.OPENAI_LYRICS_MODEL||'gpt-5.4-mini'),
+            model:String(env.OPENAI_LYRICS_MODEL||'gpt-5.6-luna'),
             input:prompt,
             text:{format:{type:'json_schema',name:'mq3_song',strict:true,schema:{type:'object',properties:{title:{type:'string'},lyrics:{type:'string'}},required:['title','lyrics'],additionalProperties:false}}},
             max_output_tokens:3000
