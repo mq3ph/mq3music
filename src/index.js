@@ -247,6 +247,39 @@ export function createApp(s=services()){
 
   app.get('/api/admin/song-creator-requests',wrap(async(_req,res)=>res.json(await q('SELECT * FROM song_creator_requests ORDER BY created_at DESC'))));
 
+  app.patch('/api/admin/song-creator-requests/:id',wrap(async(req,res)=>{
+    sameOrigin(req);
+    const id=uuid(req.params.id);
+    const status=String(req.body?.status||'').trim();
+    const allowed=new Set(['queued','creating','ready','revision']);
+    if(!allowed.has(status))fail(400,'Choose a valid song request status.');
+    const version1=String(req.body?.version1Url||'').trim().slice(0,2000);
+    const version2=String(req.body?.version2Url||'').trim().slice(0,2000);
+    if(status==='ready'&&(!version1||!version2))fail(400,'Add both song version links before marking Ready.');
+    const [updated]=await q(`UPDATE song_creator_requests SET status=$2,version_1_url=NULLIF($3,''),version_2_url=NULLIF($4,''),updated_at=now() WHERE id=$1 RETURNING *`,[id,status,version1,version2]);
+    if(!updated)fail(404,'Song request not found.');
+    if(status==='ready'){
+      try{
+        await s.mail(updated.email,'Your MQ3 Song Is Ready! 🎵',
+          'Hi '+(updated.display_name||'there')+',\n\nYour personalized song is now ready. We created two versions for you to enjoy and choose from.\n\nVisit My Songs on MQ3 Music to listen to your songs.\n\nYour request includes one reasonable revision if needed.',
+          'song-ready-'+updated.id+'-'+String(updated.updated_at||Date.now()));
+      }catch(error){console.error('[mq3/song-ready-email]',error);}
+    }
+    res.json({ok:true,request:updated});
+  }));
+
+  app.post('/api/song-creator/requests/:id/revision',wrap(async(req,res)=>{
+    sameOrigin(req); await limit(req,'song-revision',8);
+    const raw=req.cookies?.mq3_user;if(!raw)fail(401,'Sign in to request a revision.');
+    const [user]=await q(`SELECT u.id FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()`,[hash(raw)]);
+    if(!user)fail(401,'Your session expired. Sign in again.');
+    const id=uuid(req.params.id),notes=String(req.body?.notes||'').trim().slice(0,2000);
+    if(!notes)fail(400,'Tell us what you would like changed.');
+    const [updated]=await q(`UPDATE song_creator_requests SET status='revision',revision_notes=$3,revision_used=true,updated_at=now() WHERE id=$1 AND user_id=$2 AND status='ready' AND revision_used=false RETURNING *`,[id,user.id,notes]);
+    if(!updated)fail(400,'This request is not eligible for another included revision.');
+    res.json({ok:true,request:updated});
+  }));
+
   /* =========================================================
      AI SONG LYRICS
   ========================================================= */
