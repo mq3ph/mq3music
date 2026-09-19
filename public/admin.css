@@ -3,20 +3,20 @@
 ========================================================= */
 
 :root{
-  --admin-bg:#240707;
-  --admin-bg-deep:#120303;
+  --admin-bg:#160d2f;
+  --admin-bg-deep:#090516;
 
   --admin-panel:rgba(47,10,10,.74);
   --admin-panel-soft:rgba(255,255,255,.025);
 
-  --admin-gold:#ebc77e;
-  --admin-gold-light:#ffe4a2;
-  --admin-gold-dark:#a8732f;
+  --admin-gold:#b995f4;
+  --admin-gold-light:#e7d8ff;
+  --admin-gold-dark:#7550b8;
 
   --admin-text:#f8eee2;
   --admin-muted:#bca99d;
 
-  --admin-line:rgba(235,199,126,.20);
+  --admin-line:rgba(185,149,244,.20);
   --admin-line-soft:rgba(255,255,255,.08);
 
   --admin-radius:18px;
@@ -33,19 +33,19 @@ body{
   background:
     radial-gradient(
       circle at 15% 0%,
-      rgba(137,31,26,.55),
+      rgba(102,55,168,.55),
       transparent 35%
     ),
     radial-gradient(
       circle at 85% 20%,
-      rgba(89,17,15,.35),
+      rgba(69,34,122,.35),
       transparent 35%
     ),
     linear-gradient(
       145deg,
-      #3b0b0b 0%,
-      #210606 48%,
-      #120303 100%
+      #24114a 0%,
+      #130a29 48%,
+      #090516 100%
     );
 
   color:var(--admin-text);
@@ -66,7 +66,7 @@ body::before{
     linear-gradient(
       115deg,
       transparent 0 45%,
-      rgba(235,199,126,.08) 45.2%,
+      rgba(185,149,244,.08) 45.2%,
       transparent 45.5%
     );
 
@@ -136,14 +136,14 @@ main#dashboard{
 
   letter-spacing:-2px;
 
-  color:#f7d98f;
+  color:#d9c4ff;
 
   background:
     linear-gradient(
       180deg,
-      #fff1bc 0%,
-      #f2cf78 48%,
-      #b77a2d 100%
+      #f2eaff 0%,
+      #c9a7ff 48%,
+      #8157c7 100%
     );
 
   -webkit-background-clip:text;
@@ -184,10 +184,10 @@ main#dashboard{
   padding:10px 22px;
 
   border-color:
-    rgba(235,199,126,.55);
+    rgba(185,149,244,.55);
 
   background:
-    rgba(30,5,5,.25);
+    rgba(22,11,45,.25);
 
   box-shadow:
     inset 0 1px
@@ -202,7 +202,7 @@ main#dashboard{
     var(--admin-gold);
 
   background:
-    rgba(235,199,126,.08);
+    rgba(185,149,244,.08);
 }
 
 
@@ -281,7 +281,7 @@ main#dashboard{
   border-radius:13px;
 
   background:
-    rgba(17,3,3,.28);
+    rgba(14,7,29,.28);
 }
 
 
@@ -364,10 +364,10 @@ main#dashboard{
 
 .tabs button:hover{
   border-color:
-    rgba(235,199,126,.45);
+    rgba(185,149,244,.45);
 
   background:
-    rgba(235,199,126,.06);
+    rgba(185,149,244,.06);
 }
 
 
@@ -385,7 +385,7 @@ main#dashboard{
 
   box-shadow:
     0 0 0 3px
-    rgba(235,199,126,.10),
+    rgba(185,149,244,.10),
     0 7px 24px
     rgba(0,0,0,.22),
     inset 0 1px
@@ -461,7 +461,7 @@ input{
   border-radius:14px;
 
   background:
-    rgba(10,3,3,.62);
+    rgba(10,6,22,.62);
 
   color:#fff;
 
@@ -482,7 +482,7 @@ input::placeholder{
 .admin-search-wrap
 input:focus{
   border-color:
-    rgba(235,199,126,.65);
+    rgba(185,149,244,.65);
 }
 
 
@@ -499,10 +499,10 @@ input:focus{
   min-height:48px;
 
   border-color:
-    rgba(235,199,126,.65);
+    rgba(185,149,244,.65);
 
   background:
-    rgba(37,6,6,.35);
+    rgba(25,13,50,.35);
 
   color:#f3e6d5;
 }
@@ -538,7 +538,7 @@ input:focus{
 
   border:
     1px solid
-    rgba(235,199,126,.30);
+    rgba(185,149,244,.30);
 
   border-radius:
     var(--admin-radius);
@@ -546,7 +546,7 @@ input:focus{
   background:
     linear-gradient(
       160deg,
-      rgba(80,17,15,.48),
+      rgba(63,31,112,.48),
       rgba(26,4,4,.72)
     );
 
@@ -576,7 +576,7 @@ input:focus{
   background:
     radial-gradient(
       ellipse at center,
-      rgba(235,199,126,.28),
+      rgba(185,149,244,.28),
       transparent 65%
     );
 
@@ -656,7 +656,7 @@ input:focus{
   border-radius:14px;
 
   background:
-    rgba(20,3,3,.35);
+    rgba(15,8,31,.35);
 
   box-shadow:
     inset 0 1px
@@ -733,7 +733,7 @@ tbody tr{
 
 tbody tr:hover{
   background:
-    rgba(235,199,126,.035);
+    rgba(185,149,244,.035);
 }
 
 
@@ -855,14 +855,14 @@ td .button{
   padding:5px 13px;
 
   border-color:
-    rgba(235,199,126,.48);
+    rgba(185,149,244,.48);
 
   font-size:10px;
 
   color:#f4d48c;
 
   background:
-    rgba(235,199,126,.035);
+    rgba(185,149,244,.035);
 }
 
 
@@ -871,7 +871,7 @@ td .button:hover{
     var(--admin-gold);
 
   background:
-    rgba(235,199,126,.10);
+    rgba(185,149,244,.10);
 }
 
 
@@ -888,7 +888,7 @@ textarea{
     1px solid
     rgba(255,255,255,.18);
 
-  background:#160505;
+  background:#100824;
 
   color:#f3e6d5;
 
@@ -934,7 +934,7 @@ label.check input{
 
   border:
     1px solid
-    rgba(235,199,126,.28);
+    rgba(185,149,244,.28);
 
   border-radius:20px;
 
@@ -979,7 +979,7 @@ label.check input{
 
   letter-spacing:-1px;
 
-  color:#f2cf78;
+  color:#c9a7ff;
 }
 
 
@@ -1021,7 +1021,7 @@ label.check input{
 
 dialog{
   border-color:
-    rgba(235,199,126,.38);
+    rgba(185,149,244,.38);
 
   background:
     linear-gradient(
