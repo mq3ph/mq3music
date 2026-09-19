@@ -6,6 +6,6 @@ await build({entryPoints:['src/admin-client.js'],bundle:true,minify:true,format:
 // Vercel production serves the root index for the Song Creator. Keep the
 // Featured Songs markup in that production entry too, and emit a dedicated
 // static page for /featuredsongs.
-await copyFile('public/index.html','public/featuredsongs.html');
+// Dedicated Featured Songs page is maintained separately; do not overwrite it from index.html.
 
 console.log('Admin upload client built. Featured Songs page synced.');
