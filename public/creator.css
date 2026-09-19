@@ -470,3 +470,7 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 /* Featured Songs is now an anchor; keep the original homepage secondary-button styling. */
 #home.hero>a.ghost-home{display:flex!important;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none!important;min-height:54px;padding:0 18px;margin:10px 0 0;border:1px solid #72509b;border-radius:11px;background:#21182f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 #home.hero>a.ghost-home:hover{filter:brightness(1.08)}
+
+/* Make screen navigation links (Home / Back / similar) easier to see and tap. */
+.screen>a[data-go],.screen>a[href="/"]{display:inline-flex;align-items:center;min-height:36px;font-size:15px!important;font-weight:700!important;line-height:1.2;letter-spacing:.01em;text-decoration:none}
+@media(max-width:560px){.screen>a[data-go],.screen>a[href="/"]{font-size:15px!important;font-weight:700!important}}
