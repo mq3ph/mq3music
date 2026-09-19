@@ -431,3 +431,11 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .mini-play{grid-column:3;grid-row:1;justify-self:end;position:relative;z-index:2}
 #gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:185px;padding-right:118px}#gallery .gallery-list .song-card .song-wave{left:calc(54px + 185px);right:54px;width:auto}}
+
+/* Reliable gallery layout: dedicated centered waveform column, no absolute positioning. */
+#gallery .gallery-list .song-card{display:grid;grid-template-columns:54px minmax(0,1fr) 140px 40px!important;position:static;align-items:center}
+#gallery .gallery-list .song-card>span{grid-column:2;grid-row:1;width:auto;max-width:none;padding-right:0;box-sizing:border-box;min-width:0}
+#gallery .gallery-list .song-card .song-wave{grid-column:3;grid-row:1;position:static;left:auto;right:auto;top:auto;width:140px;max-width:140px;height:42px;justify-self:center;display:flex;justify-content:center;overflow:hidden;padding:0 4px;box-sizing:border-box}
+#gallery .gallery-list .song-card .mini-play{grid-column:4;grid-row:1;justify-self:end;position:static}
+#gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 104px 40px!important}#gallery .gallery-list .song-card>span{max-width:none;padding-right:0}#gallery .gallery-list .song-card .song-wave{position:static;width:104px;max-width:104px}}
