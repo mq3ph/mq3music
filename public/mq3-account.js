@@ -11,6 +11,7 @@
   const accountPanel = $('account-panel');
 
   const emailInput = $('account-email');
+  const signinNameInput = $('account-signin-name');
   const emailMessage = $('account-email-message');
 
   const codeEmail = $('account-code-email');
@@ -1120,6 +1121,13 @@
     event.preventDefault();
 
     const address = emailInput.value.trim();
+    const signinName = signinNameInput?.value.trim() || '';
+
+    if (!signinName) {
+      setMessage(emailMessage, 'Enter your name before signing in.', true);
+      signinNameInput?.focus();
+      return;
+    }
 
     if (!address) {
       setMessage(
