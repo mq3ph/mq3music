@@ -53,15 +53,13 @@
   ],
   "rewrites": [
     {
+      "source": "/featuredsongs",
+      "destination": "/featuredsongs.html"
+    },
+    {
       "source": "/mysongs",
       "destination": "/index.html"
     }
   ],
-  "redirects": [
-    {
-      "source": "/featuredsongs",
-      "destination": "/featuredsongs.html",
-      "permanent": false
-    }
-  ]
+  "redirects": []
 }
