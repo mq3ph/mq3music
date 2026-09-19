@@ -2085,8 +2085,19 @@ function render(){
 
   if(tab==='Song Requests'){
     $('tab-note').textContent=songCreatorRequests.length?songCreatorRequests.length+' Create My Song request'+(songCreatorRequests.length===1?'':'s'):'No Create My Song requests yet.';
-    const body=table(['Date','Customer','Song Type','For / Subject','Details','Credits','Status']);
-    songCreatorRequests.filter(match).forEach(r=>row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,r.song_type,r.subject_name||'—',r.story,r.credits,badge(r.status)]));
+    const labels={someone:'Song for Someone',wedding:'Wedding / Anniversary',celebration:'Celebration Song',faith:'Inspirational / Faith',story:'Song About My Story',original:'Create My Own Song',jingle:'Jingle'};
+    const statusLabels={queued:'Queued',creating:'Creating Your Song',ready:'Ready'};
+    const body=table(['Date','Customer','Song Type','For / Subject','Request Details','Credits','Status']);
+    songCreatorRequests.filter(match).forEach(r=>{
+      const details=node('div');
+      details.className='song-request-details';
+      details.append(node('strong',r.story));
+      const meta=[r.relationship&&('Relationship: '+r.relationship),r.occasion&&('Occasion: '+r.occasion),r.language&&('Language: '+r.language)].filter(Boolean);
+      if(meta.length)details.append(node('small',meta.join(' · ')));
+      const state=badge(statusLabels[r.status]||r.status);
+      state.classList.add('song-request-status');
+      row(body,[new Date(r.created_at).toLocaleString(),r.display_name||r.email,labels[r.song_type]||r.song_type,r.subject_name||'—',details,r.credits,state]);
+    });
 
   }else if(
     cats.includes(tab)
