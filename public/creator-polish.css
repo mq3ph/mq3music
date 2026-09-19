@@ -145,3 +145,40 @@ input:focus,select:focus,textarea:focus{border-color:#87939a!important;box-shado
   background:linear-gradient(180deg,#225247 0%,#174138 52%,#0e302a 100%)!important;
   filter:none!important;
 }
+
+
+/* Cohesive midnight-green content accents: replace remaining violet-heavy surfaces. */
+.eyebrow{color:#8fb8aa!important}
+h1 em{color:#a9c7bd!important}
+nav{color:#72998c!important}
+.screen>a{color:#aeb8bf!important}
+.hero aside,.feature-box,.made{
+  background:linear-gradient(145deg,#112129 0%,#0d1a22 100%)!important;
+  border-color:#31464a!important;
+}
+.hero aside h3,.feature-box h3{color:#dce8e4!important}
+.hero aside div small,.feature-box>p,.made small{color:#9eadaf!important}
+.types i{
+  background:#1a302f!important;
+  color:#b9d1c8!important;
+}
+.types button.special{
+  background:linear-gradient(100deg,#10231f,#152b27)!important;
+  border-color:#36574f!important;
+}
+.chips button{
+  background:#132521!important;
+  border-color:#365149!important;
+  color:#c6d8d2!important;
+}
+.cost strong{color:#a9c7bd!important}
+article>i,.song-card .cover{
+  background:linear-gradient(145deg,#315c52,#1d4038)!important;
+}
+article small{color:#91aaa2!important}
+article em{color:#8fb8aa!important}
+.wallet-card strong,.credit-packages button b{color:#b6cec5!important}
+.switchrow input{accent-color:#315e53!important}
+:where(button,a,input,select,textarea,summary):focus-visible{
+  outline-color:rgba(121,164,151,.78)!important;
+}
