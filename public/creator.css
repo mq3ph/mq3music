@@ -423,3 +423,11 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .mini-play{grid-column:5;justify-self:end}
 #gallery .gallery-list .song-card .buy{grid-column:1/-1}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(80px,max-content) minmax(78px,118px) minmax(0,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:170px}#gallery .gallery-list .song-card .song-wave{width:100%}}
+
+/* Center the visualizer in the live gap between song info and Play. */
+#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 40px!important;position:relative}
+#gallery .gallery-list .song-card>span{grid-column:2;width:auto;max-width:220px;padding-right:150px;box-sizing:content-box}
+#gallery .gallery-list .song-card .song-wave{position:absolute;left:calc(54px + 220px);right:58px;top:12px;width:auto;max-width:none;height:42px;display:flex;justify-content:center;pointer-events:none}
+#gallery .gallery-list .song-card .mini-play{grid-column:3;grid-row:1;justify-self:end;position:relative;z-index:2}
+#gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:185px;padding-right:118px}#gallery .gallery-list .song-card .song-wave{left:calc(54px + 185px);right:54px;width:auto}}
