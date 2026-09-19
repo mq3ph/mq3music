@@ -395,3 +395,10 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .mini-play{grid-column:4;grid-row:1;justify-self:end}
 #gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 92px 40px!important;column-gap:8px!important}#gallery .gallery-list .song-card .song-wave{width:92px}}
+
+/* Let the waveform naturally follow the title block instead of favoring the play button. */
+#gallery .gallery-list .song-card{grid-template-columns:54px max-content minmax(90px,1fr) 40px!important}
+#gallery .gallery-list .song-card>span{width:max-content;max-width:210px}
+#gallery .gallery-list .song-card .song-wave{justify-self:stretch;justify-content:stretch;max-width:none}
+#gallery .gallery-list .song-card .song-wave i{flex:1;max-width:4px;min-width:2px}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(72px,max-content) minmax(70px,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:165px}}
