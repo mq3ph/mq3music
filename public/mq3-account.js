@@ -417,6 +417,17 @@
         <div class="eyebrow">MQ3 LOAD CREDITS</div>
         <h2 style="margin-bottom:6px;">🪙 Complete Credit Load</h2>
 
+        <label>
+          Choose credit package
+          <select id="mq3-credit-load-amount" required>
+            <option value="50">₱50 — 50 Credits</option>
+            <option value="100">₱100 — 105 Credits</option>
+            <option value="250">₱250 — 275 Credits</option>
+            <option value="500">₱500 — 575 Credits</option>
+            <option value="1000">₱1,000 — 1,200 Credits</option>
+          </select>
+        </label>
+
         <p id="mq3-credit-load-package"
            style="margin-top:0;font-weight:700;"></p>
 
@@ -482,6 +493,18 @@
         'change',
         updateCreditPaymentInstructions
       );
+
+    $('mq3-credit-load-amount')
+      ?.addEventListener('change', event => {
+        const amountPesos = Number(event.target.value || 0);
+        const credits = creditPackages[amountPesos];
+        if (!credits) return;
+        selectedCreditAmount = amountPesos;
+        const packageText = $('mq3-credit-load-package');
+        if (packageText) packageText.textContent =
+          `₱${amountPesos.toLocaleString()} → 🪙 ${credits.toLocaleString()} Credits`;
+        updateCreditPaymentInstructions();
+      });
 
     $('mq3-credit-load-form')
       ?.addEventListener(
@@ -623,6 +646,9 @@
 
     packageText.textContent =
       `₱${amountPesos.toLocaleString()} → 🪙 ${credits.toLocaleString()} Credits`;
+
+    const amountSelect = $('mq3-credit-load-amount');
+    if (amountSelect) amountSelect.value = String(amountPesos);
 
     reference.value = '';
     provider.value = 'gcash';
