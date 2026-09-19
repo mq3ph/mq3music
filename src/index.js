@@ -2369,6 +2369,15 @@ export function createApp(s=services()){
   );
 
 
+  app.delete('/api/admin/orders/:id',wrap(async(req,res)=>{
+    const id=uuid(req.params.id);
+    const [order]=await q('SELECT id,status FROM orders WHERE id=$1',[id]);
+    if(!order)fail(404,'Payment record not found.');
+    if(order.status==='paid')fail(409,'Verified paid records are kept for payment history and cannot be deleted.');
+    await q('DELETE FROM orders WHERE id=$1',[id]);
+    res.json({ok:true});
+  }));
+
   /* =========================================================
      REVIEW PAYMENT
   ========================================================= */
