@@ -34,6 +34,12 @@ dialog{max-height:min(88dvh,760px);max-width:calc(100vw - 24px);box-sizing:borde
 #customStyleWrap:not(.hidden){margin-top:14px;padding:14px;border:1px solid rgba(147,107,255,.35);border-radius:14px;background:rgba(33,24,60,.55)}
 .cost{gap:14px}.cost span{min-width:0}.cost strong{white-space:nowrap}
 
+/* Make validation failures obvious without changing the established flow. */
+input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d66c9e;box-shadow:0 0 0 3px rgba(214,108,158,.12)}
+input:user-valid:not(:placeholder-shown),textarea:user-valid:not(:placeholder-shown){border-color:rgba(147,107,255,.62)}
+#toast{max-width:calc(100vw - 24px);line-height:1.45;box-shadow:0 10px 34px rgba(0,0,0,.32)}
+#gallery .gallery-list:empty::after{content:'No songs match this search.';display:block;padding:24px 16px;text-align:center;color:#938a9f;border:1px dashed #3a2d58;border-radius:16px;background:#151124}
+
 @media(max-width:560px){
   main{padding-bottom:max(48px,env(safe-area-inset-bottom))}
   .screen{padding-top:22px}
