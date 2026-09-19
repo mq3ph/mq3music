@@ -402,3 +402,10 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .song-wave{justify-self:stretch;justify-content:stretch;max-width:none}
 #gallery .gallery-list .song-card .song-wave i{flex:1;max-width:4px;min-width:2px}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(72px,max-content) minmax(70px,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:165px}}
+
+/* Balance title, waveform and play button: waveform owns the middle space consistently. */
+#gallery .gallery-list .song-card{grid-template-columns:54px minmax(155px,210px) minmax(90px,1fr) 40px!important}
+#gallery .gallery-list .song-card>span{width:auto;max-width:none}
+#gallery .gallery-list .song-card .song-wave{justify-content:center;width:100%;max-width:none}
+#gallery .gallery-list .song-card .song-wave i{flex:0 1 4px;width:3px}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(145px,1.35fr) minmax(80px,.9fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:none}#gallery .gallery-list .song-card .song-wave{min-width:0}}
