@@ -1706,10 +1706,15 @@ export function createApp(s=services()){
     const id=uuid(req.params.id);
     const [listener]=await q('SELECT id,email FROM users WHERE id=$1',[id]);
     if(!listener)fail(404,'Listener account not found.');
-    const [activity]=await q(`SELECT
-      EXISTS(SELECT 1 FROM credit_transactions WHERE user_id=$1) AS credits,
-      EXISTS(SELECT 1 FROM credit_load_orders WHERE user_id=$1) AS loads,
-      EXISTS(SELECT 1 FROM song_creator_requests WHERE user_id=$1) AS songs`,[id]).catch(()=>[{credits:true,loads:true,songs:true}]);
+    let activity={credits:true,loads:true,songs:true};
+    try{
+      [activity]=await q(`SELECT
+        EXISTS(SELECT 1 FROM credit_transactions WHERE user_id=$1) AS credits,
+        EXISTS(SELECT 1 FROM credit_load_orders WHERE user_id=$1) AS loads,
+        EXISTS(SELECT 1 FROM song_creator_requests WHERE user_id=$1) AS songs`,[id]);
+    }catch(error){
+      console.warn('[mq3/listener-delete-check]',error);
+    }
     if(activity?.credits||activity?.loads||activity?.songs)fail(409,'This listener has Credit or song activity and cannot be deleted from the account list.');
     await q('DELETE FROM user_sessions WHERE user_id=$1',[id]);
     await q('DELETE FROM wallets WHERE user_id=$1',[id]);
