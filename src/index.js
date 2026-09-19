@@ -1706,18 +1706,22 @@ export function createApp(s=services()){
     const id=uuid(req.params.id);
     const [listener]=await q('SELECT id,email FROM users WHERE id=$1',[id]);
     if(!listener)fail(404,'Listener account not found.');
-    let activity={credits:true,loads:true,songs:true};
-    try{
-      [activity]=await q(`SELECT
-        EXISTS(SELECT 1 FROM credit_transactions WHERE user_id=$1) AS credits,
-        EXISTS(SELECT 1 FROM credit_load_orders WHERE user_id=$1) AS loads,
-        EXISTS(SELECT 1 FROM song_creator_requests WHERE user_id=$1) AS songs`,[id]);
-    }catch(error){
-      console.warn('[mq3/listener-delete-check]',error);
+
+    // Admin cleanup: remove the listener account and all listener-owned
+    // operational records. Legacy paid orders use email rather than user_id
+    // and are intentionally retained as payment history.
+    const tables=[
+      'song_creator_requests','credit_load_orders','gifts',
+      'credit_transactions','user_sessions','wallets'
+    ];
+    for(const table of tables){
+      try{await q(`DELETE FROM ${table} WHERE user_id=$1`,[id]);}
+      catch(error){
+        // Some older MQ3 databases may not have every newer table yet.
+        if(table==='song_creator_requests')console.warn('[mq3/listener-delete]',table,error);
+        else throw error;
+      }
     }
-    if(activity?.credits||activity?.loads||activity?.songs)fail(409,'This listener has Credit or song activity and cannot be deleted from the account list.');
-    await q('DELETE FROM user_sessions WHERE user_id=$1',[id]);
-    await q('DELETE FROM wallets WHERE user_id=$1',[id]);
     await q('DELETE FROM users WHERE id=$1',[id]);
     res.json({ok:true});
   }));
