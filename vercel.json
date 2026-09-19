@@ -49,9 +49,22 @@
           "value": "no-store, no-cache, must-revalidate, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/create",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/create",
+      "destination": "/index.html"
+    },
     {
       "source": "/featuredsongs",
       "destination": "/featuredsongs.html"
