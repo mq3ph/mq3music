@@ -25,6 +25,15 @@ dialog{max-height:min(88dvh,760px);max-width:calc(100vw - 24px);box-sizing:borde
 .account-dialog,.credit-prompt,.catalog-player{overflow:auto;-webkit-overflow-scrolling:touch}
 .credit-prompt::backdrop,.catalog-player::backdrop,.account-dialog::backdrop{background:rgba(6,3,18,.76);backdrop-filter:blur(3px)}
 .hidden-card{display:none!important}
+
+/* Keep long editing actions usable without crowding the phone viewport. */
+.chips{scrollbar-width:thin;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.chips button{min-height:42px;scroll-snap-align:start;flex:0 0 auto}
+.screen>nav{user-select:none}
+.screen>a[data-go]{display:inline-flex;align-items:center;min-height:44px;padding:6px 0;text-decoration:none}
+#customStyleWrap:not(.hidden){margin-top:14px;padding:14px;border:1px solid rgba(147,107,255,.35);border-radius:14px;background:rgba(33,24,60,.55)}
+.cost{gap:14px}.cost span{min-width:0}.cost strong{white-space:nowrap}
+
 @media(max-width:560px){
   main{padding-bottom:max(48px,env(safe-area-inset-bottom))}
   .screen{padding-top:22px}
@@ -44,6 +53,8 @@ dialog{max-height:min(88dvh,760px);max-width:calc(100vw - 24px);box-sizing:borde
   .song-card{align-items:center}
   .song-card .buy,.song-card .listen-only{width:100%}
   dialog{max-height:calc(100dvh - 24px);max-width:calc(100vw - 16px);margin-block:auto}
+  .chips{margin-inline:-2px;padding:10px 2px 12px;scroll-padding-inline:2px}
+  .cost{align-items:flex-start}.cost strong{padding-top:2px}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:1fr}
