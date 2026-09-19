@@ -415,3 +415,11 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .gallery-list .song-card .song-wave{width:150px;justify-self:start;justify-content:center}
 #gallery .gallery-list .song-card .mini-play{justify-self:end}
 @media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 118px 40px!important}#gallery .gallery-list .song-card .song-wave{width:118px}}
+
+/* Place waveform immediately after song text; flexible blank space remains before Play. */
+#gallery .gallery-list .song-card{grid-template-columns:54px max-content 150px minmax(0,1fr) 40px!important}
+#gallery .gallery-list .song-card>span{grid-column:2;width:max-content;max-width:210px}
+#gallery .gallery-list .song-card .song-wave{grid-column:3;width:150px;justify-self:start}
+#gallery .gallery-list .song-card .mini-play{grid-column:5;justify-self:end}
+#gallery .gallery-list .song-card .buy{grid-column:1/-1}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(80px,max-content) minmax(78px,118px) minmax(0,1fr) 40px!important}#gallery .gallery-list .song-card>span{max-width:170px}#gallery .gallery-list .song-card .song-wave{width:100%}}
