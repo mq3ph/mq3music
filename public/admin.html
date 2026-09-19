@@ -41,167 +41,46 @@
 
 
   <!-- DASHBOARD -->
-  <main id="dashboard" class="hidden">
+  <main id="dashboard" class="hidden premium-admin-shell">
+    <aside class="premium-sidebar">
+      <div class="premium-logo"><img src="/logo.png" alt="MQ3"><div><strong>MQ3</strong><span>MUSIC</span><small>TURN YOUR IDEAS INTO SONGS</small></div></div>
+      <div class="premium-nav-title">MANAGEMENT</div>
+      <nav id="tabs" class="tabs premium-nav" aria-label="Admin sections"></nav>
+      <div class="premium-sidebar-foot">MQ3 Music Admin<small>Music connects us all ♥</small></div>
+    </aside>
 
-    <!-- HEADER -->
-    <header class="admin-head">
-
-      <div class="admin-brand">
-
-        <div class="eyebrow">
-          MQ3 · YOUR MUSIC SPACE
+    <section class="premium-workspace">
+      <header class="admin-head premium-topbar">
+        <div class="admin-brand">
+          <div class="eyebrow">MQ3 MUSIC ADMIN</div>
+          <h1>Welcome, Admin</h1>
+          <div class="admin-tagline">Manage your MQ3 Music platform</div>
         </div>
-
-        <h1>DASHBOARD</h1>
-
-        <div class="admin-tagline">
-          Manage songs. Connect with listeners. Share music.
+        <div class="admin-head-actions">
+          <button class="button" type="button" id="view-public-app">View public app</button>
+          <button class="button" id="logout">Log out</button>
         </div>
+      </header>
 
-      </div>
+      <section class="premium-overview-grid">
+        <div class="premium-stat"><span class="stat-icon">♫</span><div><small>Dashboard Overview</small><strong id="summary">MQ3 Music</strong></div></div>
+        <div class="premium-stat"><span class="stat-icon cyan">◉</span><div><small>Connections</small><strong id="setup" class="notice">Checking…</strong></div></div>
+        <div class="premium-stat"><span class="stat-icon gold">⌕</span><div><small>Search Records</small><strong>Quick access</strong></div></div>
+      </section>
 
+      <section class="admin-tools">
+        <div class="admin-search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="admin-search" type="search" placeholder="Search name, email or date..." aria-label="Search dashboard"></div>
+        <div class="admin-tool-actions"><button id="new-song" class="button primary hidden">+ Upload a song</button><button id="backup" class="button backup-button">↓ &nbsp; Download metadata backup</button></div>
+      </section>
 
-      <div class="admin-head-actions">
-
-        <a class="button" href="/" target="_blank" rel="noopener noreferrer">
-          View public app
-        </a>
-
-        <button class="button" id="logout">
-          Log out
-        </button>
-
-      </div>
-
-    </header>
-
-
-    <!-- SUMMARY -->
-    <section class="dashboard-summary">
-
-      <div class="summary-label">
-        OVERVIEW
-      </div>
-
-      <p id="summary"></p>
-
+      <div id="tab-note" class="notice tab-note"></div>
+      <section class="records-panel">
+        <div class="records-heading"><div><div class="records-kicker">MQ3 MANAGEMENT</div><h2 id="records-title">Song Requests</h2></div></div>
+        <div id="records" class="table-wrap"></div>
+      </section>
+      <footer class="admin-footer"><div><strong>MQ3 · YOUR MUSIC SPACE</strong><span>Music brings people together.</span></div><div class="footer-motto">CREATE · SHARE · INSPIRE</div></footer>
     </section>
-
-
-    <!-- CONNECTION STATUS -->
-    <div class="connection-panel">
-
-      <span class="connection-title">
-        Connections
-      </span>
-
-      <div id="setup" class="notice"></div>
-
-    </div>
-
-
-    <!-- TABS -->
-    <nav
-      id="tabs"
-      class="tabs"
-      aria-label="Admin sections"
-    ></nav>
-
-
-    <!-- TOOLS -->
-    <section class="admin-tools">
-
-      <div class="admin-search-wrap">
-
-        <span class="search-icon" aria-hidden="true">
-          ⌕
-        </span>
-
-        <input
-          id="admin-search"
-          type="search"
-          placeholder="Search name, email or date..."
-          aria-label="Search dashboard"
-        >
-
-      </div>
-
-
-      <div class="admin-tool-actions">
-
-        <button
-          id="new-song"
-          class="button primary hidden"
-        >
-          + Upload a song
-        </button>
-
-        <button
-          id="backup"
-          class="button backup-button"
-        >
-          ↓ &nbsp; Download metadata backup
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- TAB NOTE -->
-    <div
-      id="tab-note"
-      class="notice tab-note"
-    ></div>
-
-
-    <!-- RECORD PANEL -->
-    <section class="records-panel">
-
-      <div class="records-heading">
-
-        <div>
-          <div class="records-kicker">
-            MQ3 MANAGEMENT
-          </div>
-
-          <h2 id="records-title">
-            Name Requests
-          </h2>
-        </div>
-
-      </div>
-
-
-      <div
-        id="records"
-        class="table-wrap"
-      ></div>
-
-    </section>
-
-
-    <!-- FOOTER -->
-    <footer class="admin-footer">
-
-      <div>
-        <strong>
-          MQ3 · YOUR MUSIC SPACE
-        </strong>
-
-        <span>
-          Music brings people together.
-        </span>
-      </div>
-
-      <div class="footer-motto">
-        CREATE · SHARE · INSPIRE
-      </div>
-
-    </footer>
-
   </main>
-
 
   <!-- SONG EDITOR -->
   <dialog id="editor">
