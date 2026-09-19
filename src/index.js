@@ -215,6 +215,39 @@ export function createApp(s=services()){
 
 
   /* =========================================================
+     SONG CREATOR REQUEST QUEUE
+  ========================================================= */
+
+  app.post('/api/song-creator/requests',wrap(async(req,res)=>{
+    sameOrigin(req); await limit(req,'song-creator-request',12);
+    const raw=req.cookies?.mq3_user;if(!raw)fail(401,'Sign in to your MQ3 account before creating a song.');
+    const [user]=await q(`SELECT u.id,u.email,u.display_name FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()`,[hash(raw)]);
+    if(!user)fail(401,'Your session expired. Sign in again before creating your song.');
+    const songType=String(req.body.songType||'').trim().slice(0,40),allowed=new Set(['someone','wedding','celebration','faith','story','original','jingle']);
+    if(!allowed.has(songType))fail(400,'Choose a valid song type.');
+    const subjectName=String(req.body.name||'').trim().slice(0,120),relationship=String(req.body.relationship||'').trim().slice(0,80),occasion=String(req.body.occasion||'').trim().slice(0,80),story=String(req.body.story||'').trim().slice(0,4000),language=String(req.body.language||'English').trim().slice(0,40)||'English';
+    if(!story)fail(400,'Tell us what the song should be about.');
+    const id=randomUUID(),ledgerId=randomUUID();
+    const [request]=await q(`WITH locked AS (SELECT * FROM wallets WHERE user_id=$1 FOR UPDATE),
+    amounts AS (SELECT user_id,LEAST(promo_credits,50) promo_used,50-LEAST(promo_credits,50) purchased_used FROM locked WHERE promo_credits+purchased_credits>=50),
+    created AS (INSERT INTO song_creator_requests(id,user_id,email,display_name,song_type,subject_name,relationship,occasion,story,language,credits) SELECT $2,a.user_id,$3,$4,$5,$6,$7,$8,$9,$10,50 FROM amounts a RETURNING *),
+    debited AS (UPDATE wallets w SET promo_credits=w.promo_credits-a.promo_used,purchased_credits=w.purchased_credits-a.purchased_used,updated_at=now() FROM amounts a,created c WHERE w.user_id=a.user_id RETURNING w.promo_credits+w.purchased_credits balance),
+    ledger AS (INSERT INTO credit_transactions(id,user_id,transaction_type,promo_change,purchased_change,description,reference_id) SELECT $11,a.user_id,'song_creator',-a.promo_used,-a.purchased_used,'Create My Song · 50 Credits',$2 FROM amounts a,created c RETURNING id)
+    SELECT c.*,d.balance FROM created c CROSS JOIN debited d CROSS JOIN ledger l`,[user.id,id,user.email,user.display_name||null,songType,subjectName||null,relationship||null,occasion||null,story,language,ledgerId]);
+    if(!request)fail(402,'You need 50 MQ3 Credits to create your song.');
+    res.status(201).json({ok:true,request});
+  }));
+
+  app.get('/api/song-creator/my-requests',wrap(async(req,res)=>{
+    const raw=req.cookies?.mq3_user;if(!raw)return res.json([]);
+    const [user]=await q(`SELECT u.id FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()`,[hash(raw)]);
+    if(!user)return res.json([]);
+    res.json(await q('SELECT * FROM song_creator_requests WHERE user_id=$1 ORDER BY created_at DESC',[user.id]));
+  }));
+
+  app.get('/api/admin/song-creator-requests',wrap(async(_req,res)=>res.json(await q('SELECT * FROM song_creator_requests ORDER BY created_at DESC'))));
+
+  /* =========================================================
      AI SONG LYRICS
   ========================================================= */
 
