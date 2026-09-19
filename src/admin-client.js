@@ -2471,13 +2471,18 @@ function render(){
   }else if(tab==='Listeners'){
     const summary=listenerData.summary||{};
     $('tab-note').textContent=`${Number(summary.total||0)} unique accounts · ${Number(summary.welcomed||0)} received 25 welcome Credits · ${Number(summary.active_seven_days||0)} signed in within 7 days. Latest 500 accounts below; repeat sign-ins do not create another account. Search applies to these displayed accounts.`;
-    const body=table(['Joined','Listener','Email','Welcome Credits','Bonus date','Last sign-in']);
+    const body=table(['Joined','Listener','Email','Welcome Credits','Bonus date','Last sign-in','Actions']);
     (listenerData.listeners||[]).filter(match).forEach(listener=>{
+      const remove=button('Delete',async()=>{
+        if(!await showDeleteConfirm('Delete listener account?',{message:(listener.display_name||listener.email)+' will be removed only if the account has no Credit, payment, or song activity.'}))return;
+        await api('/api/admin/listeners/'+listener.id,undefined,'DELETE');
+        await load();message('Listener account deleted.');
+      });
       row(body,[date(listener.created_at),listener.display_name||'—',listener.email,
         listener.welcome_received?'25 Credits received':'Not recorded',
-        listener.welcome_at?date(listener.welcome_at):'—',listener.last_login_at?date(listener.last_login_at):'—']);
+        listener.welcome_at?date(listener.welcome_at):'—',listener.last_login_at?date(listener.last_login_at):'—',actions(remove)]);
     });
-    if(!body.children.length){const tr=node('tr');const td=node('td','No listener accounts match.');td.colSpan=6;tr.append(td);body.append(tr);}
+    if(!body.children.length){const tr=node('tr');const td=node('td','No listener accounts match.');td.colSpan=7;tr.append(td);body.append(tr);}
   }else if(tab==='MP3 Requests'){
     $('tab-note').textContent=`${mp3Requests.filter(r=>r.status==='paid').length} awaiting delivery · 50 Credits per request. Attach the MP3 in your email app before sending, then mark the order sent here.`;
     const body=table(['Date','Listener','Email','Song','Paid','Status','Actions']);
