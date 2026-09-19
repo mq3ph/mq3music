@@ -37,6 +37,10 @@
     {
       "source": "/featuredsongs",
       "destination": "/index.html"
+    },
+    {
+      "source": "/mysongs",
+      "destination": "/index.html"
     }
   ]
 }
