@@ -354,3 +354,7 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 
 /* Old MQ3-style embedded song player: Suno branding is visually masked while playback stays in the official embed. */
 .catalog-player{width:min(560px,calc(100% - 24px));max-height:90vh;overflow:auto;box-sizing:border-box;border:1px solid rgba(190,160,255,.3);border-radius:22px;background:#130d27;color:#fff;padding:20px}.catalog-player::backdrop{background:rgba(5,2,15,.82)}.catalog-player-title{margin:0 0 14px;font-size:22px}.catalog-embed-wrap{position:relative;height:190px;overflow:hidden;border-radius:16px;background:#171310}.catalog-embed-wrap iframe{position:absolute;left:0;top:-50px;width:100%;height:240px;border:0;background:#171310}.catalog-close{width:100%;margin:14px 0}.catalog-lyrics{margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px}.catalog-lyrics summary{cursor:pointer;font-weight:800;font-size:16px}.catalog-lyrics-body{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px;line-height:1.75;color:rgba(255,255,255,.88)}
+
+/* Keep the official Suno embed, but crop its branded header from the visible MQ3 player. */
+.catalog-embed-wrap{position:relative;height:170px;overflow:hidden;border-radius:16px;background:#171310}
+.catalog-embed-wrap iframe{position:absolute;left:0;top:-70px;width:100%;height:240px;border:0;background:#171310}
