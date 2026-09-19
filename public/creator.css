@@ -379,3 +379,12 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 @keyframes mq3Wave{0%,100%{transform:scaleY(.38);opacity:.48}50%{transform:scaleY(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.song-wave i{animation:none}}
 @media(max-width:520px){.song-wave{min-width:78px;gap:2px;padding:0 3px}.song-wave i{width:2px}}
+
+/* Keep every Featured Songs row element inside the card. */
+#gallery .song-card{display:grid;grid-template-columns:56px minmax(0,1.35fr) minmax(90px,.9fr) 46px;align-items:center;gap:12px;overflow:hidden}
+#gallery .song-card>span{min-width:0;overflow:hidden}
+#gallery .song-card>span b,#gallery .song-card>span em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#gallery .song-wave{width:100%;min-width:0;max-width:180px;justify-self:end;box-sizing:border-box}
+#gallery .song-card>.mini-play{justify-self:end;margin:0}
+#gallery .song-card>.buy{grid-column:1/-1;width:100%;margin:4px 0 0;box-sizing:border-box}
+@media(max-width:560px){#gallery .song-card{grid-template-columns:54px minmax(0,1fr) minmax(72px,105px) 42px;gap:9px}#gallery .song-wave{max-width:105px}.song-wave i:nth-child(n+15){display:none}}
