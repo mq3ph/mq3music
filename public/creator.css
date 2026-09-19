@@ -549,3 +549,7 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
   .credit-prompt-actions{padding:18px 22px 22px!important;grid-template-columns:1fr!important}
   .credit-prompt-actions [data-credit-load]{grid-row:1!important}
 }
+
+
+/* Keep the secondary action readable on the dark credit modal. */
+.credit-prompt .credit-prompt-actions button[data-credit-cancel]{color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.35)!important}
