@@ -358,3 +358,8 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 /* Keep the official Suno embed, but crop its branded header from the visible MQ3 player. */
 .catalog-embed-wrap{position:relative;height:170px;overflow:hidden;border-radius:16px;background:#171310}
 .catalog-embed-wrap iframe{position:absolute;left:0;top:-70px;width:100%;height:240px;border:0;background:#171310}
+
+/* Exact crop geometry from the old MQ3 Suno player. */
+.catalog-player{width:min(438px,calc(100vw - 28px));}
+.catalog-embed-wrap{position:relative;width:100%;max-width:316px;height:104px;margin-inline:auto;overflow:hidden;overflow:clip;border-radius:10px;isolation:isolate;background:#1e253d;}
+.catalog-embed-wrap iframe{position:absolute;display:block;left:0;top:-72px;width:100%;height:240px;border:0;border-radius:0!important;background:#171310;}
