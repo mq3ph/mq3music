@@ -2868,7 +2868,17 @@ function render(){
           }
 
 
-          if(o.source==='credit_load')buttons.push(node('span',o.deletedAt?'Credit Load (in Deleted)':'Credit Load record'));
+          if(o.source==='credit_load'){
+            buttons.push(button('Delete',async()=>{
+              if(!confirm('Remove this payment row from the active list? Credits and verified payment history will be retained.'))return;
+              await api('/api/admin/credit-loads/'+o.id,undefined,'DELETE');await load();
+            }));
+          }else if(o.status!=='paid'){
+            buttons.push(button('Delete',async()=>{
+              if(!confirm('Delete this unverified '+tab+' payment record?'))return;
+              await api('/api/admin/orders/'+o.id,undefined,'DELETE');await load();
+            }));
+          }
           row(
             body,
             [
