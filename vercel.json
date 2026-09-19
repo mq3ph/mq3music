@@ -54,7 +54,7 @@
   "rewrites": [
     {
       "source": "/featuredsongs",
-      "destination": "/index.html"
+      "destination": "/featuredsongs.html"
     },
     {
       "source": "/mysongs",
