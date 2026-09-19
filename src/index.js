@@ -240,7 +240,11 @@ export function createApp(s=services()){
       if(mode==='create'&&!story) fail(400,'Tell us what the song should be about.');
       if(mode!=='create'&&!lyrics) fail(400,'There are no lyrics to rewrite.');
 
-      const structureInstruction=songType==='jingle'\n        ?'JINGLE STRUCTURE: Keep it deliberately short: [Hook] 2-4 lines, [Verse] 2-4 lines, [Hook] repeated or lightly varied, and an optional 1-2 line [Tag]. Aim for a concise, catchy advertising-style lyric; do not use the full-song structure.'\n        :'FULL SONG STRUCTURE: Use [Verse 1] 4 lines, [Pre-Chorus] 4 lines, [Chorus] 4-6 lines, [Verse 2] 4 lines, [Pre-Chorus] repeated or lightly varied, [Chorus] repeated, [Bridge] 4 lines, [Final Chorus] 4-6 lines, and [Outro] 2-4 lines. Keep every line meaningful and singable; do not pad merely to hit a line count.';\n\n      const modeInstruction={
+      const structureInstruction=songType==='jingle'
+        ?'JINGLE STRUCTURE: Keep it deliberately short: [Hook] 2-4 lines, [Verse] 2-4 lines, [Hook] repeated or lightly varied, and an optional 1-2 line [Tag]. Aim for a concise, catchy advertising-style lyric; do not use the full-song structure.'
+        :'FULL SONG STRUCTURE: Use [Verse 1] 4 lines, [Pre-Chorus] 4 lines, [Chorus] 4-6 lines, [Verse 2] 4 lines, [Pre-Chorus] repeated or lightly varied, [Chorus] repeated, [Bridge] 4 lines, [Final Chorus] 4-6 lines, and [Outro] 2-4 lines. Keep every line meaningful and singable; do not pad merely to hit a line count.';
+
+      const modeInstruction={
         create:'Write a complete original song from the supplied story.',
         rewrite:'Rewrite the complete lyrics while preserving the important facts and intended message.',
         emotional:'Rewrite the lyrics with warmer, deeper emotion while keeping them natural and singable.',
