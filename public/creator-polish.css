@@ -1,7 +1,8 @@
 /* Incremental production polish for MQ3 Song Creator. Keep the approved header unchanged. */
 :where(button,a,input,select,textarea,summary):focus-visible{outline:3px solid rgba(185,164,255,.72);outline-offset:3px}
 button:disabled{cursor:not-allowed;opacity:.62}
-.types button,.grid button,.voice button,.gallery-filter button,.mini-play,.buy,.ghost-home{touch-action:manipulation}
+button,a,[role="button"],summary{touch-action:manipulation;-webkit-tap-highlight-color:rgba(185,164,255,.16)}
+button,summary{cursor:pointer}
 .types button,.grid button,.voice button,.gallery-filter button{transition:border-color .16s ease,background-color .16s ease,transform .16s ease}
 .types button:active,.grid button:active,.voice button:active,.gallery-filter button:active{transform:scale(.985)}
 input,select,textarea{min-height:48px;font-size:16px}
@@ -14,11 +15,14 @@ label{line-height:1.45}
 .gallery-filter{scrollbar-width:thin;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
 .gallery-filter button{min-height:42px;scroll-snap-align:start;white-space:nowrap}
 .gallery-filter button.sel{box-shadow:0 0 0 1px rgba(200,184,255,.22),0 8px 24px rgba(70,35,150,.18)}
+.song-card span{min-width:0}
+.song-card b,.song-card em{overflow-wrap:anywhere}
 .song-card .mini-play{min-width:44px;min-height:44px}
 .song-card .buy,.song-card .listen-only{min-height:44px;height:auto;padding:10px 12px}
 #gallery .note{display:block;line-height:1.5}
 #toast{z-index:1000}
-dialog{overscroll-behavior:contain}
+dialog{max-height:min(88dvh,760px);max-width:calc(100vw - 24px);box-sizing:border-box;overscroll-behavior:contain}
+.account-dialog,.credit-prompt,.catalog-player{overflow:auto;-webkit-overflow-scrolling:touch}
 .credit-prompt::backdrop,.catalog-player::backdrop,.account-dialog::backdrop{background:rgba(6,3,18,.76);backdrop-filter:blur(3px)}
 .hidden-card{display:none!important}
 @media(max-width:560px){
@@ -39,6 +43,7 @@ dialog{overscroll-behavior:contain}
   .gallery-filter button{padding-inline:14px}
   .song-card{align-items:center}
   .song-card .buy,.song-card .listen-only{width:100%}
+  dialog{max-height:calc(100dvh - 24px);max-width:calc(100vw - 16px);margin-block:auto}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:1fr}
