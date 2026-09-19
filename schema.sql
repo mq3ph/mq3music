@@ -32,3 +32,22 @@ ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_url text;
 
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_download_confirmed_at timestamptz;
 ALTER TABLE songs ADD COLUMN IF NOT EXISTS suno_gifts_enabled boolean NOT NULL DEFAULT false;
+
+
+CREATE TABLE IF NOT EXISTS song_creator_requests (
+ id uuid PRIMARY KEY,
+ user_id uuid NOT NULL,
+ email text NOT NULL,
+ display_name text,
+ song_type text NOT NULL,
+ subject_name text,
+ relationship text,
+ occasion text,
+ story text NOT NULL,
+ language text NOT NULL DEFAULT 'English',
+ credits integer NOT NULL DEFAULT 50 CHECK(credits=50),
+ status text NOT NULL DEFAULT 'queued' CHECK(status IN ('queued','creating','ready')),
+ created_at timestamptz NOT NULL DEFAULT now(),
+ updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS song_creator_requests_user_created_idx ON song_creator_requests(user_id,created_at DESC);
