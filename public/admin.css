@@ -1409,3 +1409,5 @@ dialog .eyebrow{
 .song-request-empty strong{font-size:24px;color:#eee6f5}.song-request-empty span{color:#c9bdd8}.song-request-empty small{color:#b995f4;font-weight:800;letter-spacing:.08em}
 
 .song-request-details{min-width:260px;max-width:480px;display:grid;gap:7px;white-space:normal;line-height:1.45}.song-request-details strong{font-weight:650;color:#f2eaff}.song-request-details small{color:#b9abc9}.song-request-status{white-space:nowrap}.badge.queued{background:rgba(185,149,244,.12);color:#d9c4ff}.badge.creating{background:rgba(129,87,199,.2);color:#eadcff}.badge.ready{background:rgba(83,190,139,.14);color:#a9e9c9}
+
+.song-request-command{min-width:300px;max-width:460px;display:grid;gap:10px}.song-request-command code{display:block;max-height:180px;overflow:auto;white-space:pre-wrap;padding:12px;border:1px solid rgba(185,149,244,.25);border-radius:12px;background:rgba(9,5,22,.55);color:#ddd0f2;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace}.song-request-command .button{justify-self:start}
