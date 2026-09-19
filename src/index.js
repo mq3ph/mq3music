@@ -297,7 +297,21 @@ export function createApp(s=services()){
       try{data=await response.json();}catch{}
       if(!response.ok){
         console.error('[mq3/lyrics/openai]',response.status,data?.error?.message||data);
-        fail(response.status===429?429:502,response.status===429?'AI lyrics are busy right now. Please try again shortly.':'AI lyrics could not be created. Please try again.');
+        {
+          const code=String(data?.error?.code||data?.error?.type||'').trim();
+          const safe429=code==='credit_balance_exhausted'
+            ?'OpenAI API credit balance is exhausted. Please add API credits.'
+            :code==='organization_usage_limit_exceeded'
+              ?'OpenAI organization usage limit has been reached.'
+              :code==='organization_spend_limit_exceeded'
+                ?'OpenAI organization spend limit has been reached.'
+                :code==='project_spend_limit_exceeded'
+                  ?'OpenAI project spend limit has been reached.'
+                  :code==='insufficient_quota'
+                    ?'OpenAI API quota is unavailable. Please check billing and API credits.'
+                    :('OpenAI API returned 429'+(code?' ('+code+')':' rate limit')+'. Please try again shortly.');
+          fail(response.status===429?429:502,response.status===429?safe429:'AI lyrics could not be created. Please try again.');
+        }
       }
 
       const outputText=
