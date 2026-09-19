@@ -240,7 +240,7 @@ export function createApp(s=services()){
       if(mode==='create'&&!story) fail(400,'Tell us what the song should be about.');
       if(mode!=='create'&&!lyrics) fail(400,'There are no lyrics to rewrite.');
 
-      const modeInstruction={
+      const structureInstruction=songType==='jingle'\n        ?'JINGLE STRUCTURE: Keep it deliberately short: [Hook] 2-4 lines, [Verse] 2-4 lines, [Hook] repeated or lightly varied, and an optional 1-2 line [Tag]. Aim for a concise, catchy advertising-style lyric; do not use the full-song structure.'\n        :'FULL SONG STRUCTURE: Use [Verse 1] 4 lines, [Pre-Chorus] 4 lines, [Chorus] 4-6 lines, [Verse 2] 4 lines, [Pre-Chorus] repeated or lightly varied, [Chorus] repeated, [Bridge] 4 lines, [Final Chorus] 4-6 lines, and [Outro] 2-4 lines. Keep every line meaningful and singable; do not pad merely to hit a line count.';\n\n      const modeInstruction={
         create:'Write a complete original song from the supplied story.',
         rewrite:'Rewrite the complete lyrics while preserving the important facts and intended message.',
         emotional:'Rewrite the lyrics with warmer, deeper emotion while keeping them natural and singable.',
@@ -254,7 +254,7 @@ export function createApp(s=services()){
         'You are the lyric writer for MQ3 Song Creator.',
         modeInstruction,
         'Write polished, emotionally natural, singable lyrics. Avoid generic AI-sounding filler, forced rhymes, clichés, and invented personal facts.',
-        'Use section labels such as [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], and [Bridge] only when musically useful.',
+        structureInstruction,
         'Return only JSON with exactly two string fields: title and lyrics.',
         'Song type: '+songType,
         name?'Person/recipient: '+name:'',
