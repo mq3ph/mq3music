@@ -32,5 +32,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/featuredsongs",
+      "destination": "/index.html"
+    }
   ]
 }
