@@ -4,30 +4,34 @@ button:disabled{cursor:not-allowed;opacity:.62}
 .types button,.grid button,.voice button,.gallery-filter button,.mini-play,.buy,.ghost-home{touch-action:manipulation}
 .types button,.grid button,.voice button,.gallery-filter button{transition:border-color .16s ease,background-color .16s ease,transform .16s ease}
 .types button:active,.grid button:active,.voice button:active,.gallery-filter button:active{transform:scale(.985)}
-input,select,textarea{min-height:48px}
-textarea{min-height:132px}
+input,select,textarea{min-height:48px;font-size:16px}
+textarea{min-height:132px;line-height:1.55;resize:vertical}
+label{line-height:1.45}
 .gallery-search input{min-height:50px}
-.gallery-filter{scrollbar-width:thin;scroll-snap-type:x proximity}
-.gallery-filter button{min-height:42px;scroll-snap-align:start}
+.gallery-filter{scrollbar-width:thin;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
+.gallery-filter button{min-height:42px;scroll-snap-align:start;white-space:nowrap}
 .song-card .mini-play{min-width:44px;min-height:44px}
 .song-card .buy,.song-card .listen-only{min-height:44px;height:auto;padding:10px 12px}
 #toast{z-index:1000}
 dialog{overscroll-behavior:contain}
+.credit-prompt::backdrop,.catalog-player::backdrop,.account-dialog::backdrop{background:rgba(6,3,18,.76);backdrop-filter:blur(3px)}
+.hidden-card{display:none!important}
 @media(max-width:560px){
   main{padding-bottom:max(48px,env(safe-area-inset-bottom))}
   .screen{padding-top:22px}
-  .screen>p{font-size:14px}
+  .screen>p{font-size:14px;line-height:1.55}
   .types{gap:11px}
   .types button{min-height:74px;padding:14px 12px}
   .types b{font-size:14px}
-  .types small{font-size:11px}
+  .types small{font-size:11px;line-height:1.4}
   .grid button{min-height:92px}
   .grid b{font-size:13px}
   .grid small{font-size:11px;line-height:1.35}
   .voice button{min-height:46px}
   .gallery-search{margin-top:18px}
-  .gallery-filter{margin-top:14px}
+  .gallery-filter{margin-top:14px;padding-bottom:6px}
   .gallery-filter button{padding-inline:14px}
+  .song-card{align-items:center}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:1fr}
