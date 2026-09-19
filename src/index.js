@@ -563,7 +563,7 @@ export function createApp(s=services()){
 
         const songs=
           await q(
-            `SELECT ${publicFields} FROM songs WHERE published=true AND (audio_path IS NOT NULL OR suno_url IS NOT NULL) ORDER BY created_at DESC`
+            `SELECT ${publicFields} FROM songs WHERE published=true AND (audio_path IS NOT NULL OR suno_url IS NOT NULL) ORDER BY lower(title) ASC, created_at DESC`
           );
 
 
