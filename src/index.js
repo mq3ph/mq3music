@@ -1702,6 +1702,21 @@ export function createApp(s=services()){
     res.json({summary,listeners});
   }));
 
+  app.delete('/api/admin/listeners/:id',wrap(async(req,res)=>{
+    const id=uuid(req.params.id);
+    const [listener]=await q('SELECT id,email FROM users WHERE id=$1',[id]);
+    if(!listener)fail(404,'Listener account not found.');
+    const [activity]=await q(`SELECT
+      EXISTS(SELECT 1 FROM credit_transactions WHERE user_id=$1) AS credits,
+      EXISTS(SELECT 1 FROM credit_load_orders WHERE user_id=$1) AS loads,
+      EXISTS(SELECT 1 FROM song_creator_requests WHERE user_id=$1) AS songs`,[id]).catch(()=>[{credits:true,loads:true,songs:true}]);
+    if(activity?.credits||activity?.loads||activity?.songs)fail(409,'This listener has Credit or song activity and cannot be deleted from the account list.');
+    await q('DELETE FROM user_sessions WHERE user_id=$1',[id]);
+    await q('DELETE FROM wallets WHERE user_id=$1',[id]);
+    await q('DELETE FROM users WHERE id=$1',[id]);
+    res.json({ok:true});
+  }));
+
   app.get('/api/admin/site-visits',wrap(async(_req,res)=>{
     const result={
       today_total:0,today_tiktok:0,today_installed_app:0,
