@@ -34,23 +34,48 @@
     },
     {
       "source": "/details",
-      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     },
     {
       "source": "/lyrics",
-      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     },
     {
       "source": "/music",
-      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     },
     {
       "source": "/results",
-      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     },
     {
       "source": "/own",
-      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      ]
     },
     {
       "source": "/featuredsongs",
@@ -83,22 +108,27 @@
   "rewrites": [
     {
       "source": "/create",
-      "destination": "/index.html"
+      "destination": "/creator.html"
     },
     {
-      "source": "/details", "destination": "/index.html"
+      "source": "/details",
+      "destination": "/creator.html"
     },
     {
-      "source": "/lyrics", "destination": "/index.html"
+      "source": "/lyrics",
+      "destination": "/creator.html"
     },
     {
-      "source": "/music", "destination": "/index.html"
+      "source": "/music",
+      "destination": "/creator.html"
     },
     {
-      "source": "/results", "destination": "/index.html"
+      "source": "/results",
+      "destination": "/creator.html"
     },
     {
-      "source": "/own", "destination": "/index.html"
+      "source": "/own",
+      "destination": "/creator.html"
     },
     {
       "source": "/featuredsongs",
@@ -106,7 +136,7 @@
     },
     {
       "source": "/mysongs",
-      "destination": "/index.html"
+      "destination": "/creator.html"
     }
   ],
   "redirects": []
