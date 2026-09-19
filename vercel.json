@@ -33,6 +33,26 @@
       ]
     },
     {
+      "source": "/details",
+      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+    },
+    {
+      "source": "/lyrics",
+      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+    },
+    {
+      "source": "/music",
+      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+    },
+    {
+      "source": "/results",
+      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+    },
+    {
+      "source": "/own",
+      "headers": [{"key": "Cache-Control","value": "no-store, no-cache, must-revalidate, max-age=0"}]
+    },
+    {
       "source": "/featuredsongs",
       "headers": [
         {
@@ -64,6 +84,21 @@
     {
       "source": "/create",
       "destination": "/index.html"
+    },
+    {
+      "source": "/details", "destination": "/index.html"
+    },
+    {
+      "source": "/lyrics", "destination": "/index.html"
+    },
+    {
+      "source": "/music", "destination": "/index.html"
+    },
+    {
+      "source": "/results", "destination": "/index.html"
+    },
+    {
+      "source": "/own", "destination": "/index.html"
     },
     {
       "source": "/featuredsongs",
