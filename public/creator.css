@@ -388,3 +388,10 @@ input:focus,select:focus,textarea:focus{border-color:#9d79f1;box-shadow:0 0 0 3p
 #gallery .song-card>.mini-play{justify-self:end;margin:0}
 #gallery .song-card>.buy{grid-column:1/-1;width:100%;margin:4px 0 0;box-sizing:border-box}
 @media(max-width:560px){#gallery .song-card{grid-template-columns:54px minmax(0,1fr) minmax(72px,105px) 42px;gap:9px}#gallery .song-wave{max-width:105px}.song-wave i:nth-child(n+15){display:none}}
+
+/* Final gallery row override: creator.css originally forces 3 columns with !important. */
+#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) minmax(120px,180px) 40px!important;column-gap:10px!important;row-gap:10px!important}
+#gallery .gallery-list .song-card .song-wave{grid-column:3;grid-row:1;width:100%;min-width:0;max-width:none;justify-self:stretch;padding:0 2px}
+#gallery .gallery-list .song-card .mini-play{grid-column:4;grid-row:1;justify-self:end}
+#gallery .gallery-list .song-card .buy{grid-column:1/-1;grid-row:2}
+@media(max-width:560px){#gallery .gallery-list .song-card{grid-template-columns:54px minmax(0,1fr) 92px 40px!important;column-gap:8px!important}#gallery .gallery-list .song-card .song-wave{width:92px}}
