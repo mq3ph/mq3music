@@ -1514,3 +1514,31 @@ dialog h2{color:#f1d79f}
 .premium-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:24px 0}.premium-stat{min-height:112px;padding:20px;border:1px solid #1b2a3a;border-radius:14px;background:linear-gradient(145deg,#0c1621,#08111a);display:flex;align-items:center;gap:15px;box-shadow:0 15px 40px #0003}.premium-stat .stat-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#22164c;color:#a66dff;font-size:24px}.premium-stat .stat-icon.cyan{background:#07333d;color:#37e1e8}.premium-stat .stat-icon.gold{background:#3b2c0d;color:#ffc94e}.premium-stat small{display:block;color:#8ea3ba;font-size:11px;margin-bottom:7px}.premium-stat strong{display:block;color:#f4f7fb;font-size:14px;line-height:1.35}.premium-stat .notice{margin:0}
 .premium-workspace .admin-tools{padding:16px;border:1px solid #1b2a3a;border-radius:14px;background:#09131e}.premium-workspace .admin-search-wrap input{background:#07101a;border-color:#26384b}.premium-workspace .records-panel{border-color:#1b2a3a;background:linear-gradient(150deg,#0b1520,#071019);box-shadow:0 22px 60px #0005}.premium-workspace .records-heading h2{color:#f2f5f9}.premium-workspace .records-kicker{color:#8b61f2}.premium-workspace .table-wrap{background:#07101a;border-color:#1c2b3b}.premium-workspace th{background:#0a1420;color:#8fa5bc}.premium-workspace td{color:#cbd6e2}.premium-workspace tbody tr:hover{background:#101b29}.premium-workspace td .button{border-color:#33475d;color:#bfa3ff;background:#11182a}.premium-workspace td .button:hover{border-color:#805ce0;background:#171f34}
 @media(max-width:900px){.premium-admin-shell{grid-template-columns:1fr}.premium-sidebar{position:relative;height:auto;padding:15px}.premium-logo{padding-bottom:14px}.premium-nav-title,.premium-sidebar-foot{display:none}.premium-nav.tabs{flex-direction:row;overflow-x:auto}.premium-nav.tabs button{width:auto;flex-shrink:0}.premium-workspace{padding:20px 15px}.premium-overview-grid{grid-template-columns:1fr}}
+
+
+/* MQ3 premium reference proportion correction */
+.premium-admin-shell{grid-template-columns:220px minmax(0,1fr)}
+.premium-sidebar{padding:18px 14px 18px}
+.premium-logo{gap:8px;padding:0 8px 17px}
+.premium-logo img{width:40px;height:40px}
+.premium-logo strong{font-size:22px;letter-spacing:.5px}
+.premium-logo span{font-size:8px;letter-spacing:3px}
+.premium-logo small{font-size:6px;margin-top:3px}
+.premium-nav-title{margin:17px 11px 7px;font-size:8px}
+.premium-nav.tabs{gap:3px}
+.premium-nav.tabs button{min-height:38px;padding:8px 12px;font-size:11px;border-radius:8px}
+.premium-workspace{padding:22px clamp(20px,2.5vw,38px) 24px}
+.premium-topbar{align-items:center;padding-bottom:17px;margin-bottom:0}
+.premium-topbar .admin-brand h1{font-size:32px;line-height:1.05;letter-spacing:-.8px}
+.premium-topbar .admin-tagline{margin-top:7px;font-size:12px}
+.premium-topbar .eyebrow{margin-bottom:5px;font-size:8px;letter-spacing:2.2px}
+.premium-topbar .admin-head-actions .button{min-height:38px;padding:8px 17px;font-size:11px}
+.premium-overview-grid{gap:13px;margin:18px 0}
+.premium-stat{min-height:92px;padding:15px 17px;border-radius:12px;gap:12px}
+.premium-stat .stat-icon{width:40px;height:40px;font-size:19px}
+.premium-stat small{font-size:10px;margin-bottom:4px}
+.premium-stat strong{font-size:12px}
+.premium-workspace .admin-tools{margin:13px 0 15px;padding:12px}
+.premium-workspace .records-panel{padding:15px;border-radius:14px}
+.premium-workspace .records-heading{margin:2px 3px 12px;padding-bottom:10px}
+.premium-workspace .records-heading h2{font-size:17px}
