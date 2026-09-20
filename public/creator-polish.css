@@ -182,3 +182,28 @@ article em{color:#8fb8aa!important}
 :where(button,a,input,select,textarea,summary):focus-visible{
   outline-color:rgba(121,164,151,.78)!important;
 }
+
+
+/* Create My Song hero CTA — deep glossy forest green. */
+#home.hero>button[data-go="type"]{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.045) 38%,rgba(0,0,0,.10) 39%,rgba(0,0,0,.24) 100%),
+    linear-gradient(180deg,#245e4f 0%,#17483d 48%,#0b3029 100%)!important;
+  border:1px solid #46786b!important;
+  color:#fff!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.38),
+    0 8px 20px rgba(0,0,0,.38),
+    0 2px 7px rgba(14,72,59,.28)!important;
+  text-shadow:0 1px 1px rgba(0,0,0,.45)!important;
+}
+#home.hero>button[data-go="type"]:hover{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.19) 0%,rgba(255,255,255,.055) 38%,rgba(0,0,0,.08) 39%,rgba(0,0,0,.21) 100%),
+    linear-gradient(180deg,#2b6a59 0%,#1b5145 48%,#0d372f 100%)!important;
+}
+#home.hero>button[data-go="type"]:active{
+  transform:translateY(1px);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.34),0 4px 10px rgba(0,0,0,.3)!important;
+}
