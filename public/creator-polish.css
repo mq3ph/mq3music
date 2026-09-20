@@ -675,3 +675,18 @@ body:has(#home.on) .premium-footer blockquote{grid-column:auto!important;text-al
  body:has(#home.on) .premium-hero-art{height:455px!important;min-height:455px!important}
  body:has(#home.on) .reference-mic-photo{background-size:auto 710px!important}
 }
+
+
+/* 2026-09-20 clean mobile hero correction: reference is guidance only, never render the full poster. */
+body:has(#home.on) .premium-hero{position:relative!important}
+body:has(#home.on) .premium-hero-copy{display:flex!important;flex-direction:column!important;align-items:center!important;padding:34px 0 24px!important}
+body:has(#home.on) .premium-hero-copy h1{order:2!important}
+body:has(#home.on) .premium-hero-copy .eyebrow{order:1!important}
+body:has(#home.on) .hero-lead{order:3!important;margin-bottom:22px!important}
+body:has(#home.on) .hero-primary{order:4!important;position:static!important;width:100%!important;height:58px!important;margin:0 0 11px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+body:has(#home.on) .hero-secondary{order:5!important;position:static!important;width:100%!important;min-height:54px!important;margin:0 0 10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+body:has(#home.on) .home-my-songs{order:6!important;position:static!important;width:auto!important;margin:2px auto 0!important}
+body:has(#home.on) .hero-benefits{order:7!important;margin-top:20px!important}
+body:has(#home.on) .premium-hero-art{display:none!important}
+body:has(#home.on) .reference-mic-photo{display:none!important}
+body:has(#home.on) .home-featured{border-top:1px solid rgba(208,142,48,.22)!important}
