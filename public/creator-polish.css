@@ -436,3 +436,65 @@ article>i,.song-card .cover{background:linear-gradient(145deg,#67444b,#3e2930)!i
 .account-primary,#mq3-credit-load-submit{background:linear-gradient(180deg,#604048,#422930)!important}
 #account-button.credits{background:linear-gradient(180deg,#282124,#201b1e)!important;border-color:#574147!important}
 :where(button,a,input,select,textarea,summary):focus-visible{outline-color:rgba(199,167,132,.78)!important}
+
+
+/* MQ3 Seal palette — derived from the original logo: black-cherry red, oxblood, bronze and warm gold. */
+html{background:#180302!important}
+body{
+  background:
+    radial-gradient(circle at 50% -14%,rgba(126,24,13,.52),transparent 35%),
+    radial-gradient(circle at 88% 28%,rgba(87,11,6,.34),transparent 32%),
+    linear-gradient(155deg,#360805 0%,#200403 48%,#100202 100%)!important;
+  color:#f8edda!important;
+}
+header{border-bottom-color:rgba(188,126,49,.25)!important}
+header .brand-copy strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  background:linear-gradient(180deg,#fff3ce 0%,#e7c276 46%,#b97b2e 100%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+  text-shadow:0 2px 15px rgba(222,164,73,.18)!important;
+}
+header .brand-copy small,#home.hero .eyebrow,.screen:not(#home) .eyebrow,.screen:not(#home) nav,.screen:not(#home)>a{
+  color:#d4a65c!important;
+}
+#home.hero h1,.screen h2{color:#fff4df!important}
+#home.hero h1 em{
+  background:linear-gradient(100deg,#f8df9a,#d8a64f 48%,#b9792d)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+}
+#home.hero>p:not(.eyebrow),.screen:not(#home)>p,.screen:not(#home) small,.screen:not(#home) .note{color:#d3bca9!important}
+#home.hero>.orb{
+  background:linear-gradient(145deg,#7a1a10 0%,#4b0d09 55%,#280604 100%)!important;
+  border-color:#a86628!important;color:#f5d58a!important;
+  box-shadow:inset 0 1px 0 rgba(255,230,174,.22),0 10px 26px rgba(0,0,0,.38),0 0 24px rgba(129,35,17,.18)!important;
+}
+#home.hero aside,.types button,.grid button,article,.voice,.secondary,.ghost-home,
+input,select,textarea,.chips button,.gallery-filter button,.song-card .buy,.song-card .listen-only,
+#customStyleWrap:not(.hidden),.wallet-card{
+  background:linear-gradient(145deg,#2b0806,#190403)!important;
+  border-color:#60301f!important;color:#f6ead7!important;
+}
+#home.hero aside h3{color:#f1dcae!important}
+#home.hero aside div small{color:#c5aa98!important}
+.types button:hover{background:#390b08!important;border-color:#9b5f2c!important}
+.types i{background:#4a100b!important;color:#edc875!important}
+.types button.special{background:linear-gradient(100deg,#3a0a07,#250504)!important;border-color:#7a3f24!important}
+.grid .sel,.voice .sel,.gallery-filter .sel{
+  background:linear-gradient(145deg,#67150e,#3b0a07)!important;border-color:#b47734!important;color:#fff3d8!important;
+}
+input:focus,select:focus,textarea:focus{border-color:#b47734!important;box-shadow:0 0 0 3px rgba(180,119,52,.16)!important}
+#home.hero>button[data-go="type"],.screen:not(#home)>button,form>button,#ownContinue,#generate,#download,#gallery>button{
+  background:
+    linear-gradient(180deg,rgba(255,229,170,.18) 0%,rgba(255,255,255,.035) 37%,rgba(0,0,0,.10) 38%,rgba(0,0,0,.25) 100%),
+    linear-gradient(180deg,#7d1c12 0%,#4f0e09 52%,#2a0604 100%)!important;
+  border-color:#b67831!important;color:#fff0ca!important;
+  box-shadow:inset 0 1px 0 rgba(255,239,199,.24),0 8px 22px rgba(0,0,0,.4),0 0 14px rgba(157,76,25,.10)!important;
+}
+#home.hero>button[data-go="type"]:hover{filter:brightness(1.12)!important}
+.play,.mini-play,.result-card.selected .pick{background:#68150e!important;color:#f5d58a!important}
+.result-card.selected{border-color:#b47734!important;box-shadow:0 0 0 2px rgba(180,119,52,.15)!important}
+article>i,.song-card .cover{background:linear-gradient(145deg,#7b2716,#43100a)!important;color:#f0ca72!important}
+.cost strong,article em,.wallet-card strong,.credit-packages button b{color:#e1b963!important}
+#account-dialog,#mq3-credit-load-dialog{background:#210504!important;border-color:#754224!important}
+#account-button.credits{background:linear-gradient(180deg,#3a0a07,#210504)!important;border-color:#8c572b!important;color:#f6d992!important}
+:where(button,a,input,select,textarea,summary):focus-visible{outline-color:rgba(225,185,99,.82)!important}
