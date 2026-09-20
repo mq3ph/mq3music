@@ -1,5 +1,57 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#120d28"><title>MQ3 Song Creator</title><link rel="icon" href="/logo.png"><link rel="stylesheet" href="/creator.css?v=20260920-6"></head><body><main><header><a href="/" class="brand"><img src="/logo.png"><span class="brand-copy"><strong>Song <em>Creator</em></strong><small>TURN IDEAS INTO MUSIC</small></span></a><button id="account-button" class="credits" type="button">👤 Sign In</button></header>
-<section id="home" class="screen on hero"><div class="orb">♪</div><p class="eyebrow">MAKE SOMETHING MEANINGFUL</p><h1>Turn your ideas and stories into<br><em>beautiful songs.</em></h1><p>Start with a person, a memory, your own story, or even finished lyrics. Shape the words, choose the sound, and make something truly yours.</p><button data-go="type">Create My Song →</button><a class="ghost-home" href="/featuredsongs">Explore Featured Songs ♪</a><a class="ghost-home" id="mySongsHome" href="/mysongs">My Songs ♫</a><small>No musical experience needed.</small><aside><h3>How it works</h3><div>① <b>Start with your idea</b><small>Choose what kind of song you want</small></div><div>② <b>Shape your lyrics</b><small>Edit until it feels right</small></div><div>③ <b>Create the music</b><small>Get two song versions</small></div></aside></section>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#120d28"><title>MQ3 Song Creator</title><link rel="icon" href="/logo.png"><link rel="stylesheet" href="/creator.css?v=20260920-6"></head><body><main><header class="mq3-topbar">
+<a href="/" class="brand mq3-brand"><img src="/logo.png" alt="MQ3"><span class="brand-copy"><strong>MQ3 <em>MUSIC</em></strong><small>TURN YOUR IDEAS INTO SONGS</small></span></a>
+<nav class="mq3-main-nav" aria-label="Main navigation"><a href="/" class="active">Home</a><a href="/create">Create</a><a href="/featuredsongs">Featured</a><a href="/mysongs">My Songs</a></nav>
+<button id="account-button" class="credits" type="button">👤 Sign In</button>
+</header>
+<section id="home" class="screen on hero premium-home">
+<div class="premium-hero">
+<div class="premium-hero-copy">
+<p class="eyebrow">MAKE SOMETHING MEANINGFUL</p>
+<h1>Turn your ideas<br>and stories into<br><em>beautiful songs.</em></h1>
+<p class="hero-lead">Start with a person, a memory, your own story, or even finished lyrics. Shape the words, choose the sound, and make something truly yours.</p>
+<button data-go="type" class="hero-primary">♪ &nbsp; Create My Song →</button>
+<a class="ghost-home hero-secondary" href="/featuredsongs">♫ &nbsp; Explore Featured Songs</a>
+<a class="home-my-songs" id="mySongsHome" href="/mysongs">My Songs ♫</a>
+<div class="hero-benefits"><span>♡ <b>Personalized<br>& Unique</b></span><span>♢ <b>High-Quality<br>AI Music</b></span><span>♧ <b>Meaningful for<br>Any Occasion</b></span></div>
+</div>
+<div class="premium-hero-art" aria-hidden="true">
+<div class="sound-wave wave-one"></div><div class="sound-wave wave-two"></div>
+<svg class="studio-mic" viewBox="0 0 420 680" role="img" aria-label="Premium studio microphone illustration">
+<defs>
+<linearGradient id="goldMetal" x1="0" x2="1"><stop stop-color="#7a3d12"/><stop offset=".24" stop-color="#ffd77a"/><stop offset=".48" stop-color="#9a4c17"/><stop offset=".72" stop-color="#f3b64d"/><stop offset="1" stop-color="#542309"/></linearGradient>
+<linearGradient id="darkMetal" x1="0" x2="1"><stop stop-color="#130807"/><stop offset=".5" stop-color="#3a1b12"/><stop offset="1" stop-color="#0b0504"/></linearGradient>
+<radialGradient id="meshGlow"><stop stop-color="#8e3a14"/><stop offset="1" stop-color="#160705"/></radialGradient>
+<pattern id="mesh" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 5L5 0 10 5 5 10Z" fill="none" stroke="#c77a2c" stroke-width="1"/></pattern>
+</defs>
+<rect x="102" y="55" width="216" height="330" rx="92" fill="url(#meshGlow)" stroke="url(#goldMetal)" stroke-width="8"/>
+<rect x="116" y="70" width="188" height="280" rx="78" fill="url(#mesh)" opacity=".9"/>
+<rect x="92" y="310" width="236" height="92" rx="25" fill="url(#darkMetal)" stroke="url(#goldMetal)" stroke-width="7"/>
+<text x="210" y="370" text-anchor="middle" fill="#e7b85d" font-family="Georgia,serif" font-size="48" font-weight="700">MQ3</text>
+<rect x="128" y="396" width="164" height="174" rx="38" fill="url(#darkMetal)" stroke="#9a561f" stroke-width="5"/>
+<ellipse cx="210" cy="492" rx="170" ry="52" fill="none" stroke="url(#goldMetal)" stroke-width="12"/>
+<path d="M62 486L105 620M358 486L315 620M105 620H315" fill="none" stroke="url(#goldMetal)" stroke-width="11" stroke-linecap="round"/>
+<path d="M132 420L68 535M288 420L352 535" fill="none" stroke="#6e3516" stroke-width="7"/>
+<rect x="188" y="565" width="44" height="105" rx="16" fill="url(#goldMetal)"/>
+</svg>
+<div class="hero-script">Music for a More<br>Meaningful Tomorrow</div>
+</div>
+</div>
+<section class="home-featured">
+<div class="section-title-row"><h2>Featured Songs</h2><a href="/featuredsongs">View All →</a></div>
+<div class="featured-preview-grid">
+<a href="/featuredsongs" class="preview-song"><div class="preview-art sunset">▶</div><b>The Best Is Yet to Come</b><small>An inspirational song for brighter days.</small><em>INSPIRATIONAL</em></a>
+<a href="/featuredsongs" class="preview-song"><div class="preview-art coast">▶</div><b>Sa'yo Lang Uuwi</b><small>A heartfelt OPM original about coming home.</small><em>OPM</em></a>
+<a href="/featuredsongs" class="preview-song"><div class="preview-art night">▶</div><b>Our Little World</b><small>A song about simple and precious moments.</small><em>ORIGINAL</em></a>
+<a href="/featuredsongs" class="preview-song"><div class="preview-art street">▶</div><b>Name Songs</b><small>Special songs inspired by your name.</small><em>NAME SONG</em></a>
+</div>
+</section>
+<section class="home-value-grid">
+<div><i>✎</i><h3>Create Your Song</h3><p>Turn your idea, name, or story into a unique song.</p></div>
+<div><i>♫</i><h3>Choose the Sound</h3><p>Select the style, mood, and genre you love.</p></div>
+<div><i>✦</i><h3>Make It Yours</h3><p>Get a song that's ready to listen, share, or keep forever.</p></div>
+</section>
+<footer class="premium-footer"><div class="footer-brand"><img src="/logo.png" alt=""><b>MQ3 MUSIC</b><small>TURN YOUR IDEAS INTO SONGS</small></div><div><b>Quick Links</b><a href="/">Home</a><a href="/create">Create Song</a><a href="/featuredsongs">Featured Songs</a><a href="/mysongs">My Songs</a></div><div><b>Categories</b><a href="/featuredsongs">Name Songs</a><a href="/featuredsongs">Inspirational</a><a href="/featuredsongs">OPM Songs</a><a href="/featuredsongs">Original Songs</a></div><blockquote>“Music connects hearts.”</blockquote></footer>
+</section>
 <section id="type" class="screen"><nav>● ○ ○ ○ ○</nav><a data-go="home">← Back</a><p class="eyebrow">START YOUR SONG</p><h2>What would you like to create?</h2><p>Choose the starting point that fits your idea.</p><div class="types">
 <button data-type="someone"><i>❤️</i><span><b>A Song for Someone</b><small>Name song, birthday, family, friend or partner</small></span>→</button>
 <button data-type="wedding"><i>💍</i><span><b>Wedding / Anniversary</b><small>Love story, vows, memories and milestones</small></span>→</button>
