@@ -1614,3 +1614,80 @@ body::before{
 .dashboard-summary p{color:#dfd1c8!important}
 .connection-panel{border-color:var(--admin-line)!important;background:rgba(29,23,26,.58)!important}
 .connection-title{color:#ead8bd!important}
+
+
+/* Heritage Nocturne hard override for premium dashboard shell. */
+html,body{background:#171315!important;color:#f2ece7!important}
+main#dashboard.premium-admin-shell{
+  background:
+    radial-gradient(circle at 58% -10%,rgba(96,59,67,.20),transparent 31%),
+    #171315!important;
+}
+.premium-sidebar{
+  border-right-color:#382b30!important;
+  background:linear-gradient(180deg,#1b1518,#120f11 72%,#171013)!important;
+}
+.premium-logo{border-bottom-color:#382b30!important}
+.premium-logo small,.premium-sidebar-foot{color:#a99b96!important}
+.premium-nav-title{color:#8f7976!important}
+#tabs.premium-nav button{color:#c8bbb5!important}
+#tabs.premium-nav button:hover{background:#2a2024!important;color:#fff8ef!important}
+#tabs.premium-nav button.active{
+  background:linear-gradient(90deg,#56343c,#2b2025)!important;
+  color:#f0ddd2!important;
+  box-shadow:inset 3px 0 #c7a784!important;
+}
+.premium-workspace{background:transparent!important}
+.premium-topbar{border-bottom-color:#382b30!important}
+.premium-topbar .eyebrow{color:#c7a784!important}
+.premium-topbar .admin-brand h1{
+  color:#fff8ed!important;
+  background:linear-gradient(180deg,#fff8ed,#ead8bd 58%,#c59b74)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+}
+.premium-topbar .admin-tagline{color:#b9ada8!important}
+.premium-stat{
+  border-color:#49383d!important;
+  background:linear-gradient(145deg,#211a1d,#181416)!important;
+}
+.premium-stat .stat-icon{background:#43272f!important;color:#e2bd9c!important}
+.premium-stat .stat-icon.cyan{background:#3b302d!important;color:#dfc3a4!important}
+.premium-stat .stat-icon.gold{background:#49351f!important;color:#e7bd75!important}
+.premium-stat small{color:#aa9d98!important}
+.premium-stat strong{color:#f2ece7!important}
+.admin-tools{
+  border-color:#49383d!important;
+  background:#1d171a!important;
+}
+.admin-search-wrap input{
+  border-color:#574147!important;
+  background:#171214!important;
+  color:#f2ece7!important;
+}
+.search-icon{color:#a88f89!important}
+.records-panel{
+  border-color:#49383d!important;
+  background:linear-gradient(150deg,#211a1d,#171214)!important;
+  box-shadow:0 22px 60px rgba(0,0,0,.34)!important;
+}
+.records-heading{border-bottom-color:#3b2e33!important}
+.records-kicker{color:#c7a784!important}
+.records-heading h2{color:#f2ece7!important}
+.table-wrap{border-color:#49383d!important;background:#171214!important}
+th{background:#1e181b!important;color:#c0a69a!important}
+th,td{border-bottom-color:#34282d!important}
+td{color:#d8ccc6!important}
+tbody tr:hover{background:#2a2024!important}
+.admin-footer{color:#8f817c!important}
+.button{
+  border-color:#624850!important;
+  background:#21191d!important;
+  color:#eadfd8!important;
+}
+.button.primary{
+  border-color:#8a626b!important;
+  background:linear-gradient(110deg,#604048,#422930)!important;
+  color:#fff8ef!important;
+}
