@@ -391,3 +391,48 @@ header .brand-copy small{
   border-color:#4d4143!important;
   color:#ddd3cd!important;
 }
+
+
+/* Heritage Nocturne — extend the approved homepage palette across creator screens. */
+.screen:not(#home){color:#f2ece7!important}
+.screen:not(#home)>p,.screen:not(#home) small,.screen:not(#home) .note{color:#b9ada8!important}
+.screen:not(#home) .eyebrow,.screen:not(#home) nav,.screen:not(#home)>a{color:#c3a79b!important}
+.types button,.grid button,article,.voice,.secondary,.ghost-home,
+input,select,textarea,.chips button,.gallery-filter button,.song-card .buy,.song-card .listen-only,
+#customStyleWrap:not(.hidden),.wallet-card{
+  background:#211a1d!important;
+  border-color:#49383d!important;
+  color:#f2ece7!important;
+}
+.types button:hover{background:#2a2024!important;border-color:#6b4b53!important}
+.grid .sel,.voice .sel,.gallery-filter .sel{
+  background:#54343b!important;
+  border-color:#8a626b!important;
+  color:#fff8ef!important;
+}
+.types i{background:#38262b!important;color:#ead8bd!important}
+.types button.special{background:linear-gradient(100deg,#281c20,#332127)!important;border-color:#62444c!important}
+.chips button{background:#2a2024!important;border-color:#574147!important;color:#dfd1c8!important}
+input:focus,select:focus,textarea:focus{
+  border-color:#8a626b!important;
+  box-shadow:0 0 0 3px rgba(138,98,107,.16)!important;
+}
+.screen:not(#home)>button,form>button,#ownContinue,#generate,#download,#gallery>button{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.025) 38%,rgba(0,0,0,.10) 39%,rgba(0,0,0,.24)),
+    linear-gradient(180deg,#54343b,#3e252c 52%,#291a20)!important;
+  border-color:#76515a!important;
+  color:#fff8ef!important;
+}
+.play,.mini-play,.result-card.selected .pick{background:#54343b!important}
+.result-card.selected{border-color:#8a626b!important;box-shadow:0 0 0 2px rgba(138,98,107,.15)!important}
+article>i,.song-card .cover{background:linear-gradient(145deg,#67444b,#3e2930)!important;color:#ead8bd!important}
+.cost strong,article em,.wallet-card strong,.credit-packages button b{color:#d1b99d!important}
+#account-dialog,#mq3-credit-load-dialog{background:#1d171a!important;border-color:#574147!important}
+#account-dialog input,#account-dialog select,#mq3-credit-load-dialog input,#mq3-credit-load-dialog select,
+.account-actions>button,#mq3-credit-load-dialog .actions>button,.credit-packages button{
+  background:#211a1d!important;border-color:#574147!important;color:#f2ece7!important
+}
+.account-primary,#mq3-credit-load-submit{background:linear-gradient(180deg,#604048,#422930)!important}
+#account-button.credits{background:linear-gradient(180deg,#282124,#201b1e)!important;border-color:#574147!important}
+:where(button,a,input,select,textarea,summary):focus-visible{outline-color:rgba(199,167,132,.78)!important}
