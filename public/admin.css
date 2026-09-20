@@ -1691,3 +1691,43 @@ tbody tr:hover{background:#2a2024!important}
   background:linear-gradient(110deg,#604048,#422930)!important;
   color:#fff8ef!important;
 }
+
+
+/* MQ3 Seal palette hard override — match the original red/gold logo. */
+html,body{background:#180302!important;color:#f8edda!important}
+main#dashboard.premium-admin-shell{
+  background:radial-gradient(circle at 58% -10%,rgba(126,24,13,.34),transparent 31%),linear-gradient(155deg,#300705,#1b0302 55%,#100202)!important;
+}
+.premium-sidebar{border-right-color:#542518!important;background:linear-gradient(180deg,#240604,#140302 72%,#0d0201)!important}
+.premium-logo{border-bottom-color:#542518!important}
+.premium-logo small,.premium-sidebar-foot{color:#b99d89!important}
+.premium-nav-title{color:#b68755!important}
+#tabs.premium-nav button{color:#d5bdab!important}
+#tabs.premium-nav button:hover{background:#350a07!important;color:#fff1d7!important}
+#tabs.premium-nav button.active{
+  background:linear-gradient(90deg,#72170f,#390906)!important;color:#f5d58a!important;
+  box-shadow:inset 3px 0 #d3a24e!important;
+}
+.premium-topbar{border-bottom-color:#542518!important}
+.premium-topbar .eyebrow,.records-kicker{color:#d3a24e!important}
+.premium-topbar .admin-brand h1{
+  background:linear-gradient(180deg,#fff3ce,#e7c276 50%,#b97b2e)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;
+}
+.premium-topbar .admin-tagline{color:#c6aa96!important}
+.premium-stat{border-color:#60301f!important;background:linear-gradient(145deg,#2b0806,#190403)!important}
+.premium-stat .stat-icon{background:#57110b!important;color:#edc875!important}
+.premium-stat .stat-icon.cyan{background:#4a140d!important;color:#e8b95e!important}
+.premium-stat .stat-icon.gold{background:#5a2e0d!important;color:#f0ca72!important}
+.premium-stat small{color:#c0a491!important}.premium-stat strong{color:#f8edda!important}
+.admin-tools{border-color:#60301f!important;background:#240604!important}
+.admin-search-wrap input{border-color:#754224!important;background:#160302!important;color:#f8edda!important}
+.search-icon{color:#c0915d!important}
+.records-panel{border-color:#60301f!important;background:linear-gradient(150deg,#290705,#160302)!important}
+.records-heading{border-bottom-color:#542518!important}.records-heading h2{color:#f8edda!important}
+.table-wrap{border-color:#60301f!important;background:#160302!important}
+th{background:#230604!important;color:#d4a65c!important}
+th,td{border-bottom-color:#452016!important}td{color:#dfc9b8!important}tbody tr:hover{background:#340a07!important}
+.admin-footer{color:#a98670!important}
+.button{border-color:#80502a!important;background:#280705!important;color:#f2dcc1!important}
+.button.primary{border-color:#b67831!important;background:linear-gradient(110deg,#7d1c12,#4b0d09)!important;color:#fff0ca!important}
