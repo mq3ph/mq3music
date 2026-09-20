@@ -1572,3 +1572,45 @@ main#dashboard.premium-admin-shell.hidden{display:none!important}
 .records-panel{min-height:460px!important;padding:18px!important;border:1px solid #1b2a3a!important;border-radius:14px!important;background:linear-gradient(150deg,#0b1520,#071019)!important;box-shadow:0 22px 60px #0005!important}.records-heading{margin:0 0 14px!important;padding:0 0 12px!important;border-bottom:1px solid #172536!important}.records-kicker{color:#8b61f2!important;font-size:8px!important;letter-spacing:2px!important}.records-heading h2{margin:4px 0 0!important;color:#f2f5f9!important;font-size:19px!important}.table-wrap{overflow:auto!important;border:1px solid #1c2b3b!important;border-radius:12px!important;background:#07101a!important}table{width:100%!important;border-collapse:collapse!important}th,td{padding:14px 18px!important;border-bottom:1px solid #142332!important;text-align:left!important}th{color:#8fa5bc!important;background:#0a1420!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:1px!important}td{color:#cbd6e2!important;font-size:12px!important}
 .admin-footer{display:flex!important;justify-content:space-between!important;margin-top:18px!important;color:#60758b!important;font-size:9px!important}
 @media(max-width:900px){main#dashboard.premium-admin-shell{grid-template-columns:1fr!important}.premium-sidebar{height:auto!important;position:relative!important}.premium-logo{height:auto!important}.premium-nav-title,.premium-sidebar-foot{display:none!important}#tabs.premium-nav{flex-direction:row!important;padding:8px 14px!important}#tabs.premium-nav button{width:auto!important;min-height:38px!important;padding:9px 13px!important;border-radius:8px!important;white-space:nowrap!important}.premium-workspace{padding:18px!important}.premium-overview-grid{grid-template-columns:1fr!important}}
+
+
+/* 2026-09-20 Heritage Nocturne — align dashboard with MQ3 Song Creator. */
+:root{
+  --admin-bg:#171315;
+  --admin-bg-deep:#100d0f;
+  --admin-panel:rgba(33,26,29,.88);
+  --admin-panel-soft:rgba(255,248,237,.025);
+  --admin-gold:#c7a784;
+  --admin-gold-light:#ead8bd;
+  --admin-gold-dark:#8f6d56;
+  --admin-text:#f2ece7;
+  --admin-muted:#b9ada8;
+  --admin-line:rgba(138,98,107,.32);
+  --admin-line-soft:rgba(255,248,237,.075);
+}
+body{
+  background:
+    radial-gradient(circle at 15% 0%,rgba(96,59,67,.34),transparent 35%),
+    radial-gradient(circle at 85% 20%,rgba(83,52,59,.20),transparent 35%),
+    linear-gradient(145deg,#261a1e 0%,#171315 48%,#100d0f 100%)!important;
+}
+body::before{
+  background:linear-gradient(115deg,transparent 0 45%,rgba(199,167,132,.055) 45.2%,transparent 45.5%)!important;
+}
+.admin-head .eyebrow,.summary-label{color:#c7a784!important}
+.admin-head h1{
+  background:linear-gradient(180deg,#fff8ed 0%,#ead8bd 48%,#b98e69 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+}
+.admin-tagline{color:#b9ada8!important}
+.admin-head-actions .button{
+  border-color:rgba(138,98,107,.58)!important;
+  background:rgba(40,28,32,.42)!important;
+}
+.admin-head-actions .button:hover{border-color:#c7a784!important;background:rgba(96,59,67,.24)!important}
+.dashboard-summary{border-color:var(--admin-line)!important;background:linear-gradient(110deg,rgba(255,248,237,.035),rgba(255,248,237,.012))!important}
+.dashboard-summary p{color:#dfd1c8!important}
+.connection-panel{border-color:var(--admin-line)!important;background:rgba(29,23,26,.58)!important}
+.connection-title{color:#ead8bd!important}
