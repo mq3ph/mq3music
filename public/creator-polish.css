@@ -207,3 +207,12 @@ article em{color:#8fb8aa!important}
   transform:translateY(1px);
   box-shadow:inset 0 2px 5px rgba(0,0,0,.34),0 4px 10px rgba(0,0,0,.3)!important;
 }
+
+
+/* Hero music-note tile — match the midnight forest palette. */
+#home.hero>.orb{
+  background:linear-gradient(145deg,#285b50 0%,#173f37 52%,#0d2d28 100%)!important;
+  border:1px solid #3f6b61!important;
+  color:#e7f1ed!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 20px rgba(0,0,0,.30)!important;
+}
