@@ -690,3 +690,8 @@ body:has(#home.on) .hero-benefits{order:7!important;margin-top:20px!important}
 body:has(#home.on) .premium-hero-art{display:none!important}
 body:has(#home.on) .reference-mic-photo{display:none!important}
 body:has(#home.on) .home-featured{border-top:1px solid rgba(208,142,48,.22)!important}
+
+/* Featured song artwork */
+body:has(#home.on) .preview-art{position:relative!important;overflow:hidden!important;background:#240604!important}
+body:has(#home.on) .preview-art img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+body:has(#home.on) .preview-art span{position:absolute!important;inset:0!important;margin:auto!important;width:46px!important;height:46px!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:rgba(26,3,2,.72)!important;border:1px solid rgba(238,183,78,.75)!important;color:#ffd77a!important;backdrop-filter:blur(5px)!important}
