@@ -314,3 +314,17 @@ header .brand-copy small{
     linear-gradient(180deg,#24584d 0%,#173f37 50%,#0c2d28 100%)!important;
   border-color:#3e6a60!important;
 }
+
+
+/* Header title emphasis — brighter MQ3 jewel tones, subtitle stays restrained. */
+header .brand-copy strong{
+  background:linear-gradient(100deg,#ffffff 0%,#eadcff 24%,#c79cff 52%,#ef8fc8 78%,#ffd2e9 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 2px 12px rgba(197,132,244,.22),0 0 24px rgba(229,111,183,.12)!important;
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.08));
+}
+header .brand-copy small{
+  color:#b8a9c1!important;
+}
