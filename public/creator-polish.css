@@ -595,3 +595,42 @@ body:has(#home.on) main{width:min(100%,1180px)!important;padding:0 28px 70px!imp
  .featured-preview-grid{grid-template-columns:repeat(2,1fr)}.home-value-grid{grid-template-columns:1fr}.premium-footer{grid-template-columns:1fr 1fr}.premium-footer blockquote{grid-column:1/-1}
 }
 @media(max-width:480px){.featured-preview-grid{grid-template-columns:1fr 1fr;gap:10px}.preview-art{height:130px}.hero-benefits{flex-wrap:wrap}.premium-hero-art{min-height:400px}.studio-mic{width:285px}.premium-footer{grid-template-columns:1fr}.footer-brand{margin-bottom:12px}}
+
+
+/* Mobile-first reference composition. The reference artwork is used as the visual hero rather than approximating its microphone. */
+.reference-hero-art{overflow:hidden!important}
+.reference-mic-photo{
+  position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(90deg,rgba(25,3,2,.94) 0%,rgba(25,3,2,.12) 23%,rgba(25,3,2,.04) 73%,rgba(25,3,2,.78) 100%),
+    linear-gradient(180deg,rgba(31,4,2,.12) 0%,rgba(20,2,1,.02) 62%,rgba(17,2,1,.78) 100%),
+    url("/mq3-premium-reference.png") center 34%/cover no-repeat;
+  filter:saturate(1.04) contrast(1.03);
+}
+.reference-hero-art .legacy-mic,.reference-hero-art .sound-wave,.reference-hero-art .hero-script{display:none!important}
+@media(max-width:800px){
+ body:has(#home.on) main{width:100%!important;max-width:520px!important;padding:0 16px 46px!important}
+ .mq3-topbar{height:72px!important;padding:0 2px!important}.mq3-brand img{width:44px!important;height:44px!important}.mq3-brand .brand-copy strong{font-size:17px!important}.mq3-brand .brand-copy small{font-size:6px!important}.mq3-topbar .credits{min-width:auto!important;padding:8px 10px!important;font-size:10px!important}
+ .premium-home{padding-top:0!important}
+ .premium-hero{display:flex!important;flex-direction:column!important;gap:0!important;min-height:0!important;overflow:visible!important;border-bottom-color:rgba(208,142,48,.22)!important}
+ .premium-hero-copy{order:1!important;width:100%!important;padding:38px 2px 0!important;text-align:center!important}
+ .premium-hero-copy .eyebrow{font-size:9px!important;letter-spacing:.22em!important}
+ .premium-hero-copy h1{font-size:clamp(39px,11.5vw,54px)!important;line-height:1.02!important;margin:13px 0 15px!important}
+ .hero-lead{font-size:13px!important;line-height:1.6!important;max-width:430px!important;margin:0 auto!important}
+ .premium-hero-art{order:2!important;width:calc(100% + 32px)!important;margin:20px -16px 0!important;min-height:500px!important;border-radius:0!important}
+ .reference-mic-photo{
+   background:
+     linear-gradient(180deg,rgba(29,3,2,.70) 0%,rgba(29,3,2,.04) 16%,rgba(20,2,1,.02) 73%,rgba(17,2,1,.84) 100%),
+     url("/mq3-premium-reference.png") 62% 39%/auto 650px no-repeat!important;
+ }
+ .premium-hero-copy .hero-primary{position:absolute!important;z-index:5!important;left:16px!important;right:16px!important;top:calc(100% - 215px)!important;width:auto!important;max-width:none!important;margin:0!important}
+ .premium-hero-copy .hero-secondary{position:absolute!important;z-index:5!important;left:16px!important;right:16px!important;top:calc(100% - 140px)!important;width:auto!important;max-width:none!important;margin:0!important;background:rgba(39,6,4,.86)!important;backdrop-filter:blur(8px)}
+ .home-my-songs{position:absolute!important;z-index:5!important;left:0!important;right:0!important;bottom:34px!important;margin:auto!important;width:max-content!important}
+ .hero-benefits{order:3!important;width:100%!important;margin:0 0 24px!important;padding:18px 0 4px!important;justify-content:space-around!important;gap:8px!important;border-top:1px solid rgba(208,142,48,.16)}
+ .hero-benefits span{font-size:18px!important;gap:6px!important}.hero-benefits b{font-size:9px!important}
+ .home-featured{padding:32px 0 20px!important}.section-title-row h2{font-size:26px!important}
+ .featured-preview-grid{display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;gap:12px!important;padding-bottom:8px!important}
+ .preview-song{flex:0 0 78%!important;scroll-snap-align:start!important}.preview-art{height:180px!important}
+ .home-value-grid{padding-top:12px!important;gap:12px!important}.home-value-grid>div{padding:22px 18px!important}
+ .premium-footer{gap:22px!important;padding-top:30px!important}
+}
