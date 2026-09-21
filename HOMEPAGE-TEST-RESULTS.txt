@@ -1,0 +1,10 @@
+Desktop layout, visible navigation, four catalog cards, no page overflow
+Suno and uploaded-audio player paths; closing removes playback
+Existing sign-in dialog opens
+Create My Song opens existing creator flow
+Existing Featured Songs page loads
+320px, 390px and 768px layouts; visible actions; no horizontal page overflow
+Empty catalog shows honest empty state
+Catalog error has working retry
+Signed-in credit balance and account panel retain existing behavior
+No uncaught JavaScript errors

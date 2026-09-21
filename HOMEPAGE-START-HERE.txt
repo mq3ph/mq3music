@@ -1,0 +1,49 @@
+MQ3 HOMEPAGE REDESIGN — SEPTEMBER 21, 2026
+
+Homepage only: burgundy/gold design, new microphone artwork, responsive layout,
+working featured catalog/player, existing account/credits and Create controls.
+The complete app also retains the previously delivered Admin Batch 1 fixes.
+It does NOT include the unfinished broad-fixes checkpoint.
+
+FOR YOUR CURRENT APP (ADMIN BATCH 1 ALREADY INSTALLED)
+1. Extract MQ3-Homepage-Redesign-Complete.zip.
+2. Open mq3music-main, then public.
+3. In GitHub open the public folder, choose Add file > Upload files.
+   Upload/replace these four files together:
+     index.html
+     creator.js
+     home.css (new)
+     home.js  (new)
+4. Also upload assets/home-microphone.png inside public/assets.
+   You can instead upload the complete public folder at the repository ROOT
+   in one commit; other public files match your Admin Batch 1 version.
+   Do not upload the ZIP itself or nest mq3music-main inside the repository.
+5. Commit: Redesign MQ3 homepage in burgundy and gold
+6. Wait for Vercel to show Ready, then open the homepage and press Ctrl+Shift+R.
+7. Test Create My Song, Sign In/credit balance, and a Featured Songs play button.
+
+NO NEW SQL OR DATABASE CHANGES ARE NEEDED FOR THIS HOMEPAGE UPDATE.
+Do not rerun the old admin migration. You already completed that setup.
+No environment variables or dependency changes are required.
+
+WHAT TO EXPECT
+- Featured cards use published songs from your real catalog, up to four,
+  with a mix of available categories. Titles are not hardcoded demo songs.
+- Existing category artwork is retained; the microphone background is new.
+- Sign In shows for guests. Actual credit balance shows after sign-in.
+- No fake Pricing/Support destinations were added where the app has no page.
+- The screenshot reference is recreated as responsive HTML, not a static poster.
+- Desktop/mobile preview screenshots use clearly synthetic test catalog data.
+- Source ZIP includes the existing app; unrelated customer-flow limitations
+  identified earlier are not fixed by this homepage-only batch.
+
+VERIFICATION
+Build passed. Browser tests ran in local headless Edge with fixture API data:
+1440px desktop; 320px, 390px and 768px; no horizontal page overflow;
+Create flow; Featured page; sign-in and signed-in credit balance;
+Suno iframe and uploaded-audio URLs; closing removes player content;
+empty catalog; failed catalog and retry; no uncaught JavaScript errors.
+Live payments, actual audio streaming and live customer accounts were not tested.
+No live GitHub, Vercel, Gmail or Neon data was modified.
+
+Rollback: revert this homepage commit. No database rollback is needed.
