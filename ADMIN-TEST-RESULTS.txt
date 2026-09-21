@@ -1,0 +1,11 @@
+Migration reruns safely; legacy email state stays unknown
+GET/PATCH/Retry require admin session; foreign-origin writes blocked
+Invalid links blocked; SMTP failure persisted and honestly returned
+Retry succeeds; repeated Ready/Retry does not duplicate accepted mail
+Saving an unchanged legacy Ready request does not resend old notification
+Concurrent retries and edits are blocked during an active email attempt
+Stale email attempts can recover; missing/not-Ready requests rejected
+Built admin dashboard renders real authenticated song requests
+Load outage shows explicit error, hides stale rows, and Retry recovers
+Browser Ready → Failed → Retry → Sent flow works
+True empty list distinct from failure; no uncaught browser errors

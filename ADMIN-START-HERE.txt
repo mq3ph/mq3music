@@ -1,0 +1,75 @@
+MQ3 ADMIN DASHBOARD FIX — BATCH 1
+September 21, 2026
+
+ITO ANG GAMITIN: MQ3-Admin-Dashboard-Batch-1.zip
+Hindi ito ang naunang CHECKPOINT-NOT-FOR-DEPLOYMENT ZIP.
+Based ito sa original mq3music-main (2).zip. Admin batch lang ito;
+hindi kasama ang unfinished customer-app fixes sa checkpoint.
+
+ANO ANG NAAYOS
+- Admin login required sa Song Requests list, updates at email Retry.
+- Non-app origins cannot modify these admin records.
+- Email Pending / Sending / Sent / Failed states stored in the database.
+- Retry button for failed notifications; concurrent sends are guarded.
+- Older requests show Not tracked; walang invented delivery history.
+- Both complete HTTPS song links required before Ready.
+- Failed list loads show an error and Retry, not a misleading empty list.
+- Same branding and layout. Updated bundle cache version.
+
+PAANO ILAGAY SA EXISTING GITHUB / VERCEL APP
+1. Extract the ZIP. Open the mq3music-main folder inside.
+2. Sa Neon SQL Editor, piliin ang database ng existing MQ3 app.
+   Copy ALL contents of admin-dashboard-migration.sql, paste, then Run.
+   Do this BEFORE deploying the new app files. Safe itong ulitin.
+   Existing requests, credits and song links are preserved.
+   Kapag may SQL error, huwag muna ituloy ang app upload.
+3. Sa GitHub repository ng current app, replace these SIX complete files:
+   src/index.js
+   src/admin-client.js
+   src/services.js
+   src/admin-song-requests.js     (NEW file)
+   public/admin.bundle.js
+   public/admin.html
+   Also add admin-dashboard-migration.sql for your repository record.
+   Keep the folder names exactly. Huwag i-upload ang ZIP mismo.
+   For copy-paste: open each text file, copy its WHOLE contents, then
+   replace the matching GitHub file. Do not append to old code.
+   For GitHub Upload files: upload the src and public folders from the
+   extracted complete kit at the repository root. They retain the original
+   other files from the supplied ZIP. Commit the files together.
+4. Hintayin ang connected Vercel deployment to finish. Walang bagong
+   environment variable o npm package na kailangan para sa admin batch.
+   Keep the existing Gmail, session, database and build settings.
+5. Open Admin and press Ctrl+Shift+R. Sign in and open Song Requests.
+   Kapag talagang walang requests, makikita ang No song requests yet.
+   Kapag error, makikita ang Unable to load at Retry loading requests.
+6. On a TEST request with your own email, add both HTTPS song links then
+   click Ready. Email: Sent means accepted by the mail service; check
+   inbox/spam separately. Failed means check Gmail settings then Retry.
+   Sending may be retried after five minutes if the previous run stalled.
+
+IMPORTANT SCOPE
+This is an update for the existing configured app, not a new database
+installer. The migration requires the existing song_creator_requests table.
+If your live code differs from mq3music-main (2).zip, compare before replacing
+files so newer changes are not overwritten. Do not combine this with the
+unfinished checkpoint files.
+
+Email acceptance is not proof of inbox delivery. SMTP does not guarantee
+exactly-once sending: if a server stops after SMTP acceptance but before
+recording success, manual retry can send a second notification. Older
+Not tracked requests may already have been emailed; the UI asks before
+sending those again. Retry is manual, not an automatic background job.
+
+VALIDATION COMPLETED
+Build passed. Eleven targeted PostgreSQL/API/browser checks passed:
+see ADMIN-TEST-RESULTS.txt. Browser tests used headless Edge and local
+PostgreSQL-compatible PGlite. Song Request routes were real server calls;
+unrelated dashboard feeds and outbound email were test fixtures.
+No live Neon data, Gmail, GitHub or Vercel deployment was changed.
+This is not a claim that all unrelated app issues or original tests pass.
+
+ROLLBACK
+Revert the GitHub commit to restore the prior app code if needed. Added
+database columns can remain; old code ignores them. Reverting also restores
+the original admin-route security issue, so use rollback only if necessary.
