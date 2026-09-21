@@ -260,6 +260,15 @@ export function createApp(s=services()){
     res.json(await q('SELECT * FROM song_creator_requests WHERE user_id=$1 ORDER BY created_at DESC',[user.id]));
   }));
 
+  // These routes are registered before the shared admin middleware below.
+  app.use('/api/admin/song-creator-requests',(req,res,next)=>{
+    Promise.resolve().then(async()=>{
+      await admin(req);
+      if(req.method!=='GET')sameOrigin(req);
+      next();
+    }).catch(next);
+  });
+
   app.get('/api/admin/song-creator-requests',wrap(async(_req,res)=>res.json(await q('SELECT * FROM song_creator_requests ORDER BY created_at DESC'))));
 
   app.patch('/api/admin/song-creator-requests/:id',wrap(async(req,res)=>{
