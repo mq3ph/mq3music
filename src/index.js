@@ -227,13 +227,28 @@ export function createApp(s=services()){
     if(!allowed.has(songType))fail(400,'Choose a valid song type.');
     const subjectName=String(req.body.name||'').trim().slice(0,120),relationship=String(req.body.relationship||'').trim().slice(0,80),occasion=String(req.body.occasion||'').trim().slice(0,80),story=String(req.body.story||'').trim().slice(0,4000),language=String(req.body.language||'English').trim().slice(0,40)||'English';
     if(!story)fail(400,'Tell us what the song should be about.');
-    const id=randomUUID(),ledgerId=randomUUID();
+    const requestKey=req.body?.requestKey||req.get('Idempotency-Key');
+    if(!requestKey)fail(400,'Please refresh this page before submitting your song request.');
+    const id=uuid(requestKey),ledgerId=randomUUID();
+    // Reuse the request primary key so retries cannot create another debit.
+    const expected=[songType,subjectName,relationship,occasion,story,language];
+    const existing=async()=>{
+      const [row]=await q('SELECT * FROM song_creator_requests WHERE id=$1',[id]);
+      if(!row)return null;
+      const actual=[row.song_type,row.subject_name||'',row.relationship||'',row.occasion||'',row.story,row.language];
+      if(row.user_id!==user.id||JSON.stringify(actual)!==JSON.stringify(expected))
+        fail(409,'This request ID belongs to a different request. Refresh and start a new request.');
+      return row;
+    };
+    const prior=await existing();
+    if(prior)return res.json({ok:true,alreadyRequested:true,request:prior});
     const [request]=await q(`WITH locked AS (SELECT * FROM wallets WHERE user_id=$1 FOR UPDATE),
     amounts AS (SELECT user_id,LEAST(promo_credits,50) promo_used,50-LEAST(promo_credits,50) purchased_used FROM locked WHERE promo_credits+purchased_credits>=50),
-    created AS (INSERT INTO song_creator_requests(id,user_id,email,display_name,song_type,subject_name,relationship,occasion,story,language,credits) SELECT $2,a.user_id,$3,$4,$5,$6,$7,$8,$9,$10,50 FROM amounts a RETURNING *),
+    created AS (INSERT INTO song_creator_requests(id,user_id,email,display_name,song_type,subject_name,relationship,occasion,story,language,credits) SELECT $2,a.user_id,$3,$4,$5,$6,$7,$8,$9,$10,50 FROM amounts a ON CONFLICT(id) DO NOTHING RETURNING *),
     debited AS (UPDATE wallets w SET promo_credits=w.promo_credits-a.promo_used,purchased_credits=w.purchased_credits-a.purchased_used,updated_at=now() FROM amounts a,created c WHERE w.user_id=a.user_id RETURNING w.promo_credits+w.purchased_credits balance),
     ledger AS (INSERT INTO credit_transactions(id,user_id,transaction_type,promo_change,purchased_change,description,reference_id) SELECT $11,a.user_id,'song_creator',-a.promo_used,-a.purchased_used,'Create My Song · 50 Credits',$2 FROM amounts a,created c RETURNING id)
     SELECT c.*,d.balance FROM created c CROSS JOIN debited d CROSS JOIN ledger l`,[user.id,id,user.email,user.display_name||null,songType,subjectName||null,relationship||null,occasion||null,story,language,ledgerId]);
+    if(!request){const duplicate=await existing();if(duplicate)return res.json({ok:true,alreadyRequested:true,request:duplicate});}
     if(!request)fail(402,'You need 50 MQ3 Credits to create your song.');
     res.status(201).json({ok:true,request});
   }));
