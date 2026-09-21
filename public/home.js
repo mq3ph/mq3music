@@ -17,7 +17,7 @@
   }
   window.addEventListener('mq3-home-catalog',event=>{
     grid.replaceChildren();
-    if(event.detail.error){status.textContent='Featured songs could not be loaded. ';const retry=node('a','Try again');retry.href='/';status.append(retry);return;}
+    if(event.detail.error){status.textContent='New releases could not be loaded. ';const retry=node('a','Try again');retry.href='/';status.append(retry);return;}
     // Compatibility for catalog records awaiting the category migration.
     // Only the four reviewed legacy records are reassigned; newer categories win.
     const legacyCategories={
@@ -29,10 +29,14 @@
     const songs=(event.detail.songs||[]).map(song=>song.category==='ORIGINAL SONGS'&&legacyCategories[song.id]?{...song,category:legacyCategories[song.id]}:song);
     if(!songs.length){status.textContent='New music is on the way. Your song could be next.';return;}
     status.textContent='';
-    // Show a mix of existing categories before filling remaining positions.
-    const selected=[],categories=new Set();
-    for(const song of songs){if(!categories.has(song.category)){selected.push(song);categories.add(song.category);}if(selected.length===4)break;}
-    for(const song of songs){if(selected.length===4)break;if(!selected.includes(song))selected.push(song);}
+    // The catalog contains published songs. Show the newest additions first.
+    const addedTime=song=>{
+      const time=Date.parse(song.created_at);
+      return Number.isFinite(time)?time:0;
+    };
+    const selected=[...songs].sort((a,b)=>
+      addedTime(b)-addedTime(a)||String(a.id).localeCompare(String(b.id))
+    ).slice(0,4);
     for(const song of selected){
       const art={'INSPIRATIONAL SONGS':'inspirational','OPM':'opm','LOVE SONGS':'original','NAME SONGS':'name-series'}[song.category]||'original';
       const card=node('article');card.className='home-song';
