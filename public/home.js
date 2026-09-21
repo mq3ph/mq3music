@@ -18,7 +18,15 @@
   window.addEventListener('mq3-home-catalog',event=>{
     grid.replaceChildren();
     if(event.detail.error){status.textContent='Featured songs could not be loaded. ';const retry=node('a','Try again');retry.href='/';status.append(retry);return;}
-    const songs=event.detail.songs||[];
+    // Compatibility for catalog records awaiting the category migration.
+    // Only the four reviewed legacy records are reassigned; newer categories win.
+    const legacyCategories={
+      '60967b6d-c1a0-4ae6-8c5c-526d6cb5e1a1':'OPM',
+      '3e3cceb4-f3ee-45c3-89a9-be1ee6365167':'NAME SONGS',
+      'd04b7869-c286-45c0-b85f-9b04f23d77b8':'LOVE SONGS',
+      'bdc295a8-d62b-46f2-946f-f503d127d28a':'LOVE SONGS'
+    };
+    const songs=(event.detail.songs||[]).map(song=>song.category==='ORIGINAL SONGS'&&legacyCategories[song.id]?{...song,category:legacyCategories[song.id]}:song);
     if(!songs.length){status.textContent='New music is on the way. Your song could be next.';return;}
     status.textContent='';
     // Show a mix of existing categories before filling remaining positions.
@@ -26,7 +34,7 @@
     for(const song of songs){if(!categories.has(song.category)){selected.push(song);categories.add(song.category);}if(selected.length===4)break;}
     for(const song of songs){if(selected.length===4)break;if(!selected.includes(song))selected.push(song);}
     for(const song of selected){
-      const art={'INSPIRATIONAL SONGS':'inspirational','OPM':'opm','ORIGINAL SONGS':'original','NAME SONGS':'name-series'}[song.category]||'original';
+      const art={'INSPIRATIONAL SONGS':'inspirational','OPM':'opm','LOVE SONGS':'original','NAME SONGS':'name-series'}[song.category]||'original';
       const card=node('article');card.className='home-song';
       const button=node('button');button.type='button';button.className='home-song-play';button.setAttribute('aria-label','Play '+(song.title||'song'));button.onclick=()=>play(song);
       const image=node('img');image.src='/assets/'+art+'.png';image.alt='';image.loading='lazy';image.width=400;image.height=300;
