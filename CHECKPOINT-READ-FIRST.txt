@@ -1,0 +1,10 @@
+MQ3 FIXES — WORK-IN-PROGRESS CHECKPOINT
+NOT YET CLEARED FOR PRODUCTION DEPLOYMENT
+
+Prepared: admin-route protection; idempotent paid song requests; account/global AI quotas; additive database migrations; audio range adapter; working manual song and MP3 request controls; session draft autosave; credit history; email status and retry; request/catalog pagination; storage-report endpoint; reproducible npm lockfile and test dependencies.
+
+Verification reached: previous full suite reported 37 passes and 2 failures (one failed subtest plus its parent suite). The remaining stale notification-test payload was corrected AFTER that run, but the full suite has not been rerun since. Additional UI changes are not yet browser verified. An earlier build passed; the latest build/browser command was blocked by a usage-limit failure in automatic approval review and did not execute.
+
+Do not run DATABASE-UPGRADE.sql on production or overwrite the live GitHub app yet. Preserve this checkpoint. Remaining work: rerun npm test; run npm run build; install a Playwright browser (npx playwright install chromium) and run npm run test:browser; inspect customer/admin screens; verify migrations on a copy of the existing database; resolve any failures; then prepare final upload/deployment instructions. Browser tests use a local test database and fabricated accounts, not live payments.
+
+Contents: complete working source, migrations, SQL upgrade file, tests and package-lock.json. Excludes node_modules, credentials and test profiles. Original ZIP remains unchanged.
