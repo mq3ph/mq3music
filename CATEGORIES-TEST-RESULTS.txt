@@ -1,0 +1,4 @@
+Single prepared-statement migration runs twice; four songs moved; lyrics and other categories preserved
+Server accepts Love Songs and OPM requests through existing credit flow
+Love Songs replaces My Story; OPM opens correct form/language; own lyrics preserved
+Featured filters show migrated Love Songs and OPM; no browser errors

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS songs (
- id uuid PRIMARY KEY, title text NOT NULL, category text NOT NULL CHECK(category IN ('NAME SONGS','INSPIRATIONAL SONGS','OPM','ORIGINAL SONGS')),
+ id uuid PRIMARY KEY, title text NOT NULL, category text NOT NULL CHECK(category IN ('NAME SONGS','INSPIRATIONAL SONGS','OPM','LOVE SONGS','ORIGINAL SONGS')),
  names text NOT NULL DEFAULT '', lyrics text NOT NULL DEFAULT '', price integer NOT NULL DEFAULT 0 CHECK(price>=0),
  published boolean NOT NULL DEFAULT false, audio_path text, preview_path text, duration_seconds integer, views integer NOT NULL DEFAULT 0, created_at timestamptz NOT NULL DEFAULT now()
 );

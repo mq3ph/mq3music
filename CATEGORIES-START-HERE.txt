@@ -1,0 +1,55 @@
+MQ3 LOVE SONGS + OPM UPDATE — SEPTEMBER 22, 2026
+
+1. Extract MQ3-Love-Songs-OPM-Complete.zip.
+2. Neon: choose the SAME branch/database used by your live MQ3 app.
+   Open CATEGORIES-MIGRATION.sql, copy ALL of it, paste in SQL Editor and Run.
+   This is ONE DO statement, including its internal semicolons. Tested as a
+   prepared statement. Do not split the DO block. It is safe to run again.
+3. In a separate Run, check for unreviewed/unpublished Original Songs:
+   SELECT id,title,published FROM public.songs WHERE category='ORIGINAL SONGS';
+   If rows appear, send the result and lyrics for classification. Those rows
+   are intentionally preserved, not guessed or deleted. You can review them
+   before deploying if you have unpublished songs in the old category.
+4. Upload the updated files to their matching GitHub folders, FILES themselves:
+   public/admin.bundle.js
+   public/admin.html
+   public/app.js
+   public/creator-featured.js
+   public/creator.html
+   public/creator.js
+   public/featuredsongs.html
+   public/home.js
+   public/index.html
+   src/admin-client.js
+   src/index.js
+
+   In GitHub public: Add file > Upload files, select the listed public files.
+   In GitHub src: Add file > Upload files, select the listed src files.
+   Commit each folder upload, then wait for the LAST Vercel deployment to be Ready.
+   Do not select a folder inside the same GitHub folder (avoid public/public).
+5. Open /create and press Ctrl+Shift+R. Test Love Songs and OPM.
+   Open Featured Songs and test both category filters. Admin has Love Songs
+   in place of Original Songs; OPM remains available for catalog management.
+
+VERIFIED MIGRATION MAPPING (published catalog at time of this update)
+Ikaw Na Nga -> OPM
+Joan -> NAME SONGS
+Your Bestfriend -> LOVE SONGS
+Your Bestfriend (Duet Version) -> LOVE SONGS
+
+Joan stays in Name Songs. The English mapping includes friendship
+songs. Other songs already under Inspirational/Name Songs/OPM are unchanged.
+Song IDs, lyrics, player links, purchases and credits are not rewritten.
+The old ORIGINAL SONGS database value is temporarily accepted for unreviewed
+records/backward compatibility, but it is no longer offered as a new category.
+
+Create My Own Song and I Already Have Lyrics remain creation modes.
+Love Songs replaces A Song About My Story. New OPM requests default to
+Filipino / Tagalog; Love Songs defaults to English. Language remains editable.
+The earlier homepage, cropped Suno player, lyrics-font and admin fixes remain.
+
+Build passed. Local PostgreSQL tests verified the migration twice, all four
+mapped songs, unchanged lyrics/other songs and real credit-backed request routes.
+Headless Edge tests verified Love/OPM forms and defaults, Featured filters and
+no uncaught browser errors. Live database changes have NOT been executed by Codex.
+Full updated source is included; no unfinished checkpoint changes are included.
