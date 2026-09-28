@@ -4,7 +4,7 @@ This is an updated source copy of mq3music-main.zip. The live mq3music.com site 
 
 ## What changed
 
-- Approved listening-hub layout: compact featured-song hero, song list left and player right, with MQ3 burgundy/gold styling and supplied logo.
+- Compact player interface: search, category filters, song list and official player, with MQ3 burgundy/gold styling and supplied logo. No hero, promotional copy or About section.
 - Four categories: Name Songs, Inspirational, OPM and Love Songs.
 - Public listening catalog with search, featured song, shareable song URLs and official YouTube/Spotify embeds. No autoplay and no subscription gate.
 - Admin manages song details, cover URLs, draft/published state and YouTube/Spotify links or pasted iframe embed codes (only the validated platform URL is used).
