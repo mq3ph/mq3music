@@ -15,6 +15,47 @@
   <link rel="icon" href="/assets/logo.png">
   <link rel="stylesheet" href="/listening.css">
   <link rel="stylesheet" href="/mobile-player.css">
+
+  <style>
+    /* Desktop: keep the song library as one compact left column so the
+       song rows sit directly below the category buttons instead of being
+       pushed down by the tall Now Playing panel. */
+    @media (min-width:801px){
+      .player-app .catalog-layout{
+        grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) !important;
+        grid-template-areas:"library listen" !important;
+        align-items:start;
+      }
+      .player-app .catalog-left{
+        grid-area:library;
+        min-width:0;
+      }
+      .player-app .catalog-left .search-block,
+      .player-app .catalog-left .filters,
+      .player-app .catalog-left #catalog-status,
+      .player-app .catalog-left #song-grid{
+        grid-area:auto;
+      }
+      .player-app .catalog-left .filters{
+        margin-top:16px;
+        margin-bottom:16px;
+      }
+      .player-app .catalog-left #catalog-status{
+        margin:0 0 10px;
+      }
+      .player-app .catalog-left #song-grid{
+        margin-top:0;
+      }
+      .player-app .listen{
+        grid-area:listen;
+      }
+    }
+
+    /* Mobile keeps the existing order: Search → Now Playing → Categories → Songs. */
+    @media (max-width:800px){
+      .player-app .catalog-left{display:contents;}
+    }
+  </style>
 </head>
 
 <body class="player-app">
@@ -60,28 +101,87 @@
 
         <div class="catalog-layout">
 
-          <!-- SEARCH -->
-          <div class="search-block">
+          <div class="catalog-left">
 
-            <div class="search-meta">
+            <!-- SEARCH -->
+            <div class="search-block">
 
-              <label for="search">
-                Search songs or names
-              </label>
+              <div class="search-meta">
 
-              <span
-                id="count"
-                class="small muted"
-              ></span>
+                <label for="search">
+                  Search songs or names
+                </label>
+
+                <span
+                  id="count"
+                  class="small muted"
+                ></span>
+
+              </div>
+
+              <input
+                id="search"
+                type="search"
+                placeholder="Find a title or name…"
+                autocomplete="off"
+              >
 
             </div>
 
-            <input
-              id="search"
-              type="search"
-              placeholder="Find a title or name…"
-              autocomplete="off"
+            <!-- CATEGORIES -->
+            <div
+              class="filters"
+              aria-label="Categories"
             >
+
+              <button
+                data-category="All"
+                aria-pressed="true"
+              >
+                All Songs
+              </button>
+
+              <button
+                data-category="Name Songs"
+                aria-pressed="false"
+              >
+                Name Songs
+              </button>
+
+              <button
+                data-category="Inspirational"
+                aria-pressed="false"
+              >
+                Inspirational
+              </button>
+
+              <button
+                data-category="OPM"
+                aria-pressed="false"
+              >
+                OPM
+              </button>
+
+              <button
+                data-category="Love Songs"
+                aria-pressed="false"
+              >
+                Love Songs
+              </button>
+
+            </div>
+
+            <div
+              id="catalog-status"
+              role="status"
+            >
+              Loading songs…
+            </div>
+
+            <div
+              id="song-grid"
+              class="grid"
+            ></div>
 
           </div>
 
@@ -278,61 +378,6 @@
             </div>
 
           </aside>
-
-          <!-- CATEGORIES -->
-          <div
-            class="filters"
-            aria-label="Categories"
-          >
-
-            <button
-              data-category="All"
-              aria-pressed="true"
-            >
-              All Songs
-            </button>
-
-            <button
-              data-category="Name Songs"
-              aria-pressed="false"
-            >
-              Name Songs
-            </button>
-
-            <button
-              data-category="Inspirational"
-              aria-pressed="false"
-            >
-              Inspirational
-            </button>
-
-            <button
-              data-category="OPM"
-              aria-pressed="false"
-            >
-              OPM
-            </button>
-
-            <button
-              data-category="Love Songs"
-              aria-pressed="false"
-            >
-              Love Songs
-            </button>
-
-          </div>
-
-          <div
-            id="catalog-status"
-            role="status"
-          >
-            Loading songs…
-          </div>
-
-          <div
-            id="song-grid"
-            class="grid"
-          ></div>
 
         </div>
 
