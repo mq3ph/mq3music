@@ -11,133 +11,13 @@
         },
         {
           "key": "Referrer-Policy",
-          "value": "no-referrer"
+          "value": "strict-origin-when-cross-origin"
         },
         {
           "key": "X-Frame-Options",
           "value": "DENY"
         }
       ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
-    },
-    {
-      "source": "/details",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/lyrics",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/music",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/results",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/own",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/featuredsongs",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/mysongs",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/create",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        }
-      ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/create",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/details",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/lyrics",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/music",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/results",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/own",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/featuredsongs",
-      "destination": "/featuredsongs.html"
-    },
-    {
-      "source": "/mysongs",
-      "destination": "/index.html"
-    }
-  ],
-  "redirects": []
+  ]
 }
