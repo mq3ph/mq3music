@@ -1,0 +1,50 @@
+/* MQ3 listening player layout refinements. */
+.player-app .catalog-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  grid-template-areas:
+    "search listen"
+    "filters listen"
+    "status listen"
+    "songs listen";
+  column-gap:28px;
+  row-gap:0;
+  align-items:start;
+  padding-top:24px;
+}
+.player-app .search-block{grid-area:search;min-width:0}
+.player-app .search-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:5px}
+.player-app .search-meta label{margin:0}
+.player-app .filters{grid-area:filters}
+.player-app #catalog-status{grid-area:status}
+.player-app #song-grid{grid-area:songs}
+.player-app .listen{grid-area:listen}
+
+@media(max-width:800px){
+  .player-app .topbar{min-height:94px;padding:12px 0;gap:14px}
+  .player-app .brand{gap:17px}
+  .player-app .brand img{width:68px;height:68px}
+  .player-app .brand-copy strong{font-size:23px;letter-spacing:.9px}
+  .player-app .brand-copy small{margin-top:7px;font-size:9px;letter-spacing:3.4px}
+  .player-app .catalog-layout{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "search"
+      "listen"
+      "filters"
+      "status"
+      "songs";
+    gap:0;
+    padding-top:20px;
+  }
+  .player-app .search-block{margin-bottom:18px}
+  .player-app .listen{margin-bottom:18px;padding:20px}
+  .player-app .filters{margin:0 0 16px}
+  .player-app .grid{max-height:none;overflow:visible}
+}
+
+@media(max-width:420px){
+  .player-app .brand img{width:64px;height:64px}
+  .player-app .brand-copy strong{font-size:22px}
+  .player-app .brand-copy small{font-size:8px;letter-spacing:3px}
+}
