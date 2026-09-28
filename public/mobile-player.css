@@ -64,7 +64,7 @@
   .player-app .now-playing-head{grid-template-columns:104px minmax(0,1fr);gap:16px;margin-bottom:14px}
   .player-app #player-cover{width:104px;height:104px;border-radius:14px}
   .player-app .listen .eyebrow{display:inline-flex;width:max-content;padding:4px 9px;border:1px solid #c99843;border-radius:999px;letter-spacing:1.8px;background:#40120b}
-  .player-app .listen h2{font-size:30px;line-height:1.08;margin:8px 0 0}
+  .player-app .listen h2{font-size:24px;line-height:1.08;margin:8px 0 0;letter-spacing:-.2px}
   .player-app .track-meta{font-size:13px;margin-top:9px}
   .player-app .platforms{margin:14px 0 12px}
   .player-app .platforms .platform-button{min-height:52px;font-size:15px;padding:10px 14px}
@@ -86,7 +86,7 @@
   .player-app .brand-copy small{font-size:9px;letter-spacing:3.5px}
   .player-app .now-playing-head{grid-template-columns:88px minmax(0,1fr);gap:13px}
   .player-app #player-cover{width:88px;height:88px}
-  .player-app .listen h2{font-size:26px}
+  .player-app .listen h2{font-size:21px;line-height:1.06}
   .player-app .platforms .platform-button{font-size:14px;padding:9px 10px}
   .player-app .platform-icon{width:20px;height:20px;flex-basis:20px}
   .player-app .platform-icon svg{width:20px;height:20px}
