@@ -23,9 +23,20 @@
 .player-app #player-cover{width:112px;height:112px;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:#210705;box-shadow:0 12px 30px #0005}
 .player-app .now-playing-copy{min-width:0}
 .player-app .track-meta{display:flex;gap:0;flex-wrap:wrap;margin-top:8px;font-size:13px}
-.player-app .platforms{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
-.player-app .platforms button{border-radius:999px;font-weight:600}
-.player-app .platforms button[aria-pressed=true]{box-shadow:inset 0 0 0 1px #fff2d644,0 6px 16px #0004}
+.player-app .platforms{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:16px 0 14px;border:1px solid #7a4a22;border-radius:999px;overflow:hidden;background:#160403;box-shadow:inset 0 1px 0 #fff1b911}
+.player-app .platforms .platform-button{min-height:48px;border:0;border-radius:999px;background:transparent;color:#c9b5a8;font-weight:600;gap:9px;box-shadow:none;transform:none}
+.player-app .platforms .platform-button:hover{background:#2b0906;filter:none}
+.player-app .platforms .platform-button[aria-pressed=true]{color:#fff;background:linear-gradient(180deg,#b81619 0%,#8b0d12 55%,#5f070b 100%);box-shadow:inset 0 0 0 1px #ff7c73aa,0 7px 18px #0006}
+.player-app .platforms .spotify-tab[aria-pressed=true]{background:linear-gradient(180deg,#269f58 0%,#16753f 58%,#0f4d2c 100%);box-shadow:inset 0 0 0 1px #6fe29baa,0 7px 18px #0006}
+.player-app .platform-icon{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;flex:0 0 22px}
+.player-app .platform-icon svg{width:22px;height:22px;display:block}
+.player-app .youtube-icon svg path:first-child{fill:currentColor}
+.player-app .youtube-icon .play-mark{fill:#8b0d12}
+.player-app .platform-button[aria-pressed=true] .youtube-icon .play-mark{fill:#fff}
+.player-app .spotify-icon svg circle{fill:currentColor}
+.player-app .spotify-icon .spotify-wave{fill:none;stroke:#160403;stroke-width:1.7;stroke-linecap:round}
+.player-app .platform-button[aria-pressed=true] .spotify-icon .spotify-wave{stroke:#fff}
+.player-app .platform-button:disabled{opacity:.45}
 .player-app .player iframe{box-shadow:0 12px 28px #0005}
 
 @media(max-width:800px){
@@ -56,7 +67,7 @@
   .player-app .listen h2{font-size:30px;line-height:1.08;margin:8px 0 0}
   .player-app .track-meta{font-size:13px;margin-top:9px}
   .player-app .platforms{margin:14px 0 12px}
-  .player-app .platforms button{min-height:46px;font-size:14px}
+  .player-app .platforms .platform-button{min-height:52px;font-size:15px;padding:10px 14px}
   .player-app .player .youtube{min-height:0;aspect-ratio:16/9;border-radius:14px}
   .player-app .player .spotify{height:352px;border-radius:14px}
   .player-app .filters{margin:0 0 16px;gap:9px}
@@ -76,4 +87,7 @@
   .player-app .now-playing-head{grid-template-columns:88px minmax(0,1fr);gap:13px}
   .player-app #player-cover{width:88px;height:88px}
   .player-app .listen h2{font-size:26px}
+  .player-app .platforms .platform-button{font-size:14px;padding:9px 10px}
+  .player-app .platform-icon{width:20px;height:20px;flex-basis:20px}
+  .player-app .platform-icon svg{width:20px;height:20px}
 }
