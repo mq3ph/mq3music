@@ -1,0 +1,2 @@
+import {newDb} from 'pg-mem';import {readFile} from 'node:fs/promises';import {passwordHash} from '../src/security.js';
+export async function testStore(){const db=newDb();db.public.none(await readFile(new URL('../listening-migration.sql',import.meta.url),'utf8'));const {Pool}=db.adapters.createPg();const pool=new Pool();return {env:{APP_URL:'http://localhost:3478',SESSION_SECRET:'local-test-only-secret-not-for-production-123456',ADMIN_PASSWORD_HASH:passwordHash('preview-only')},query:async(sql,args=[])=>(await pool.query(sql,args)).rows,db};}

@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {platformLink,songInput,periodStart} from '../src/listening-model.js';
+test('YouTube URL and embed normalization excludes external and executable sources',()=>{
+ assert.equal(platformLink('https://youtu.be/abcdefghijk?si=test','youtube'),'https://www.youtube.com/watch?v=abcdefghijk');
+ assert.equal(platformLink('<iframe src="https://www.youtube.com/embed/abcdefghijk?autoplay=1"></iframe>','youtube'),'https://www.youtube.com/watch?v=abcdefghijk');
+ for(const url of ['javascript:alert(1)','https://youtube.com.evil.test/watch?v=abcdefghijk','https://youtube.com@evil.test/watch?v=abcdefghijk','https://www.youtube.com/playlist?list=123'])assert.throws(()=>platformLink(url,'youtube'));
+});
+test('Spotify songs and artist destinations cannot be confused',()=>{const id='1234567890123456789012';assert.equal(platformLink('https://open.spotify.com/embed/track/'+id,'spotify'),'https://open.spotify.com/track/'+id);assert.throws(()=>platformLink('https://open.spotify.com/artist/'+id,'spotify'));assert.equal(platformLink('https://open.spotify.com/artist/'+id,'spotify',true),'https://open.spotify.com/artist/'+id);});
+test('Drafts can await links; published songs require a supported player',()=>{const body={title:'My song',artist:'manny III',category:'Love Songs'};assert.equal(songInput(body).published,false);assert.throws(()=>songInput({...body,published:true}));assert.throws(()=>songInput({...body,category:'Original Songs'}));assert.equal(songInput({...body,youtube_url:'https://youtu.be/abcdefghijk',published:true}).published,true);});
+test('Philippine calendar periods across UTC day, week and month boundaries',()=>{const now=new Date('2026-09-27T17:00:00Z');assert.equal(periodStart('daily',now).toISOString(),'2026-09-27T16:00:00.000Z');assert.equal(periodStart('weekly',now).toISOString(),'2026-09-27T16:00:00.000Z');assert.equal(periodStart('monthly',now).toISOString(),'2026-08-31T16:00:00.000Z');assert.throws(()=>periodStart('invalid',now));});
