@@ -9,6 +9,7 @@ import {songInput,platformLink,periodStart} from './listening-model.js';
 const wrap=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(next);
 export function createApp(s=services()){
  const app=express(),q=s.query,env=s.env;
+ const pub=fileURLToPath(new URL('../public/',import.meta.url));
  const origin=()=>new URL(env.APP_URL||'http://localhost:3000').origin;
  const cookie=()=>({httpOnly:true,sameSite:'lax',secure:origin().startsWith('https:'),path:'/'});
  const hash=x=>digest(x,env.SESSION_SECRET);
@@ -18,26 +19,37 @@ export function createApp(s=services()){
  app.disable('x-powered-by');app.use(express.json({limit:'24kb'}));app.use(cookieParser());
  app.use((_req,res,next)=>{res.set({'Referrer-Policy':'strict-origin-when-cross-origin','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'});next();});
  app.use('/api',(_req,res,next)=>{res.set('Cache-Control','no-store');next();});
- const bootstrap=(async()=>{
-  const statements=[
-   `CREATE TABLE IF NOT EXISTS hub_songs (id uuid PRIMARY KEY,title text NOT NULL,artist text NOT NULL DEFAULT 'manny III',category text NOT NULL CHECK(category IN ('Name Songs','Inspirational','OPM','Love Songs')),youtube_url text NOT NULL DEFAULT '',spotify_url text NOT NULL DEFAULT '',cover_url text NOT NULL DEFAULT '',description text NOT NULL DEFAULT '',published boolean NOT NULL DEFAULT false,featured boolean NOT NULL DEFAULT false,legacy_views integer NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now())`,
-   `CREATE TABLE IF NOT EXISTS hub_events (event_key text PRIMARY KEY,song_id uuid NOT NULL REFERENCES hub_songs(id),created_at timestamptz NOT NULL DEFAULT now())`,
-   `CREATE INDEX IF NOT EXISTS hub_events_date ON hub_events(created_at,song_id)`,
-   `CREATE INDEX IF NOT EXISTS hub_events_song_date ON hub_events(song_id,created_at)`,
-   `CREATE TABLE IF NOT EXISTS hub_settings (id integer PRIMARY KEY,youtube_channel text NOT NULL,spotify_artist text NOT NULL DEFAULT '')`,
-   `CREATE TABLE IF NOT EXISTS hub_audience (id uuid PRIMARY KEY,recorded_on date NOT NULL UNIQUE,youtube_subscribers integer NOT NULL CHECK(youtube_subscribers>=0),spotify_followers integer NOT NULL CHECK(spotify_followers>=0),note text NOT NULL DEFAULT '',created_at timestamptz NOT NULL DEFAULT now())`,
-   `CREATE TABLE IF NOT EXISTS sessions(token_hash text PRIMARY KEY,expires_at timestamptz NOT NULL)`,
-   `CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at)`,
-   `CREATE TABLE IF NOT EXISTS limits(key text PRIMARY KEY,hits integer NOT NULL DEFAULT 1,expires_at timestamptz NOT NULL)`,
-   `CREATE INDEX IF NOT EXISTS limits_expiry ON limits(expires_at)`
-  ];
-  for(const sql of statements)await q(sql);
-  await q("INSERT INTO hub_settings(id,youtube_channel,spotify_artist) VALUES(1,'https://www.youtube.com/@manny-III','https://open.spotify.com/artist/3ELxNlNqw2zgLqNFbGDaiK') ON CONFLICT(id) DO NOTHING");
-  const existing=await q("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='songs'");
-  if(existing.length)await q(`INSERT INTO hub_songs(id,title,category,legacy_views,created_at)
-   SELECT id,title,CASE WHEN category='NAME SONGS' THEN 'Name Songs' WHEN category='INSPIRATIONAL SONGS' THEN 'Inspirational' WHEN category='LOVE SONGS' THEN 'Love Songs' ELSE 'OPM' END,COALESCE(views,0),created_at FROM songs ON CONFLICT(id) DO NOTHING`);
- })();
- app.use(wrap(async(_req,_res,next)=>{await bootstrap;next();}));
+
+ // Serve the UI before touching the database so /admin and page refreshes never fail on a transient DB cold start.
+ app.get('/admin',(_req,res)=>res.sendFile(pub+'admin.html'));
+ for(const old of ['/create','/details','/lyrics','/music','/results','/own','/mysongs','/featuredsongs','/creator.html','/featuredsongs.html'])app.get(old,(_req,res)=>res.redirect(302,'/'));
+ app.use(express.static(pub,{maxAge:0}));
+
+ let bootstrapPromise=null;
+ async function ensureBootstrap(){
+  if(!bootstrapPromise)bootstrapPromise=(async()=>{
+   const statements=[
+    `CREATE TABLE IF NOT EXISTS hub_songs (id uuid PRIMARY KEY,title text NOT NULL,artist text NOT NULL DEFAULT 'manny III',category text NOT NULL CHECK(category IN ('Name Songs','Inspirational','OPM','Love Songs')),youtube_url text NOT NULL DEFAULT '',spotify_url text NOT NULL DEFAULT '',cover_url text NOT NULL DEFAULT '',description text NOT NULL DEFAULT '',published boolean NOT NULL DEFAULT false,featured boolean NOT NULL DEFAULT false,legacy_views integer NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now())`,
+    `CREATE TABLE IF NOT EXISTS hub_events (event_key text PRIMARY KEY,song_id uuid NOT NULL REFERENCES hub_songs(id),created_at timestamptz NOT NULL DEFAULT now())`,
+    `CREATE INDEX IF NOT EXISTS hub_events_date ON hub_events(created_at,song_id)`,
+    `CREATE INDEX IF NOT EXISTS hub_events_song_date ON hub_events(song_id,created_at)`,
+    `CREATE TABLE IF NOT EXISTS hub_settings (id integer PRIMARY KEY,youtube_channel text NOT NULL,spotify_artist text NOT NULL DEFAULT '')`,
+    `CREATE TABLE IF NOT EXISTS hub_audience (id uuid PRIMARY KEY,recorded_on date NOT NULL UNIQUE,youtube_subscribers integer NOT NULL CHECK(youtube_subscribers>=0),spotify_followers integer NOT NULL CHECK(spotify_followers>=0),note text NOT NULL DEFAULT '',created_at timestamptz NOT NULL DEFAULT now())`,
+    `CREATE TABLE IF NOT EXISTS sessions(token_hash text PRIMARY KEY,expires_at timestamptz NOT NULL)`,
+    `CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at)`,
+    `CREATE TABLE IF NOT EXISTS limits(key text PRIMARY KEY,hits integer NOT NULL DEFAULT 1,expires_at timestamptz NOT NULL)`,
+    `CREATE INDEX IF NOT EXISTS limits_expiry ON limits(expires_at)`
+   ];
+   for(const sql of statements)await q(sql);
+   await q("INSERT INTO hub_settings(id,youtube_channel,spotify_artist) VALUES(1,'https://www.youtube.com/@manny-III','https://open.spotify.com/artist/3ELxNlNqw2zgLqNFbGDaiK') ON CONFLICT(id) DO NOTHING");
+   const existing=await q("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='songs'");
+   if(existing.length)await q(`INSERT INTO hub_songs(id,title,category,legacy_views,created_at)
+    SELECT id,title,CASE WHEN category='NAME SONGS' THEN 'Name Songs' WHEN category='INSPIRATIONAL SONGS' THEN 'Inspirational' WHEN category='LOVE SONGS' THEN 'Love Songs' ELSE 'OPM' END,COALESCE(views,0),created_at FROM songs ON CONFLICT(id) DO NOTHING`);
+  })();
+  try{await bootstrapPromise;}catch(err){bootstrapPromise=null;throw err;}
+ }
+ app.use('/api',wrap(async(_req,_res,next)=>{await ensureBootstrap();next();}));
+
  app.post('/api/login',wrap(async(req,res)=>{sameOrigin(req);await limit(req,'login',8);if(!env.ADMIN_PASSWORD_HASH)fail(503,'Admin password has not been configured.');if(!verifyPassword(req.body.password,env.ADMIN_PASSWORD_HASH))fail(401,'Incorrect password.');const now=new Date();await q('DELETE FROM sessions WHERE expires_at<$1',[now]);await q('DELETE FROM limits WHERE expires_at<$1',[now]);const v=token();await q('INSERT INTO sessions(token_hash,expires_at) VALUES($1,$2)',[hash(v),new Date(Date.now()+8*3600000)]);res.cookie('mq3_admin',v,{...cookie(),maxAge:8*3600000}).json({ok:true});}));
  app.post('/api/logout',wrap(async(req,res)=>{sameOrigin(req);if(req.cookies.mq3_admin)await q('DELETE FROM sessions WHERE token_hash=$1',[hash(req.cookies.mq3_admin)]);res.clearCookie('mq3_admin',cookie()).json({ok:true});}));
  app.get('/api/covers/:name',wrap(async(req,res)=>{if(!env.BLOB_READ_WRITE_TOKEN)fail(503,'Cover image storage is not configured.');const name=String(req.params.name||'');if(!/^[a-f0-9-]+\.(?:jpg|png|webp)$/.test(name))fail(404,'Cover image not found.');const result=await get(`covers/${name}`,{access:'private',token:env.BLOB_READ_WRITE_TOKEN});if(!result)fail(404,'Cover image not found.');const type=result.blob?.contentType||result.headers?.get?.('content-type')||'application/octet-stream';res.set({'Content-Type':type,'Cache-Control':'public, max-age=31536000, immutable'});if(result.blob?.size!=null)res.set('Content-Length',String(result.blob.size));const reader=result.stream.getReader();res.on('close',()=>reader.cancel().catch(()=>{}));while(true){const {done,value}=await reader.read();if(done)break;res.write(Buffer.from(value));}res.end();}));
@@ -53,10 +65,6 @@ export function createApp(s=services()){
  app.get('/api/admin/audience',wrap(async(_req,res)=>res.json(await q('SELECT * FROM hub_audience ORDER BY recorded_on DESC LIMIT 100'))));
  app.post('/api/admin/audience',wrap(async(req,res)=>{const {recorded_on,youtube_subscribers,spotify_followers}=req.body;const d=new Date(recorded_on+'T00:00:00Z');if(!/^\d{4}-\d{2}-\d{2}$/.test(recorded_on||'')||!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==recorded_on)fail(400,'Enter a valid date.');for(const v of [youtube_subscribers,spotify_followers])if(!Number.isSafeInteger(v)||v<0)fail(400,'Enter whole non-negative audience totals.');await q('INSERT INTO hub_audience(id,recorded_on,youtube_subscribers,spotify_followers,note) VALUES($1,$2,$3,$4,$5) ON CONFLICT(recorded_on) DO UPDATE SET youtube_subscribers=EXCLUDED.youtube_subscribers,spotify_followers=EXCLUDED.spotify_followers,note=EXCLUDED.note',[randomUUID(),recorded_on,youtube_subscribers,spotify_followers,String(req.body.note||'').slice(0,400)]);res.json({ok:true});}));
  app.use('/api',(_req,res)=>res.status(404).json({error:'This feature is not available in the listening edition.'}));
- const pub=fileURLToPath(new URL('../public/',import.meta.url));
- app.get('/admin',(_req,res)=>res.sendFile(pub+'admin.html'));
- for(const old of ['/create','/details','/lyrics','/music','/results','/own','/mysongs','/featuredsongs','/creator.html','/featuredsongs.html'])app.get(old,(_req,res)=>res.redirect(302,'/'));
- app.use(express.static(pub,{maxAge:0}));
  app.use((_req,res)=>res.status(404).send('Page not found.'));
  app.use((err,_req,res,_next)=>{if(res.headersSent)return res.end();res.status(err.status||500).json({error:err.status?err.message:'Service unavailable. Check the database connection.'});});
  return app;
