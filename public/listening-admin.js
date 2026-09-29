@@ -1,6 +1,5 @@
 const $=id=>document.getElementById(id);
-let songs=[],report=null,period='daily',editingSongId=null,pendingCoverBlob=null,originalCoverUrl='',uploadedCoverUrl='',savingSong=false,createId=crypto.randomUUID();
-
+let songs=[],report=null,period='daily',editingSongId=null,savingSong=false,createId=crypto.randomUUID();
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 
 function message(text,error=false){
@@ -31,41 +30,20 @@ function ensurePremiumConfirmStyles(){
   const style=document.createElement('style');
   style.id='mq3-premium-confirm-style';
   style.textContent=`
-    .mq3-premium-confirm{
-      width:min(92vw,520px);
-      max-width:520px;
-      padding:0;
-      border:1px solid #b27b37;
-      border-radius:24px;
-      color:#f7ead7;
-      background:
-        radial-gradient(circle at 78% 8%,rgba(122,43,13,.46) 0%,transparent 38%),
-        linear-gradient(155deg,#4d160d 0%,#300b07 58%,#1d0604 100%);
-      box-shadow:0 30px 85px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,223,155,.14);
-      overflow:hidden;
-    }
-    .mq3-premium-confirm::backdrop{
-      background:rgba(8,2,1,.72);
-      backdrop-filter:blur(5px);
-    }
-    .mq3-premium-confirm-card{padding:26px 26px 18px;}
-    .mq3-premium-confirm-kicker{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:#e9c76c;}
-    .mq3-premium-confirm-title{margin:0 0 12px;font-family:Georgia,"Times New Roman",serif;font-size:30px;line-height:1.08;font-weight:400;color:#fff3df;}
-    .mq3-premium-confirm-copy{margin:0;color:#e8d3c3;font-size:15px;line-height:1.7;}
-    .mq3-premium-confirm-actions{display:flex;justify-content:flex-end;gap:12px;padding:18px 26px 26px;}
-    .mq3-premium-confirm-btn{min-width:132px;min-height:46px;padding:0 20px;border-radius:999px;border:1px solid transparent;font:inherit;font-weight:800;cursor:pointer;transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;}
-    .mq3-premium-confirm-btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
-    .mq3-premium-confirm-btn:focus-visible{outline:2px solid #f5d77a;outline-offset:3px;}
-    .mq3-premium-confirm-btn.cancel{background:#230805;color:#f4e1cf;border-color:#7f4f27;}
-    .mq3-premium-confirm-btn.confirm{background:linear-gradient(180deg,#f2cc70,#dba847);color:#2a1207;border-color:#f3cf76;box-shadow:0 8px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,247,207,.55);}
-    .mq3-premium-confirm-btn.danger{background:linear-gradient(180deg,#cc342f,#8f1716);color:#fff;border-color:#ef6d64;box-shadow:0 8px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12);}
-    @media(max-width:640px){
-      .mq3-premium-confirm-card{padding:22px 18px 16px;}
-      .mq3-premium-confirm-title{font-size:26px;}
-      .mq3-premium-confirm-copy{font-size:14px;}
-      .mq3-premium-confirm-actions{padding:16px 18px 20px;flex-direction:column-reverse;}
-      .mq3-premium-confirm-btn{width:100%;min-width:0;}
-    }
+    .mq3-premium-confirm{width:min(92vw,520px);max-width:520px;padding:0;border:1px solid #b27b37;border-radius:24px;color:#f7ead7;background:radial-gradient(circle at 78% 8%,rgba(122,43,13,.46) 0%,transparent 38%),linear-gradient(155deg,#4d160d 0%,#300b07 58%,#1d0604 100%);box-shadow:0 30px 85px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,223,155,.14);overflow:hidden}
+    .mq3-premium-confirm::backdrop{background:rgba(8,2,1,.72);backdrop-filter:blur(5px)}
+    .mq3-premium-confirm-card{padding:26px 26px 18px}
+    .mq3-premium-confirm-kicker{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:#e9c76c}
+    .mq3-premium-confirm-title{margin:0 0 12px;font-family:Georgia,"Times New Roman",serif;font-size:30px;line-height:1.08;font-weight:400;color:#fff3df}
+    .mq3-premium-confirm-copy{margin:0;color:#e8d3c3;font-size:15px;line-height:1.7}
+    .mq3-premium-confirm-actions{display:flex;justify-content:flex-end;gap:12px;padding:18px 26px 26px}
+    .mq3-premium-confirm-btn{min-width:132px;min-height:46px;padding:0 20px;border-radius:999px;border:1px solid transparent;font:inherit;font-weight:800;cursor:pointer;transition:transform .15s ease,filter .15s ease,box-shadow .15s ease}
+    .mq3-premium-confirm-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    .mq3-premium-confirm-btn:focus-visible{outline:2px solid #f5d77a;outline-offset:3px}
+    .mq3-premium-confirm-btn.cancel{background:#230805;color:#f4e1cf;border-color:#7f4f27}
+    .mq3-premium-confirm-btn.confirm{background:linear-gradient(180deg,#f2cc70,#dba847);color:#2a1207;border-color:#f3cf76;box-shadow:0 8px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,247,207,.55)}
+    .mq3-premium-confirm-btn.danger{background:linear-gradient(180deg,#cc342f,#8f1716);color:#fff;border-color:#ef6d64;box-shadow:0 8px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)}
+    @media(max-width:640px){.mq3-premium-confirm-card{padding:22px 18px 16px}.mq3-premium-confirm-title{font-size:26px}.mq3-premium-confirm-copy{font-size:14px}.mq3-premium-confirm-actions{padding:16px 18px 20px;flex-direction:column-reverse}.mq3-premium-confirm-btn{width:100%;min-width:0}}
   `;
   document.head.append(style);
 }
@@ -75,62 +53,30 @@ function premiumConfirm({title='Please confirm',messageText='Are you sure?',conf
   return new Promise(resolve=>{
     const dialog=document.createElement('dialog');
     dialog.className='mq3-premium-confirm';
-
     const card=node('div');card.className='mq3-premium-confirm-card';
     const kicker=node('p','MQ3 Music');kicker.className='mq3-premium-confirm-kicker';
     const heading=node('h3',title);heading.className='mq3-premium-confirm-title';
     const copy=node('p',messageText);copy.className='mq3-premium-confirm-copy';
     card.append(kicker,heading,copy);
-
     const actions=node('div');actions.className='mq3-premium-confirm-actions';
     const cancel=node('button',cancelText);cancel.type='button';cancel.className='mq3-premium-confirm-btn cancel';
     const confirm=node('button',confirmText);confirm.type='button';confirm.className='mq3-premium-confirm-btn '+(danger?'danger':'confirm');
-    actions.append(cancel,confirm);
-    dialog.append(card,actions);
-    document.body.append(dialog);
-
+    actions.append(cancel,confirm);dialog.append(card,actions);document.body.append(dialog);
     let done=false;
-    const finish=value=>{
-      if(done)return;
-      done=true;
-      try{dialog.close();}catch{}
-      dialog.remove();
-      resolve(value);
-    };
-
+    const finish=value=>{if(done)return;done=true;try{dialog.close();}catch{}dialog.remove();resolve(value);};
     cancel.addEventListener('click',()=>finish(false));
     confirm.addEventListener('click',()=>finish(true));
     dialog.addEventListener('cancel',e=>{e.preventDefault();finish(false);});
     dialog.addEventListener('click',e=>{if(e.target===dialog)finish(false);});
-    dialog.showModal();
-    setTimeout(()=>confirm.focus(),0);
+    dialog.showModal();setTimeout(()=>confirm.focus(),0);
   });
-}
-
-function fallbackCover(category=''){
-  const p={
-    'Love Songs':['#4b0d18','#d36a45','#f2b45f'],
-    Inspirational:['#152d4c','#edb34f','#f7df9a'],
-    OPM:['#17212c','#8a3946','#e8a85a'],
-    'Name Songs':['#2a153f','#9b5270','#efc07a']
-  }[category]||['#2a0907','#7a2a16','#d8aa45'];
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${p[0]}"/><stop offset=".58" stop-color="${p[1]}"/><stop offset="1" stop-color="${p[2]}"/></linearGradient><radialGradient id="r"><stop stop-color="#fff4c8" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="600" height="600" fill="url(#g)"/><circle cx="420" cy="150" r="170" fill="url(#r)"/><path d="M0 455 Q145 350 290 430 T600 390 V600 H0Z" fill="#0b0708" opacity=".55"/><path d="M0 500 Q180 405 340 470 T600 430" fill="none" stroke="#f0c36a" stroke-opacity=".35" stroke-width="3"/></svg>`;
-  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
-}
-
-function setCoverPreview(url=''){
-  const f=$('song-form'),category=f?.elements.category?.value||'';
-  const preview=$('cover-preview');
-  preview.src=url||fallbackCover(category);
-  preview.onerror=()=>{preview.src=fallbackCover(category);preview.onerror=null;};
 }
 
 function row(target,values){
   const tr=node('tr');
   for(const value of values){
     const td=node('td');
-    if(value instanceof Node)td.append(value);
-    else td.textContent=String(value);
+    if(value instanceof Node)td.append(value);else td.textContent=String(value);
     tr.append(td);
   }
   $(target).append(tr);
@@ -148,146 +94,31 @@ function renderSongs(){
   const library=songs.filter(s=>s.published).sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base'}));
   const term=$('song-library-search').value.trim().toLowerCase();
   const visible=library.filter(s=>[s.title,s.artist,s.category,s.youtube_url?'youtube':'',s.spotify_url?'spotify':''].join(' ').toLowerCase().includes(term));
-
   $('song-rows').replaceChildren();
   for(const s of visible){
-    const pick=node('input');
-    pick.type='checkbox';
-    pick.className='song-select';
-    pick.dataset.id=s.id;
-    pick.setAttribute('aria-label','Select '+s.title);
-    pick.addEventListener('change',updateSelection);
-
-    const thumb=node('img');
-    thumb.src=s.cover_url||fallbackCover(s.category);
-    thumb.alt='';
-    thumb.loading='lazy';
-    thumb.style.cssText='width:48px;height:48px;object-fit:cover;border-radius:9px';
-    thumb.onerror=()=>{thumb.onerror=null;thumb.src=fallbackCover(s.category);};
-
-    const actions=node('div');
-    actions.className='actions';
-    const edit=node('button','Edit');
-    edit.type='button';
-    edit.addEventListener('click',()=>editSong(s));
-    actions.append(edit);
-
-    row('song-rows',[
-      pick,
-      thumb,
-      s.title,
-      s.category,
-      [s.youtube_url?'YouTube':'',s.spotify_url?'Spotify':''].filter(Boolean).join(' + ')||'Needs links',
-      'Published',
-      actions
-    ]);
+    const pick=node('input');pick.type='checkbox';pick.className='song-select';pick.dataset.id=s.id;pick.setAttribute('aria-label','Select '+s.title);pick.addEventListener('change',updateSelection);
+    const actions=node('div');actions.className='actions';
+    const edit=node('button','Edit');edit.type='button';edit.addEventListener('click',()=>editSong(s));actions.append(edit);
+    row('song-rows',[pick,s.title,s.category,[s.youtube_url?'YouTube':'',s.spotify_url?'Spotify':''].filter(Boolean).join(' + ')||'Needs links','Published',actions]);
   }
-
-  if(!visible.length)row('song-rows',['','','No published songs match this search.','','','','']);
+  if(!visible.length)row('song-rows',['','No published songs match this search.','','','','']);
   $('library-count').textContent=visible.length+' shown · '+library.length+' published';
-  $('select-all-songs').checked=false;
-  $('select-all-songs').indeterminate=false;
-  $('remove-selected').disabled=true;
+  $('select-all-songs').checked=false;$('select-all-songs').indeterminate=false;$('remove-selected').disabled=true;
 }
 
-async function loadSongs(){
-  songs=await api('/admin/songs');
-  renderSongs();
-}
-
-function loadImage(file){
-  return new Promise((resolve,reject)=>{
-    const url=URL.createObjectURL(file),img=new Image();
-    img.onload=()=>{URL.revokeObjectURL(url);resolve(img);};
-    img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Could not read that image.'));};
-    img.src=url;
-  });
-}
-
-async function prepareCover(file){
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Use a JPG, PNG or WebP cover image.');
-  if(file.size>20*1024*1024)throw Error('Choose an image smaller than 20 MB.');
-  const img=await loadImage(file),side=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-side)/2,sy=(img.naturalHeight-side)/2;
-  const canvas=document.createElement('canvas');canvas.width=900;canvas.height=900;
-  const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  ctx.drawImage(img,sx,sy,side,side,0,0,900,900);
-  let blob=await new Promise(r=>canvas.toBlob(r,'image/webp',.82));
-  if(!blob)blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.86));
-  if(!blob)throw Error('Could not optimize the cover image.');
-  return blob;
-}
-
-function uploadCover(blob){
-  return new Promise((resolve,reject)=>{
-    const xhr=new XMLHttpRequest(),progress=$('cover-upload-progress'),status=$('cover-status');
-    xhr.open('POST','/api/admin/cover-upload');
-    xhr.setRequestHeader('Content-Type',blob.type||'image/webp');
-    progress.hidden=false;progress.value=0;status.textContent='Uploading 0%';
-    xhr.upload.onprogress=e=>{
-      if(e.lengthComputable){
-        const n=Math.round(e.loaded/e.total*100);
-        progress.value=n;
-        status.textContent=`Uploading ${n}%`;
-      }
-    };
-    xhr.onload=()=>{
-      let data={};
-      try{data=JSON.parse(xhr.responseText||'{}');}catch{}
-      if(xhr.status>=200&&xhr.status<300&&data.url){
-        progress.value=100;
-        status.textContent='Upload complete';
-        resolve(data.url);
-      }else reject(Error(data.error||'Cover upload failed.'));
-    };
-    xhr.onerror=()=>reject(Error('Cover upload failed. Check your connection.'));
-    xhr.send(blob);
-  });
-}
-
-async function deleteOldCover(url){
-  if(/^\/api\/covers\/[a-f0-9-]+\.(?:jpg|png|webp)$/.test(url||'')){
-    try{await api('/admin/cover-delete',{url});}catch{}
-  }
-}
-
-function makeGeneratedCover(category){
-  const canvas=document.createElement('canvas');canvas.width=900;canvas.height=900;
-  const ctx=canvas.getContext('2d');
-  const pal={
-    'Love Songs':['#3c0710','#8f2430','#f0a355'],
-    Inspirational:['#17325a','#4f85a8','#f1c15c'],
-    OPM:['#16202c','#6f3040','#d28a4f'],
-    'Name Songs':['#24133a','#70405d','#d5a15e']
-  }[category]||['#210706','#6e2414','#c89b45'];
-  const g=ctx.createLinearGradient(0,0,900,900);g.addColorStop(0,pal[0]);g.addColorStop(.58,pal[1]);g.addColorStop(1,pal[2]);
-  ctx.fillStyle=g;ctx.fillRect(0,0,900,900);
-  const sun=ctx.createRadialGradient(650,205,10,650,205,250);sun.addColorStop(0,'rgba(255,244,196,.85)');sun.addColorStop(1,'rgba(255,244,196,0)');
-  ctx.fillStyle=sun;ctx.fillRect(380,-40,520,520);
-  ctx.fillStyle='rgba(6,5,9,.55)';ctx.beginPath();ctx.moveTo(0,700);
-  for(let x=0;x<=900;x+=90)ctx.lineTo(x,600+Math.sin(x*.017+Math.random())*70);
-  ctx.lineTo(900,900);ctx.lineTo(0,900);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='rgba(244,198,103,.28)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,760);ctx.bezierCurveTo(220,610,430,790,900,620);ctx.stroke();
-  return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Could not generate cover.')),'image/webp',.84));
-}
+async function loadSongs(){songs=await api('/admin/songs');renderSongs();}
 
 function editSong(s=null){
   if(savingSong)return;
-  if(uploadedCoverUrl){message('Save or cancel the current song before opening another one.',true);return;}
-  const f=$('song-form');
-  f.reset();
-  editingSongId=s?.id||null;
-  createId=crypto.randomUUID();
-  pendingCoverBlob=null;
-  originalCoverUrl=s?.cover_url||'';
+  const f=$('song-form');f.reset();
+  editingSongId=s?.id||null;createId=crypto.randomUUID();
   f.elements.id.value=editingSongId||'';
-  f.elements.cover_url.value=originalCoverUrl;
-
+  f.elements.cover_url.value=s?.cover_url||'';
   if(s){
     for(const[k,v]of Object.entries(s)){
       const input=f.elements.namedItem(k);
       if(input&&k!=='cover_url'){
-        if(input.type==='checkbox')input.checked=!!v;
-        else input.value=v??'';
+        if(input.type==='checkbox')input.checked=!!v;else input.value=v??'';
       }
     }
   }else{
@@ -296,14 +127,8 @@ function editSong(s=null){
     f.elements.published.checked=true;
     f.elements.featured.checked=false;
   }
-
-  $('cover-upload-progress').hidden=true;
-  $('cover-status').textContent='';
-  setCoverPreview(originalCoverUrl);
   $('editor-title').textContent=editingSongId?'Edit song':'Add new song';
-  f.hidden=false;
-  f.scrollIntoView({behavior:'smooth',block:'start'});
-  f.elements.title.focus();
+  f.hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'});f.elements.title.focus();
 }
 
 async function loadAnalytics(){
@@ -316,231 +141,68 @@ async function loadAnalytics(){
 }
 
 async function loadAudience(){
-  const rows=await api('/admin/audience');
-  $('audience-rows').replaceChildren();
-  rows.forEach((s,i)=>{
-    const previous=rows[i+1];
-    const delta=key=>previous?((s[key]-previous[key]>=0?'+':'')+(s[key]-previous[key])):'—';
-    row('audience-rows',[s.recorded_on.slice(0,10),s.youtube_subscribers,delta('youtube_subscribers'),s.spotify_followers,delta('spotify_followers'),s.note]);
-  });
+  const rows=await api('/admin/audience');$('audience-rows').replaceChildren();
+  rows.forEach((s,i)=>{const previous=rows[i+1];const delta=key=>previous?((s[key]-previous[key]>=0?'+':'')+(s[key]-previous[key])):'—';row('audience-rows',[s.recorded_on.slice(0,10),s.youtube_subscribers,delta('youtube_subscribers'),s.spotify_followers,delta('spotify_followers'),s.note]);});
   if(!rows.length)row('audience-rows',['No snapshots yet.','','','','','']);
 }
 
-async function loadSettings(){
-  const s=await api('/admin/settings');
-  for(const key of['youtube_channel','spotify_artist'])$('settings-form').elements[key].value=s[key]||'';
-}
-
-async function enter(){
-  await loadSongs();
-  $('login').hidden=true;
-  $('dashboard').hidden=false;
-  $('logout').hidden=false;
-}
+async function loadSettings(){const s=await api('/admin/settings');for(const key of['youtube_channel','spotify_artist'])$('settings-form').elements[key].value=s[key]||'';}
+async function enter(){await loadSongs();$('login').hidden=true;$('dashboard').hidden=false;$('logout').hidden=false;}
 
 function submit(id,handler){
   $(id).addEventListener('submit',async e=>{
-    e.preventDefault();
-    const b=e.submitter;
-    b.disabled=true;
-    const label=b.textContent;
-    b.textContent='Saving…';
+    e.preventDefault();const b=e.submitter;b.disabled=true;const label=b.textContent;b.textContent='Saving…';
     try{await handler(e.target);}catch(err){message(err.message,true);}finally{b.disabled=false;b.textContent=label;}
   });
 }
 
-submit('login',async f=>{
-  await api('/login',{password:f.elements.password.value});
-  f.reset();
-  await enter();
-  message('Signed in.');
-});
-
-$('logout').addEventListener('click',async()=>{
-  try{await api('/logout',{});location.reload();}catch(e){message(e.message,true);}
-});
+submit('login',async f=>{await api('/login',{password:f.elements.password.value});f.reset();await enter();message('Signed in.');});
+$('logout').addEventListener('click',async()=>{try{await api('/logout',{});location.reload();}catch(e){message(e.message,true);}});
 
 submit('song-form',async f=>{
   if(savingSong)return;
   const title=f.elements.title.value.trim();
   const duplicate=songs.find(s=>s.id!==editingSongId&&s.title.trim().toLowerCase()===title.toLowerCase());
-
   if(duplicate){
-    const proceed=await premiumConfirm({
-      title:'Duplicate title',
-      messageText:`“${title}” already exists in your song library. Do you still want to save another song with the same title?`,
-      confirmText:'Save anyway',
-      cancelText:'Go back'
-    });
+    const proceed=await premiumConfirm({title:'Duplicate title',messageText:`“${title}” already exists in your song library. Do you still want to save another song with the same title?`,confirmText:'Save anyway',cancelText:'Go back'});
     if(!proceed)return;
   }
-
   const body=Object.fromEntries(new FormData(f));
-  delete body.cover_file;
-  body.id=editingSongId||'';
-  body.client_id=createId;
-  body.published=f.elements.published.checked;
-  body.featured=f.elements.featured.checked;
-
-  const controls=[...f.elements].filter(x=>!x.disabled);
-  savingSong=true;
-  controls.forEach(x=>x.disabled=true);
-
+  body.id=editingSongId||'';body.client_id=createId;body.published=f.elements.published.checked;body.featured=f.elements.featured.checked;
+  const controls=[...f.elements].filter(x=>!x.disabled);savingSong=true;controls.forEach(x=>x.disabled=true);
   try{
-    let newCover=uploadedCoverUrl||f.elements.cover_url.value||'';
-    if(pendingCoverBlob){
-      message('Uploading cover image…');
-      if(uploadedCoverUrl)await api('/admin/cover-delete',{url:uploadedCoverUrl});
-      uploadedCoverUrl='';
-      newCover=await uploadCover(pendingCoverBlob);
-      uploadedCoverUrl=newCover;
-      pendingCoverBlob=null;
-    }
-
-    body.cover_url=newCover;
-    message('Saving song…');
-    await api('/admin/songs',body);
-
-    uploadedCoverUrl='';
-    if(originalCoverUrl&&originalCoverUrl!==newCover)await deleteOldCover(originalCoverUrl);
-
-    f.hidden=true;
-    editingSongId=null;
-    pendingCoverBlob=null;
-    originalCoverUrl='';
-    f.elements.id.value='';
-    await loadSongs();
-    message(body.published?'Saved and published ✓':'Draft saved ✓');
-  }finally{
-    savingSong=false;
-    controls.forEach(x=>x.disabled=false);
-  }
+    message('Saving song…');await api('/admin/songs',body);
+    f.hidden=true;editingSongId=null;f.elements.id.value='';await loadSongs();message(body.published?'Saved and published ✓':'Draft saved ✓');
+  }finally{savingSong=false;controls.forEach(x=>x.disabled=false);}
 });
 
 $('new-song').addEventListener('click',()=>editSong(null));
-
-$('cancel-song').addEventListener('click',async()=>{
-  if(savingSong)return;
-  if(uploadedCoverUrl){
-    try{await api('/admin/cover-delete',{url:uploadedCoverUrl});uploadedCoverUrl='';}
-    catch(e){message('Could not clean up the pending cover. Retry Cancel or save the song.',true);return;}
-  }
-  editingSongId=null;
-  pendingCoverBlob=null;
-  originalCoverUrl='';
-  $('song-form').hidden=true;
-  $('song-form').reset();
-  $('song-form').elements.id.value='';
-  setCoverPreview('');
-});
-
-$('cover-file').addEventListener('change',async e=>{
-  const file=e.target.files[0];
-  if(!file){pendingCoverBlob=null;setCoverPreview($('song-form').elements.cover_url.value);return;}
-  try{
-    $('cover-status').textContent='Cropping & compressing…';
-    pendingCoverBlob=await prepareCover(file);
-    const url=URL.createObjectURL(pendingCoverBlob);
-    setCoverPreview(url);
-    $('cover-status').textContent=`Ready · ${Math.max(1,Math.round(pendingCoverBlob.size/1024))} KB`;
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-  }catch(err){
-    message(err.message,true);
-    e.target.value='';
-    pendingCoverBlob=null;
-  }
-});
-
-$('generate-cover').addEventListener('click',async()=>{
-  try{
-    pendingCoverBlob=await makeGeneratedCover($('song-form').elements.category.value);
-    $('song-form').elements.cover_url.value='';
-    const url=URL.createObjectURL(pendingCoverBlob);
-    setCoverPreview(url);
-    $('cover-status').textContent='Generated category cover · ready to save';
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-  }catch(e){message(e.message,true);}
-});
-
-$('remove-cover').addEventListener('click',async()=>{
-  if(uploadedCoverUrl){
-    try{await api('/admin/cover-delete',{url:uploadedCoverUrl});uploadedCoverUrl='';}
-    catch(e){message('Could not remove pending cover. Please retry.',true);return;}
-  }
-  pendingCoverBlob=null;
-  $('cover-file').value='';
-  $('song-form').elements.cover_url.value='';
-  setCoverPreview('');
-  $('cover-status').textContent='Cover will be removed when you save.';
-});
-
-$('song-form').elements.category.addEventListener('change',()=>{
-  if(!$('song-form').elements.cover_url.value&&!pendingCoverBlob)setCoverPreview('');
-});
-
+$('cancel-song').addEventListener('click',()=>{if(savingSong)return;editingSongId=null;$('song-form').hidden=true;$('song-form').reset();$('song-form').elements.id.value='';});
 $('song-library-search')?.addEventListener('input',renderSongs);
-
-$('select-all-songs').addEventListener('change',e=>{
-  document.querySelectorAll('.song-select:not(:disabled)').forEach(b=>b.checked=e.target.checked);
-  updateSelection();
-});
+$('select-all-songs').addEventListener('change',e=>{document.querySelectorAll('.song-select:not(:disabled)').forEach(b=>b.checked=e.target.checked);updateSelection();});
 
 $('remove-selected').addEventListener('click',async()=>{
-  const ids=[...document.querySelectorAll('.song-select:checked')].map(b=>b.dataset.id);
-  if(!ids.length)return;
-
-  const proceed=await premiumConfirm({
-    title:'Unpublish selected songs?',
-    messageText:`${ids.length} selected song${ids.length===1?'':'s'} will be removed from the public library. The song data will stay saved in the database.`,
-    confirmText:'Unpublish',
-    cancelText:'Keep songs',
-    danger:true
-  });
+  const ids=[...document.querySelectorAll('.song-select:checked')].map(b=>b.dataset.id);if(!ids.length)return;
+  const proceed=await premiumConfirm({title:'Unpublish selected songs?',messageText:`${ids.length} selected song${ids.length===1?'':'s'} will be removed from the public library. The song data will stay saved in the database.`,confirmText:'Unpublish',cancelText:'Keep songs',danger:true});
   if(!proceed)return;
-
-  const button=$('remove-selected');
-  button.disabled=true;
-  const label=button.textContent;
-  button.textContent='Unpublishing…';
+  const button=$('remove-selected');button.disabled=true;const label=button.textContent;button.textContent='Unpublishing…';
   try{
-    for(const id of ids){
-      const s=songs.find(x=>x.id===id);
-      if(!s)continue;
-      await api('/admin/songs',{...s,published:false,featured:false});
-    }
-    await loadSongs();
-    message(`${ids.length} song${ids.length===1?'':'s'} unpublished.`);
-  }catch(err){message(err.message,true);}
-  finally{button.textContent=label;updateSelection();}
+    for(const id of ids){const s=songs.find(x=>x.id===id);if(!s)continue;await api('/admin/songs',{...s,published:false,featured:false});}
+    await loadSongs();message(`${ids.length} song${ids.length===1?'':'s'} unpublished.`);
+  }catch(err){message(err.message,true);}finally{button.textContent=label;updateSelection();}
 });
 
-submit('settings-form',async f=>{
-  await api('/admin/settings',Object.fromEntries(new FormData(f)));
-  message('Platform links saved.');
-});
-
-submit('audience-form',async f=>{
-  const body=Object.fromEntries(new FormData(f));
-  body.youtube_subscribers=Number(body.youtube_subscribers);
-  body.spotify_followers=Number(body.spotify_followers);
-  await api('/admin/audience',body);
-  await loadAudience();
-  message('Audience snapshot saved.');
-});
+submit('settings-form',async f=>{await api('/admin/settings',Object.fromEntries(new FormData(f)));message('Platform links saved.');});
+submit('audience-form',async f=>{const body=Object.fromEntries(new FormData(f));body.youtube_subscribers=Number(body.youtube_subscribers);body.spotify_followers=Number(body.spotify_followers);await api('/admin/audience',body);await loadAudience();message('Audience snapshot saved.');});
 
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',async()=>{
   document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==b.dataset.tab);
-  try{
-    if(b.dataset.tab==='analytics')await loadAnalytics();
-    if(b.dataset.tab==='audience')await loadAudience();
-    if(b.dataset.tab==='settings')await loadSettings();
-  }catch(e){message(e.message,true);}
+  try{if(b.dataset.tab==='analytics')await loadAnalytics();if(b.dataset.tab==='audience')await loadAudience();if(b.dataset.tab==='settings')await loadSettings();}catch(e){message(e.message,true);}
 }));
 
 document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click',async()=>{
-  period=b.dataset.period;
-  document.querySelectorAll('[data-period]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  period=b.dataset.period;document.querySelectorAll('[data-period]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   try{await loadAnalytics();}catch(e){message(e.message,true);}
 }));
 
@@ -549,8 +211,7 @@ $('export-analytics').addEventListener('click',()=>{
   const cell=v=>'"'+String(v).replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';
   const rows=[['Song','Category','Website views ('+report.period+')','Historical views'],...report.songs.map(s=>[s.title,s.category,s.views,s.legacy_views])];
   const url=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
-  const a=node('a');a.href=url;a.download='mq3-website-views-'+report.period+'.csv';a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const a=node('a');a.href=url;a.download='mq3-website-views-'+report.period+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 
 $('audience-form').elements.recorded_on.value=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
