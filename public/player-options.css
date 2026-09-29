@@ -11,4 +11,9 @@
 .player-options-panel #spotify-help{padding:8px 10px}
 .player-options-panel #song-description:empty{display:none}
 .player-options-panel #spotify-help summary{cursor:pointer}
-@media(max-width:800px){.player-app .listen{position:relative}.player-app #retry-catalog{grid-area:status}}
+.spotify-fullplay{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 4px;padding:10px 12px;border:1px solid #2aa864;border-radius:12px;background:#0e2a1b;color:#d8f4e3;font-size:12px}
+.spotify-fullplay[hidden]{display:none}
+.spotify-fullplay span{opacity:.85}
+.spotify-fullplay a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;border-radius:999px;background:#1db954;color:#07190e;text-decoration:none;font-weight:800;white-space:nowrap}
+.spotify-fullplay a:hover{filter:brightness(1.05)}
+@media(max-width:800px){.player-app .listen{position:relative}.player-app #retry-catalog{grid-area:status}.spotify-fullplay{align-items:stretch;flex-direction:column}.spotify-fullplay a{width:100%}}
