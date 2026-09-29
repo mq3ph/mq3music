@@ -11,7 +11,6 @@ function persist(key, value) {
 }
 function renderCatalog() {
   const matches=filterSongs(songs,{term:$('search').value,category,collection,favorites,recent});
-  $('count').textContent=(collection==='all'?'':collection==='favorites'?'Favorites · ':'Recent · ')+matches.length+' song'+(matches.length===1?'':'s');
   $('song-grid').replaceChildren();
   $('catalog-status').textContent=matches.length?'':!songs.length?'New songs are on the way. Check back soon.':collection==='favorites'?'No favorites match. Choose a song and tap Save favorite.':collection==='recent'?'No recent songs match. Choose a song to get started.':'No songs match. Try another name or category.';
   for(const s of matches) {
