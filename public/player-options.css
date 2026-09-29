@@ -1,0 +1,14 @@
+/* Extra actions stay behind one compact control; the original player layout is unchanged. */
+.player-options{position:absolute;top:8px;right:8px;z-index:3}
+.player-options>summary{display:grid;place-items:center;list-style:none;width:32px;height:32px;font-size:25px;line-height:1;cursor:pointer;color:var(--muted);border-radius:50%;background:transparent}
+.player-options>summary::-webkit-details-marker{display:none}
+.player-options>summary:hover,.player-options[open]>summary{background:var(--surface);color:var(--gold)}
+.player-options>summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.player-options-panel{position:absolute;right:0;top:38px;width:270px;max-width:calc(100vw - 64px);max-height:65dvh;overflow:auto;padding:12px;background:#290b07;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px #0009}
+.player-options-panel button,.player-options-panel a{display:flex;width:100%;align-items:center;justify-content:flex-start;padding:8px 10px;font-size:13px;min-height:40px;border:0;border-radius:6px;text-align:left}
+.player-options-panel small{display:block;font-size:11px;color:var(--muted);padding:8px 10px}
+.options-library{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+.player-options-panel #spotify-help{padding:8px 10px}
+.player-options-panel #song-description:empty{display:none}
+.player-options-panel #spotify-help summary{cursor:pointer}
+@media(max-width:800px){.player-app .listen{position:relative}.player-app #retry-catalog{grid-area:status}}

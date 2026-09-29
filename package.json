@@ -14,7 +14,8 @@
     "test": "node --test tests-listening/*.test.js",
     "db:listening": "node --env-file-if-exists=.env.local scripts/listening-db.js",
     "preview": "node scripts/preview.js",
-    "test:legacy": "node --test tests/*.test.js"
+    "test:legacy": "node --test tests/*.test.js",
+    "test:browser": "node tests-listening/browser.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
@@ -24,6 +25,7 @@
     "nodemailer": "^7.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "esbuild": "^0.25.0",
     "pg-mem": "^3.0.0",
     "supertest": "^7.1.0"
