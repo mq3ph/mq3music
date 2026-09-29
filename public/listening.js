@@ -38,13 +38,14 @@ function updateActions() {
 }
 function updateSpotifyHandoff() {
   const box=$('spotify-fullplay'), link=$('spotify-fullplay-link');
-  if(platform==='spotify'&&selected?.spotify_url){
-    box.hidden=false;
-    link.href=selected.spotify_url;
-  } else {
-    box.hidden=true;
-    link.removeAttribute('href');
-  }
+  if(platform==='spotify'&&selected?.spotify_url){box.hidden=false;link.href=selected.spotify_url;}
+  else {box.hidden=true;link.removeAttribute('href');}
+}
+function updateLyrics(){
+  const panel=$('lyrics-panel'), text=$('song-lyrics'), lyrics=(selected?.lyrics||'').trim();
+  text.textContent=lyrics;
+  panel.hidden=!lyrics;
+  panel.open=false;
 }
 function showPlayer() {
   if(!selected) return;
@@ -74,7 +75,7 @@ function selectSong(song,{track=true,scroll=true}={}) {
   $('song-description').textContent=song.description||'';
   const cover=$('player-cover'); cover.src=coverFor(song); cover.alt=song.title+' cover';
   cover.onerror=()=>{cover.onerror=null;cover.src=fallbackCover(song.category);};
-  $('status').textContent=''; showPlayer(); updateActions();
+  $('status').textContent=''; showPlayer(); updateLyrics(); updateActions();
   recent=recentIds(recent,song.id); persist('mq3-recent',recent); renderCatalog();
   history.replaceState(null,'','/?song='+encodeURIComponent(song.id));
   document.title=song.title+' — '+song.artist+' | MQ3 Music';
