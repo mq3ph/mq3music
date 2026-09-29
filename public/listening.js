@@ -4,8 +4,18 @@ const el = (tag, text, cls) => { const n = document.createElement(tag); if(text)
 let songs=[], settings={}, selected=null, platform='youtube', category='All', collection='all', demo=false;
 let favorites=[], recent=[], storage=null, loading=false;
 try { storage=localStorage; favorites=readIds(storage,'mq3-favorites'); recent=readIds(storage,'mq3-recent'); } catch {}
-function fallbackCover(category=''){const p={"Love Songs":['#4b0d18','#d36a45','#f2b45f'],Inspirational:['#152d4c','#edb34f','#f7df9a'],OPM:['#17212c','#8a3946','#e8a85a'],"Name Songs":['#2a153f','#9b5270','#efc07a']}[category]||['#2a0907','#7a2a16','#d8aa45'];const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${p[0]}"/><stop offset=".58" stop-color="${p[1]}"/><stop offset="1" stop-color="${p[2]}"/></linearGradient><radialGradient id="r"><stop stop-color="#fff4c8" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="600" height="600" fill="url(#g)"/><circle cx="420" cy="150" r="170" fill="url(#r)"/><path d="M0 455 Q145 350 290 430 T600 390 V600 H0Z" fill="#0b0708" opacity=".55"/><path d="M0 500 Q180 405 340 470 T600 430" fill="none" stroke="#f0c36a" stroke-opacity=".35" stroke-width="3"/></svg>`;return'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);}
-function coverFor(song) { return song?.cover_url || fallbackCover(song?.category); }
+
+function playTile(category=''){
+  const p={
+    'Love Songs':['#4b0d18','#d36a45','#f2b45f'],
+    Inspirational:['#152d4c','#edb34f','#f7df9a'],
+    OPM:['#17212c','#8a3946','#e8a85a'],
+    'Name Songs':['#2a153f','#9b5270','#efc07a']
+  }[category]||['#2a0907','#7a2a16','#d8aa45'];
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${p[0]}"/><stop offset=".58" stop-color="${p[1]}"/><stop offset="1" stop-color="${p[2]}"/></linearGradient><radialGradient id="r"><stop stop-color="#fff4c8" stop-opacity=".72"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d52229"/><stop offset="1" stop-color="#8b0d12"/></linearGradient></defs><rect width="600" height="600" rx="44" fill="url(#g)"/><circle cx="430" cy="135" r="180" fill="url(#r)"/><path d="M0 455 Q145 350 290 430 T600 390 V600 H0Z" fill="#0b0708" opacity=".52"/><path d="M0 500 Q180 405 340 470 T600 430" fill="none" stroke="#f0c36a" stroke-opacity=".34" stroke-width="3"/><circle cx="300" cy="310" r="92" fill="url(#b)"/><circle cx="300" cy="310" r="92" fill="none" stroke="#ffc0b8" stroke-opacity=".4" stroke-width="4"/><path d="M275 258 L365 310 L275 362 Z" fill="#fff"/></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+function coverFor(song){return playTile(song?.category);}
 function persist(key, value) {
   if(!writeIds(storage,key,value)) $('status').textContent='Saved for this visit only. Browser storage is unavailable.';
 }
@@ -17,8 +27,7 @@ function renderCatalog() {
     const card=el('button',null,'song-row'+(s.id===selected?.id?' selected':''));
     card.setAttribute('aria-label','Listen to '+s.title);
     card.setAttribute('aria-pressed',String(s.id===selected?.id));
-    const img=el('img'); img.src=coverFor(s); img.alt=''; img.loading='lazy';
-    img.addEventListener('error',()=>{img.src=fallbackCover(s.category);},{once:true});
+    const img=el('img'); img.src=coverFor(s); img.alt='Play '+s.title; img.loading='lazy';
     const info=el('span',null,'song-info'); info.append(el('strong',s.title),el('small',s.artist+' · '+s.category));
     card.append(img,info,el('span',favorites.includes(s.id)?'♥':'▶','play-circle'));
     card.addEventListener('click',()=>selectSong(s)); $('song-grid').append(card);
@@ -71,8 +80,7 @@ function selectSong(song,{track=true,scroll=true}={}) {
   platform=song.youtube_url?'youtube':song.spotify_url?'spotify':'youtube';
   $('song-title').textContent=song.title; $('song-artist').textContent=song.artist;
   $('song-category').textContent=song.category?' · '+song.category:'';
-  const cover=$('player-cover'); cover.src=coverFor(song); cover.alt=song.title+' cover';
-  cover.onerror=()=>{cover.onerror=null;cover.src=fallbackCover(song.category);};
+  const cover=$('player-cover'); cover.src=coverFor(song); cover.alt='Play '+song.title;
   $('status').textContent=''; showPlayer(); updateLyrics(); updateActions();
   recent=recentIds(recent,song.id); persist('mq3-recent',recent); renderCatalog();
   history.replaceState(null,'','/?song='+encodeURIComponent(song.id));
@@ -135,6 +143,5 @@ $('retry-catalog').addEventListener('click',load);
 const options=$('player-options');
 document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});
 options.addEventListener('keydown',event=>{if(event.key==='Escape'){options.open=false;options.querySelector('summary').focus();}});
-
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(()=>{});
 load();
