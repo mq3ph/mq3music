@@ -36,13 +36,24 @@ function updateActions() {
     if(selected[p+'_url']) link.href=selected[p+'_url']; else link.removeAttribute('href');
   }
 }
+function updateSpotifyHandoff() {
+  const box=$('spotify-fullplay'), link=$('spotify-fullplay-link');
+  if(platform==='spotify'&&selected?.spotify_url){
+    box.hidden=false;
+    link.href=selected.spotify_url;
+  } else {
+    box.hidden=true;
+    link.removeAttribute('href');
+  }
+}
 function showPlayer() {
   if(!selected) return;
   const url=selected[platform+'_url'];
   for(const p of ['youtube','spotify']) { $(p).disabled=!selected[p+'_url']; $(p).setAttribute('aria-pressed',String(p===platform)); }
   $('player').replaceChildren();
-  $('player-note').textContent=platform==='spotify'?'Spotify may play a preview.':'';
+  $('player-note').textContent=platform==='spotify'?'Spotify preview in MQ3. Use the button below for full playback.':'';
   $('spotify-help').hidden=platform!=='spotify';
+  updateSpotifyHandoff();
   if(!url) { $('player').append(el('div','No player is available for this song.','player-empty')); return; }
   const iframe=el('iframe'); iframe.title=selected.title+' — '+(platform==='youtube'?'YouTube':'Spotify'); iframe.className=platform;
   iframe.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
@@ -57,7 +68,7 @@ function selectSong(song,{track=true,scroll=true}={}) {
   if(selected?.id===song.id) return;
   selected=song;
   $('share-link').hidden=true;
-  if(!song[platform+'_url']) platform=song.youtube_url?'youtube':'spotify';
+  platform=song.youtube_url?'youtube':song.spotify_url?'spotify':'youtube';
   $('song-title').textContent=song.title; $('song-artist').textContent=song.artist;
   $('song-category').textContent=song.category?' · '+song.category:'';
   $('song-description').textContent=song.description||'';
