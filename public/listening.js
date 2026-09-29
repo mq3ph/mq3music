@@ -72,7 +72,6 @@ function selectSong(song,{track=true,scroll=true}={}) {
   platform=song.youtube_url?'youtube':song.spotify_url?'spotify':'youtube';
   $('song-title').textContent=song.title; $('song-artist').textContent=song.artist;
   $('song-category').textContent=song.category?' · '+song.category:'';
-  $('song-description').textContent=song.description||'';
   const cover=$('player-cover'); cover.src=coverFor(song); cover.alt=song.title+' cover';
   cover.onerror=()=>{cover.onerror=null;cover.src=fallbackCover(song.category);};
   $('status').textContent=''; showPlayer(); updateLyrics(); updateActions();
