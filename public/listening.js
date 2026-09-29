@@ -81,7 +81,13 @@ function selectSong(song,{track=true,scroll=true}={}) {
   if(track&&!demo) fetch('/api/song-views',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({song_id:song.id})}).catch(()=>{});
   if(scroll&&matchMedia('(max-width:800px)').matches) $('listen').scrollIntoView({behavior:'smooth',block:'start'});
 }
-$('search').addEventListener('input',renderCatalog);
+$('search').addEventListener('input',()=>{
+  renderCatalog();
+  const term=$('search').value.trim();
+  if(!term)return;
+  const match=filterSongs(songs,{term,category,collection,favorites,recent})[0];
+  if(match&&match.id!==selected?.id)selectSong(match,{track:false,scroll:false});
+});
 document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{
   category=b.dataset.category; document.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); renderCatalog();
 }));
