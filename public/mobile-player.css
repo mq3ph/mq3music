@@ -750,7 +750,7 @@
 
   .player-app .listen{
 
-    margin-bottom:18px;
+    margin-bottom:8px;
 
     padding:18px;
 
@@ -996,7 +996,7 @@
   .player-app .filters{
 
     margin:
-      0 0 16px;
+      2px 0 16px;
 
     gap:9px;
 
