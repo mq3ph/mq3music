@@ -18,9 +18,6 @@
   <link rel="stylesheet" href="/player-options.css">
 
   <style>
-    /* Desktop: keep the song library as one compact left column so the
-       song rows sit directly below the category buttons instead of being
-       pushed down by the tall Now Playing panel. */
     @media (min-width:801px){
       .player-app .catalog-layout{
         grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) !important;
@@ -52,7 +49,6 @@
       }
     }
 
-    /* Mobile keeps the existing order: Search → Now Playing → Categories → Songs. */
     @media (max-width:800px){
       .player-app .catalog-left{display:contents;}
     }
@@ -63,136 +59,46 @@
 
   <div class="wrap">
 
-    <!-- HEADER -->
     <header class="topbar topbar-hero">
-
       <a class="brand" href="/" aria-label="MQ3 Home">
-
-        <img
-          src="/assets/logo.png"
-          alt="MQ3"
-          class="header-logo"
-        >
-
+        <img src="/assets/logo.png" alt="MQ3" class="header-logo">
         <span class="brand-copy">
           <strong>Pick a Song</strong>
           <small>PRESS PLAY</small>
         </span>
-
       </a>
-
-      <span
-        id="demo"
-        class="small muted"
-        hidden
-      >
-        Preview
-      </span>
-
+      <span id="demo" class="small muted" hidden>Preview</span>
     </header>
 
-    <div class="hero-divider" aria-hidden="true">
-      <span></span>
-    </div>
+    <div class="hero-divider" aria-hidden="true"><span></span></div>
 
-    <!-- MAIN -->
     <main>
-
       <section id="songs">
-
         <div class="catalog-layout">
 
           <div class="catalog-left">
-
-            <!-- SEARCH -->
             <div class="search-block">
-
               <div class="search-meta">
-
-                <label for="search">
-                  Search songs or names
-                </label>
-
-                <span
-                  id="count"
-                  class="small muted"
-                ></span>
-
+                <label for="search">Search songs or names</label>
+                <span id="count" class="small muted"></span>
               </div>
-
-              <input
-                id="search"
-                type="search"
-                placeholder="Find a title or name…"
-                autocomplete="off"
-              >
-
+              <input id="search" type="search" placeholder="Find a title or name…" autocomplete="off">
             </div>
 
-            <!-- CATEGORIES -->
-            <div
-              class="filters"
-              aria-label="Categories"
-            >
-
-              <button
-                data-category="All"
-                aria-pressed="true"
-              >
-                All Songs
-              </button>
-
-              <button
-                data-category="Name Songs"
-                aria-pressed="false"
-              >
-                Name Songs
-              </button>
-
-              <button
-                data-category="Inspirational"
-                aria-pressed="false"
-              >
-                Inspirational
-              </button>
-
-              <button
-                data-category="OPM"
-                aria-pressed="false"
-              >
-                OPM
-              </button>
-
-              <button
-                data-category="Love Songs"
-                aria-pressed="false"
-              >
-                Love Songs
-              </button>
-
+            <div class="filters" aria-label="Categories">
+              <button data-category="All" aria-pressed="true">All Songs</button>
+              <button data-category="Name Songs" aria-pressed="false">Name Songs</button>
+              <button data-category="Inspirational" aria-pressed="false">Inspirational</button>
+              <button data-category="OPM" aria-pressed="false">OPM</button>
+              <button data-category="Love Songs" aria-pressed="false">Love Songs</button>
             </div>
 
-            <div
-              id="catalog-status"
-              role="status"
-            >
-              Loading songs…
-            </div>
-
+            <div id="catalog-status" role="status">Loading songs…</div>
             <button id="retry-catalog" hidden>Retry loading songs</button>
-            <div
-              id="song-grid"
-              class="grid"
-            ></div>
-
+            <div id="song-grid" class="grid"></div>
           </div>
 
-          <!-- NOW PLAYING -->
-          <aside
-            class="listen"
-            id="listen"
-          >
-
+          <aside class="listen" id="listen">
             <details id="player-options" class="player-options">
               <summary aria-label="Player options" title="Player options">⋯</summary>
               <div class="player-options-panel">
@@ -211,209 +117,81 @@
                   <small>Favorites and recent selections stay in this browser.</small>
                 </div>
                 <p id="song-description" class="small"></p>
-                <details id="spotify-help" class="small" hidden><summary>Spotify preview help</summary><p>Spotify controls embedded playback. If only a preview plays, try an updated browser or open the song in Spotify.</p><a href="https://developer.spotify.com/documentation/embeds/tutorials/troubleshooting" target="_blank" rel="noopener">Spotify help ↗</a></details>
+                <details id="spotify-help" class="small" hidden>
+                  <summary>Spotify preview help</summary>
+                  <p>Spotify controls embedded playback. If only a preview plays, use Open in Spotify for full playback.</p>
+                  <a href="https://developer.spotify.com/documentation/embeds/tutorials/troubleshooting" target="_blank" rel="noopener">Spotify help ↗</a>
+                </details>
               </div>
             </details>
+
             <div class="now-playing-head">
-
-              <img
-                id="player-cover"
-                src="/assets/logo.png"
-                alt=""
-              >
-
+              <img id="player-cover" src="/assets/logo.png" alt="">
               <div class="now-playing-copy">
-
-                <div class="eyebrow">
-                  Now playing
-                </div>
-
-                <h2 id="song-title">
-                  Choose your song
-                </h2>
-
+                <div class="eyebrow">Now playing</div>
+                <h2 id="song-title">Choose your song</h2>
                 <div class="track-meta">
-
-                  <span
-                    id="song-artist"
-                    class="muted"
-                  >
-                    manny III
-                  </span>
-
-                  <span
-                    id="song-category"
-                    class="muted"
-                  ></span>
-
+                  <span id="song-artist" class="muted">manny III</span>
+                  <span id="song-category" class="muted"></span>
                 </div>
-
               </div>
-
             </div>
 
-            <!-- PLATFORM SWITCH -->
-            <div
-              class="platforms"
-              aria-label="Playback source"
-            >
-
-              <button
-                id="youtube"
-                class="platform-button youtube-tab"
-                aria-pressed="true"
-                disabled
-              >
-
-                <span
-                  class="platform-icon youtube-icon"
-                  aria-hidden="true"
-                >
-
-                  <svg
-                    viewBox="0 0 24 24"
-                    focusable="false"
-                  >
-                    <path
-                      d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"
-                    />
-
-                    <path
-                      class="play-mark"
-                      d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"
-                    />
-
+            <div class="platforms" aria-label="Playback source">
+              <button id="youtube" class="platform-button youtube-tab" aria-pressed="true" disabled>
+                <span class="platform-icon youtube-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/>
+                    <path class="play-mark" d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"/>
                   </svg>
-
                 </span>
-
                 <span>YouTube</span>
-
               </button>
 
-              <button
-                id="spotify"
-                class="platform-button spotify-tab"
-                aria-pressed="false"
-                disabled
-              >
-
-                <span
-                  class="platform-icon spotify-icon"
-                  aria-hidden="true"
-                >
-
-                  <svg
-                    viewBox="0 0 24 24"
-                    focusable="false"
-                  >
-
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="11"
-                    />
-
-                    <path
-                      class="spotify-wave"
-                      d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"
-                    />
-
+              <button id="spotify" class="platform-button spotify-tab" aria-pressed="false" disabled>
+                <span class="platform-icon spotify-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <circle cx="12" cy="12" r="11"/>
+                    <path class="spotify-wave" d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"/>
                   </svg>
-
                 </span>
-
                 <span>Spotify</span>
-
               </button>
-
             </div>
 
-            <!-- PLAYER -->
-            <div
-              id="player"
-              class="player"
-            >
-
+            <div id="player" class="player">
               <div class="player-empty">
-
                 <div>
-
-                  <img
-                    src="/assets/logo.png"
-                    alt=""
-                  >
-
+                  <img src="/assets/logo.png" alt="">
                   Choose a song
-
                 </div>
-
               </div>
-
             </div>
 
-            <p
-              id="player-note"
-              class="player-note"
-            ></p>
+            <p id="player-note" class="player-note"></p>
 
-            <div
-              id="status"
-              role="status"
-            ></div>
+            <div id="spotify-fullplay" class="spotify-fullplay" hidden>
+              <span>Preview in MQ3</span>
+              <a id="spotify-fullplay-link" target="_blank" rel="noopener">Play full song in Spotify ↗</a>
+            </div>
 
-            <!-- SUPPORT -->
-            <div
-              id="support-artist"
-              class="support-artist"
-            >
+            <div id="status" role="status"></div>
 
-              <span class="support-title">
-                Support manny III
-              </span>
-
+            <div id="support-artist" class="support-artist">
+              <span class="support-title">Support manny III</span>
               <div class="support-actions">
-
-                <a
-                  id="subscribe-mq3"
-                  class="support-button youtube-support"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  Subscribe
-                </a>
-
-                <a
-                  id="follow-mq3"
-                  class="support-button spotify-support"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  Follow
-                </a>
-
+                <a id="subscribe-mq3" class="support-button youtube-support" target="_blank" rel="noopener">Subscribe</a>
+                <a id="follow-mq3" class="support-button spotify-support" target="_blank" rel="noopener">Follow</a>
               </div>
-
-              <small>
-                Confirmation opens separately on the official platform.
-              </small>
-
+              <small>Confirmation opens separately on the official platform.</small>
             </div>
-
           </aside>
 
         </div>
-
       </section>
-
     </main>
-
   </div>
 
-  <script
-    type="module"
-    src="/listening.js"
-  ></script>
-
+  <script type="module" src="/listening.js"></script>
 </body>
 </html>
