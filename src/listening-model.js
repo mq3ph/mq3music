@@ -33,7 +33,8 @@ export function songInput(body){
     if(!localCover){let u;try{u=new URL(cover_url);}catch{bad('Use an uploaded MQ3 cover or HTTPS cover image URL.');}if(u.protocol!=='https:'||u.username||u.password||cover_url.length>2000)bad('Use an uploaded MQ3 cover or HTTPS cover image URL.');}
   }
   const description=String(body.description||'').trim();if(description.length>1200)bad('Description is too long.');
-  return {title,artist,category:body.category,youtube_url,spotify_url,cover_url,description,published,featured:body.featured===true};
+  const lyrics=String(body.lyrics||'').trim();if(lyrics.length>30000)bad('Lyrics are too long.');
+  return {title,artist,category:body.category,youtube_url,spotify_url,cover_url,description,lyrics,published,featured:body.featured===true};
 }
 // Calendar periods in Philippine time; these are website analytics, not platform royalties.
 export function periodStart(period,now=new Date()){
