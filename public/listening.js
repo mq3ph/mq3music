@@ -140,6 +140,12 @@ async function load(){
 $('retry-catalog').addEventListener('click',load);
 const options=$('player-options');document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});options.addEventListener('keydown',event=>{if(event.key==='Escape'){options.open=false;options.querySelector('summary').focus();}});
 ensureEnhancementStyles();setupMiniPlayer();setupLyricsTools();
+const headerBrand=document.querySelector('.brand');
+if(headerBrand){
+ const logo=headerBrand.querySelector('.header-logo');if(logo)logo.src='/assets/logo-clean.png';
+ const tagline=el('span','MUSIC. QUALITY. 3RD GEN.','mq3-brand-tagline');headerBrand.append(tagline);
+ const headerStyle=el('style');headerStyle.textContent='.player-app .brand{display:flex!important;flex-direction:column;align-items:center;gap:5px;text-decoration:none}.player-app .mq3-brand-tagline{display:block;color:#edc66d;font:600 9px/1.4 Arial,sans-serif;letter-spacing:1px;white-space:nowrap;text-align:center}.player-app .topbar{padding-bottom:12px!important}';document.head.append(headerStyle);
+}
 const sourcePanel=document.querySelector('.source-stack');document.querySelector('.player-options-panel').prepend(sourcePanel);
 sourcePanel.querySelector('summary').textContent='YouTube / Spotify';
 const quickActions=el('div',null,'mq3-quick-actions');quickActions.setAttribute('aria-label','Song actions');quickActions.append($('favorite-song'),$('share-song'),$('share-link'));$('lyrics-panel').before(quickActions);
