@@ -1,0 +1,1 @@
+Artwork bundle managed by MQ3. The Codex player expects stable category artwork variants.
