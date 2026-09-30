@@ -15,7 +15,8 @@
  function repeatEnded(){if(endHandled||!hasPlayed||intentionalPause)return;endHandled=true;if(!repeat){advance(1,true);return;}seek(0);startPlayback();}
 
  repeatButton.onclick=()=>{repeat=!repeat;updateRepeat();};updateRepeat();
- const bars=Array.from({length:64},()=>{const b=document.createElement('span');b.style.height='3px';wave.append(b);return b;});
+ const waveColors=[[245,202,105],[255,101,156],[179,123,255],[83,220,235]];
+ const bars=Array.from({length:64},(_,i)=>{const b=document.createElement('span'),position=i/63*(waveColors.length-1),stop=Math.min(Math.floor(position),waveColors.length-2),mix=position-stop,color=waveColors[stop].map((v,c)=>Math.round(v+(waveColors[stop+1][c]-v)*mix)).join(',');b.style.height='3px';b.style.setProperty('background',`linear-gradient(to bottom,rgba(${color},1),rgba(${color},.65))`,'important');b.style.boxShadow=`0 0 6px rgba(${color},.25)`;wave.append(b);return b;});
  const playIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18l15-9z"/></svg>',pauseIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h5v18H5zm9 0h5v18h-5z"/></svg>';
  function time(s){s=Math.floor(Math.max(0,Number(s)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
  function state(v,b=false){playing=!!v;buffering=!!b;main.innerHTML=playing?pauseIcon:playIcon;main.setAttribute('aria-label',playing?'Pause':'Play');main.setAttribute('aria-pressed',String(playing));main.setAttribute('aria-busy',String(buffering));document.body.classList.toggle('mq3-is-playing',playing&&!buffering);if(playing)clearTimeout(watchdog);}
