@@ -3,6 +3,7 @@ let songs=[],report=null,period='daily',editingSongId=null,savingSong=false,crea
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 
 function message(text,error=false){$('message').textContent=text;$('message').className=error?'notice error':'notice';}
+function formatDuration(seconds){seconds=Number(seconds)||0;if(!seconds)return'';const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;}
 
 async function api(path,body){
   const r=await fetch('/api'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
@@ -55,7 +56,7 @@ function renderSongs(){
   for(const s of visible){
     const pick=node('input');pick.type='checkbox';pick.className='song-select';pick.dataset.id=s.id;pick.setAttribute('aria-label','Select '+s.title);pick.addEventListener('change',updateSelection);
     const playerItems=[];if(s.youtube_url)playerItems.push(['YouTube','']);if(s.spotify_url)playerItems.push(['Spotify','']);if(!playerItems.length)playerItems.push(['Needs links','muted']);
-    const statusItems=[['Published','good']];if(String(s.lyrics||'').trim())statusItems.push(['Lyrics','']);if(s.featured)statusItems.push(['Featured','']);
+    const statusItems=[['Published','good']];if(String(s.lyrics||'').trim())statusItems.push(['Lyrics','']);if(s.duration_seconds)statusItems.push([formatDuration(s.duration_seconds),'']);if(s.featured)statusItems.push(['Featured','']);
     const actions=node('div');actions.className='mq3-admin-actions';
     const edit=node('button','Edit');edit.type='button';edit.addEventListener('click',()=>editSong(s));
     const duplicate=node('button','Duplicate');duplicate.type='button';duplicate.addEventListener('click',()=>duplicateSong(s));
@@ -70,8 +71,8 @@ async function loadSongs(){songs=await api('/admin/songs');renderSongs();}
 
 function fillSongForm(s,{duplicate=false}={}){
   const f=$('song-form');f.reset();editingSongId=duplicate?null:(s?.id||null);createId=crypto.randomUUID();f.elements.id.value=editingSongId||'';f.elements.cover_url.value=s?.cover_url||'';
-  if(s){for(const[k,v]of Object.entries(s)){const input=f.elements.namedItem(k);if(input&&k!=='cover_url'&&k!=='id'){if(input.type==='checkbox')input.checked=!!v;else input.value=v??'';}}}
-  else{f.elements.artist.value='manny III';f.elements.category.value='Name Songs';f.elements.published.checked=true;f.elements.featured.checked=false;}
+  if(s){for(const[k,v]of Object.entries(s)){const input=f.elements.namedItem(k);if(input&&k!=='cover_url'&&k!=='id'&&k!=='duration_seconds'){if(input.type==='checkbox')input.checked=!!v;else input.value=v??'';}}f.elements.duration.value=formatDuration(s.duration_seconds);}
+  else{f.elements.artist.value='manny III';f.elements.category.value='Name Songs';f.elements.published.checked=true;f.elements.featured.checked=false;f.elements.duration.value='';}
   if(duplicate&&s){f.elements.title.value=s.title+' (Copy)';f.elements.published.checked=true;f.elements.featured.checked=false;}
   $('editor-title').textContent=duplicate?'Duplicate song':editingSongId?'Edit song':'Add new song';f.hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'});f.elements.title.focus();if(duplicate)f.elements.title.select();
 }
@@ -104,7 +105,7 @@ $('remove-selected').addEventListener('click',async()=>{
   const ids=[...document.querySelectorAll('.song-select:checked')].map(b=>b.dataset.id);if(!ids.length)return;
   const proceed=await premiumConfirm({title:'Unpublish selected songs?',messageText:`${ids.length} selected song${ids.length===1?'':'s'} will be removed from the public library. The song data will stay saved in the database.`,confirmText:'Unpublish',cancelText:'Keep songs',danger:true});if(!proceed)return;
   const button=$('remove-selected');button.disabled=true;const label=button.textContent;button.textContent='Unpublishing…';
-  try{for(const id of ids){const s=songs.find(x=>x.id===id);if(!s)continue;await api('/admin/songs',{...s,published:false,featured:false});}await loadSongs();message(`${ids.length} song${ids.length===1?'':'s'} unpublished.`);}catch(err){message(err.message,true);}finally{button.textContent=label;updateSelection();}
+  try{for(const id of ids){const s=songs.find(x=>x.id===id);if(!s)continue;await api('/admin/songs',{...s,duration:formatDuration(s.duration_seconds),published:false,featured:false});}await loadSongs();message(`${ids.length} song${ids.length===1?'':'s'} unpublished.`);}catch(err){message(err.message,true);}finally{button.textContent=label;updateSelection();}
 });
 
 submit('settings-form',async f=>{await api('/admin/settings',Object.fromEntries(new FormData(f)));message('Platform links saved.');});
