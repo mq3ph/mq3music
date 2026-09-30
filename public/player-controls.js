@@ -19,7 +19,7 @@
  const playIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18l15-9z"/></svg>',pauseIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h5v18H5zm9 0h5v18h-5z"/></svg>';
  function time(s){s=Math.floor(Math.max(0,Number(s)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
  function state(v,b=false){playing=!!v;buffering=!!b;main.innerHTML=playing?pauseIcon:playIcon;main.setAttribute('aria-label',playing?'Pause':'Play');main.setAttribute('aria-pressed',String(playing));main.setAttribute('aria-busy',String(buffering));document.body.classList.toggle('mq3-is-playing',playing&&!buffering);if(playing)clearTimeout(watchdog);}
- function display(){const pct=duration?Math.min(100,Math.max(0,current/duration*100)):0;$('mq3-progress-fill').style.width=pct+'%';$('mq3-progress-dot').style.left=pct+'%';$('mq3-current-time').textContent=time(current);$('mq3-duration').textContent=duration?time(duration):'--:--';progress.setAttribute('aria-valuemax',String(duration));progress.setAttribute('aria-valuenow',String(current));progress.setAttribute('aria-valuetext',time(current)+' of '+time(duration));}
+ function display(){window.dispatchEvent(new CustomEvent('mq3-playback-time',{detail:{current,duration}}));const pct=duration?Math.min(100,Math.max(0,current/duration*100)):0;$('mq3-progress-fill').style.width=pct+'%';$('mq3-progress-dot').style.left=pct+'%';$('mq3-current-time').textContent=time(current);$('mq3-duration').textContent=duration?time(duration):'--:--';progress.setAttribute('aria-valuemax',String(duration));progress.setAttribute('aria-valuenow',String(current));progress.setAttribute('aria-valuetext',time(current)+' of '+time(duration));}
  function fallback(message){ready=false;main.disabled=false;state(false);$('player-note').textContent=message||'Use the playback source below to play this song.';}
  function unload(){generation++;endHandled=false;hasPlayed=false;intentionalPause=false;clearInterval(poll);clearTimeout(watchdog);try{controller?.destroy?.();}catch{}controller=null;provider='';ready=false;current=0;manualDuration=Math.max(0,Number(document.documentElement.dataset.mq3Duration)||0);duration=manualDuration;main.disabled=true;state(false);display();}
  function api(kind){
@@ -59,5 +59,6 @@
  function frame(t){bars.forEach((b,i)=>{const active=playing&&!buffering&&!reduced.matches;const envelope=.4+.6*Math.sin(Math.PI*(i+1)/65);const pulse=.25+.75*Math.abs(Math.sin(t/210+i*.46)*Math.cos(t/370+i*.17));b.style.height=(active?4+42*envelope*pulse:3)+'px';b.style.transform='none';});requestAnimationFrame(frame);}
  wave.title='Playback animation';state(false);main.disabled=true;display();requestAnimationFrame(frame);
 })();
+
 
 
