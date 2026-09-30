@@ -60,3 +60,21 @@
 .player-app .brand img.header-logo{width:clamp(92px,25vw,112px)!important;height:clamp(92px,25vw,112px)!important;object-fit:contain}
 .player-app .topbar #demo{position:absolute;right:4px;top:14px;font-size:10px}
 .player-app .search-block{margin-top:0;margin-bottom:12px}
+
+/* Artwork-derived atmosphere, kept behind the readable player surface. */
+body.player-app{position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 10%,#481820 0%,#260b12 44%,#10060c 100%);background-attachment:fixed}
+.ambient-backdrop{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 15%,rgba(202,143,69,.12),transparent 55%)}
+.ambient-backdrop img{position:absolute;left:50%;top:7%;width:min(130vw,1100px);height:90vh;object-fit:cover;transform:translateX(-50%) scale(1.08);filter:blur(65px) saturate(1.25);opacity:0;transition:opacity .6s ease}
+.ambient-backdrop img.loaded{opacity:.23}
+.ambient-backdrop::before{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 50% 32%,transparent 10%,rgba(15,4,10,.52) 72%),linear-gradient(180deg,rgba(47,10,18,.18),rgba(17,5,11,.65))}
+.ambient-backdrop::after{content:"";position:absolute;inset:0;z-index:2;opacity:.11;background-image:radial-gradient(rgba(255,226,176,.35) .5px,transparent .7px);background-size:3px 3px}
+.player-app .topbar.topbar-hero::before,.player-app .topbar.topbar-hero::after{content:"";position:absolute;top:50%;height:1px;width:calc(50% - 78px);background:linear-gradient(90deg,transparent,rgba(223,177,91,.55));box-shadow:0 0 12px rgba(228,164,75,.12);pointer-events:none}
+.player-app .topbar.topbar-hero::before{left:8px}
+.player-app .topbar.topbar-hero::after{right:8px;transform:rotate(180deg)}
+.player-app .brand{position:relative;border-radius:50%;background:radial-gradient(ellipse,rgba(239,175,76,.15),transparent 70%)}
+.player-app .brand img.header-logo{filter:drop-shadow(0 0 18px rgba(226,159,59,.19))}
+.player-app .cover-frame{box-shadow:0 20px 42px rgba(0,0,0,.5),0 0 38px rgba(215,145,65,.12);border:1px solid rgba(243,207,145,.18)}
+.player-app #search{background:rgba(27,7,11,.78)!important}
+@media(max-width:520px){.ambient-backdrop img{filter:blur(42px) saturate(1.2)}}
+@media(prefers-reduced-motion:reduce){.ambient-backdrop img{transition:none}}
+
