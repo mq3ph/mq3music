@@ -78,3 +78,14 @@ body.player-app{position:relative;isolation:isolate;background:radial-gradient(e
 @media(max-width:520px){.ambient-backdrop img{filter:blur(42px) saturate(1.2)}}
 @media(prefers-reduced-motion:reduce){.ambient-backdrop img{transition:none}}
 
+
+/* Readable cover titles and generous touch controls. */
+.player-app .artwork-title{padding:70px 22px 26px;font-size:clamp(26px,7.5vw,38px);line-height:1.18;text-wrap:balance;letter-spacing:.2px;background:linear-gradient(transparent,rgba(0,0,0,.9))}
+.mq3-controls{gap:8px;padding:8px 0}
+.mq3-controls button{min-width:44px;min-height:44px}
+.mq3-controls .mq3-main{width:64px;height:64px;box-shadow:0 8px 22px rgba(0,0,0,.4),0 0 18px rgba(229,52,102,.16)}
+.mq3-controls .mq3-main svg{width:28px;height:28px}
+.mq3-controls #mq3-repeat.loop-active{color:#ffe3a0;background:rgba(224,176,88,.14);box-shadow:inset 0 0 0 1px rgba(224,176,88,.55)}
+.mq3-progress{height:6px;margin-top:4px}
+.mq3-progress #mq3-progress-dot{width:12px;height:12px}
+
