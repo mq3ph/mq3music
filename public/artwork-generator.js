@@ -1,59 +1,30 @@
-const form=document.getElementById('song-form');
-const generate=document.getElementById('generate-artwork');
-const clear=document.getElementById('clear-artwork');
-const preview=document.getElementById('artwork-preview');
-const label=document.getElementById('artwork-preview-label');
-const status=document.getElementById('artwork-generator-status');
-const subject=document.getElementById('artwork-subject');
-const mood=document.getElementById('artwork-mood');
-const scene=document.getElementById('artwork-scene');
-
-function setStatus(text,type=''){
-  if(!status)return;status.textContent=text;status.className='artwork-generator-status'+(type?' '+type:'');
-}
-function syncPreview(){
-  if(!form||!preview||!label)return;
-  const url=String(form.elements.cover_url?.value||'').trim();
-  if(url){preview.src=url;preview.hidden=false;label.textContent='Generated artwork selected. Save the song to make it permanent.';}
-  else{preview.removeAttribute('src');preview.hidden=true;label.textContent='No generated artwork saved for this song yet.';}
-  setStatus('');
-}
-
-async function generateArtwork(){
-  if(!form||!generate)return;
-  const title=form.elements.title.value.trim();
-  const lyrics=form.elements.lyrics.value.trim();
-  if(!title){setStatus('Enter the song title first.','error');form.elements.title.focus();return;}
-  if(!lyrics){setStatus('Paste the full lyrics first so the artwork can follow the song.','error');form.elements.lyrics.focus();return;}
-  const old=generate.textContent;generate.disabled=true;clear.disabled=true;generate.textContent='Generating…';
-  setStatus('Creating a photorealistic silhouette from the title and lyrics. This can take a little while.');
-  try{
-    const r=await fetch('/api/admin/artwork-generate',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({title,lyrics,category:form.elements.category.value,subject:subject.value,mood:mood.value,scene:scene.value})
-    });
-    let data={};try{data=await r.json();}catch{}
-    if(!r.ok)throw Error(data.error||'Artwork generation failed.');
-    form.elements.cover_url.value=data.url;
-    preview.src=data.url+'?v='+Date.now();preview.hidden=false;
-    label.textContent='New artwork ready. Save the song to use it on the public player.';
-    setStatus('Artwork generated ✓ You can regenerate for another hairstyle/pose, or save this one.','good');
-  }catch(error){setStatus(error.message,'error');}
-  finally{generate.disabled=false;clear.disabled=false;generate.textContent=old;}
-}
-
-function clearArtwork(){
-  if(!form)return;form.elements.cover_url.value='';syncPreview();setStatus('Generated cover cleared. The automatic category fallback will be used after you save.');
-}
-
-generate?.addEventListener('click',generateArtwork);
-clear?.addEventListener('click',clearArtwork);
-
-if(form){
-  const observer=new MutationObserver(()=>{if(!form.hidden)setTimeout(syncPreview,0);});
-  observer.observe(form,{attributes:true,attributeFilter:['hidden']});
-  form.addEventListener('reset',()=>setTimeout(syncPreview,0));
-  form.elements.category?.addEventListener('change',()=>{if(form.elements.category.value==='Love Songs'&&subject.value==='auto')setStatus('Tip: choose “Woman + Man (Love / Duet)” when both should definitely appear.');});
-}
-
+import {buildArtworkCommand} from './artwork-command.js';
+const $=id=>document.getElementById(id),form=$('song-form'),generate=$('generate-artwork'),clear=$('clear-artwork'),preview=$('artwork-preview'),label=$('artwork-preview-label'),status=$('artwork-generator-status'),command=$('artwork-command'),copy=$('copy-artwork-command'),upload=$('artwork-upload');
+let revision=0,uploadController=null,uploading=false;
+function setStatus(text,type=''){status.textContent=text;status.className='artwork-generator-status'+(type?' '+type:'');}
+function syncPreview(){const url=form.elements.cover_url.value.trim();preview.hidden=!url;if(url)preview.src=url;else preview.removeAttribute('src');label.textContent=url?'Selected artwork. Save the song to use it in the player.':'No custom artwork selected. Automatic category artwork will be used.';}
+function reset(){revision++;uploadController?.abort();uploadController=null;uploading=false;upload.disabled=false;clear.disabled=false;upload.value='';command.value='';copy.disabled=true;copy.textContent='Copy command';syncPreview();setStatus('');}
+function selectedText(id){const select=$(id);return select.options[select.selectedIndex].text;}
+generate.addEventListener('click',()=>{const title=form.elements.title.value.trim();if(!title){setStatus('Enter a song title first.','error');form.elements.title.focus();return;}
+ command.value=buildArtworkCommand({title,artist:form.elements.artist.value.trim(),category:form.elements.category.value,lyrics:form.elements.lyrics.value.trim()||'(No lyrics supplied. Use only the provided details.)',subject:selectedText('artwork-subject'),mood:selectedText('artwork-mood'),scene:selectedText('artwork-scene')});copy.disabled=false;setStatus('Command ready. Copy it and paste into ChatGPT.','good');});
+copy.addEventListener('click',async()=>{if(!command.value)return;try{await navigator.clipboard.writeText(command.value);copy.textContent='Copied ✓';setStatus('Paste into ChatGPT, choose a concept, then ask it to generate the image.','good');}catch{command.focus();command.select();setStatus('Command selected. Press Ctrl+C (or use Copy on your phone).');}});
+clear.addEventListener('click',()=>{revision++;form.elements.cover_url.value='';upload.value='';syncPreview();setStatus('Save the song to use the automatic category artwork.');});
+form.addEventListener('submit',e=>{if(uploading){e.preventDefault();e.stopImmediatePropagation();setStatus('Wait for the artwork upload before saving the song.');}},true);
+upload.addEventListener('change',async()=>{
+ const file=upload.files[0];if(!file)return;
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5*1024*1024||!file.size){setStatus('Choose a PNG, JPG or WebP image up to 5 MB.','error');upload.value='';return;}
+ const token=++revision;uploading=true;upload.disabled=true;clear.disabled=true;uploadController=new AbortController();setStatus('Checking and uploading artwork…');
+ try{
+  const bitmap=await createImageBitmap(file);bitmap.close();if(token!==revision)return;
+  const r=await fetch('/api/admin/cover-upload',{method:'POST',headers:{'Content-Type':file.type},body:file,signal:uploadController.signal});let data={};try{data=await r.json();}catch{}
+  if(!r.ok)throw Error(data.error||'Upload failed. Please try again.');
+  if(typeof data.url!=='string'||!data.url.startsWith('/api/covers/'))throw Error('Upload did not return a valid artwork link.');
+  if(token!==revision)return;
+  form.elements.cover_url.value=data.url;syncPreview();setStatus('Artwork uploaded ✓ Click Save song to apply it.','good');
+ }catch(e){if(token===revision&&e.name!=='AbortError')setStatus(e.message||'Could not upload that image.','error');}
+ finally{if(token===revision){uploading=false;uploadController=null;upload.disabled=false;clear.disabled=false;upload.value='';}}
+});
+form.addEventListener('mq3-song-form-loaded',reset);
+form.addEventListener('reset',()=>{revision++;uploadController?.abort();setTimeout(reset,0);});
+for(const input of [form.elements.title,form.elements.artist,form.elements.category,form.elements.lyrics,$('artwork-subject'),$('artwork-mood'),$('artwork-scene')])input.addEventListener('input',()=>{if(command.value){command.value='';copy.disabled=true;setStatus('Song details changed. Build a fresh command before copying.');}});
 syncPreview();

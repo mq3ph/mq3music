@@ -34,6 +34,7 @@ export function songInput(body){
   const title=String(body.title||'').trim(),artist=String(body.artist||'manny III').trim();
   if(!title||title.length>160||!artist||artist.length>100)bad('Enter a song title and artist.');
   if(!categories.includes(body.category))bad('Choose one of the four categories.');
+  const category=body.category;
   const youtube_url=platformLink(body.youtube_url,'youtube'),spotify_url=platformLink(body.spotify_url,'spotify');
   const published=body.published===true;
   if(published&&!youtube_url&&!spotify_url)bad('Add at least one platform song link before publishing.');

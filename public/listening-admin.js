@@ -74,7 +74,7 @@ function fillSongForm(s,{duplicate=false}={}){
   if(s){for(const[k,v]of Object.entries(s)){const input=f.elements.namedItem(k);if(input&&k!=='cover_url'&&k!=='id'&&k!=='duration_seconds'){if(input.type==='checkbox')input.checked=!!v;else input.value=v??'';}}f.elements.duration.value=formatDuration(s.duration_seconds);}
   else{f.elements.artist.value='manny III';f.elements.category.value='Name Songs';f.elements.published.checked=true;f.elements.featured.checked=false;f.elements.duration.value='';}
   if(duplicate&&s){f.elements.title.value=s.title+' (Copy)';f.elements.published.checked=true;f.elements.featured.checked=false;}
-  $('editor-title').textContent=duplicate?'Duplicate song':editingSongId?'Edit song':'Add new song';f.hidden=false;f.scrollIntoView({behavior:'smooth',block:'start'});f.elements.title.focus();if(duplicate)f.elements.title.select();
+  $('editor-title').textContent=duplicate?'Duplicate song':editingSongId?'Edit song':'Add new song';f.hidden=false;f.dispatchEvent(new Event('mq3-song-form-loaded'));f.scrollIntoView({behavior:'smooth',block:'start'});f.elements.title.focus();if(duplicate)f.elements.title.select();
 }
 function editSong(s=null){if(savingSong)return;fillSongForm(s);}
 function duplicateSong(s){if(savingSong)return;fillSongForm(s,{duplicate:true});message('Duplicate ready. Rename it if needed, then save.');}
