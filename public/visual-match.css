@@ -89,3 +89,31 @@ body.player-app{position:relative;isolation:isolate;background:radial-gradient(e
 .mq3-progress{height:6px;margin-top:4px}
 .mq3-progress #mq3-progress-dot{width:12px;height:12px}
 
+
+/* Decorative musical header: background-only symbols stay out of the tab order. */
+.player-app .topbar.topbar-hero::before,
+.player-app .topbar.topbar-hero::after{
+ width:calc(50% - 76px);max-width:144px;height:86px;top:50%;
+ transform:translateY(-50%);box-shadow:none;
+ background-color:transparent;background-repeat:no-repeat;background-position:center;
+ background-size:contain;opacity:.65;pointer-events:none;
+}
+.player-app .topbar.topbar-hero::before{
+ left:8px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20144%2090%22%20fill%3D%22none%22%20stroke%3D%22%23d4aa62%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20opacity%3D%22.88%22%20transform%3D%22translate(16%2035)%20rotate(-6%2042%2018)%22%3E%3Crect%20width%3D%2284%22%20height%3D%2236%22%20rx%3D%223%22%2F%3E%3Cpath%20d%3D%22M12%200v36M24%200v36M36%200v36M48%200v36M60%200v36M72%200v36%22%2F%3E%3Cpath%20d%3D%22M9%200h6v21H9zM21%200h6v21h-6zM45%200h6v21h-6zM57%200h6v21h-6zM69%200h6v21h-6z%22%20fill%3D%22%23d4aa62%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M107%2039V14l17-4v24M107%2020l17-4%22%2F%3E%3Cellipse%20cx%3D%22102%22%20cy%3D%2240%22%20rx%3D%225%22%20ry%3D%223.5%22%20fill%3D%22%23d4aa62%22%2F%3E%3Cellipse%20cx%3D%22119%22%20cy%3D%2235%22%20rx%3D%225%22%20ry%3D%223.5%22%20fill%3D%22%23d4aa62%22%2F%3E%3Cpath%20d%3D%22M33%2022V9l8%203%22%2F%3E%3Cellipse%20cx%3D%2229%22%20cy%3D%2223%22%20rx%3D%224%22%20ry%3D%223%22%20fill%3D%22%23d4aa62%22%2F%3E%3C%2Fsvg%3E");
+}
+.player-app .topbar.topbar-hero::after{
+ right:8px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20144%2090%22%20fill%3D%22none%22%20stroke%3D%22%23d4aa62%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20opacity%3D%22.88%22%20transform%3D%22translate(81%2045)%20rotate(31)%20translate(-81%20-45)%22%3E%3Cpath%20d%3D%22M78%2031V9h6v22c11-4%2017%206%2012%2015-3%205%209%2010%208%2020-1%2012-11%2017-23%2017s-22-5-23-17c-1-10%2011-15%208-20-5-9%201-19%2012-15Z%22%2F%3E%3Crect%20x%3D%2277%22%20y%3D%222%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%222%22%2F%3E%3Ccircle%20cx%3D%2281%22%20cy%3D%2251%22%20r%3D%226%22%2F%3E%3Cpath%20d%3D%22M74%2069h14M80%2014v55M83%2014v55M75%205h2M85%208h2%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M24%2049V24l16-4v24M24%2030l16-4%22%2F%3E%3Cellipse%20cx%3D%2219%22%20cy%3D%2250%22%20rx%3D%225%22%20ry%3D%223.5%22%20fill%3D%22%23d4aa62%22%2F%3E%3Cellipse%20cx%3D%2235%22%20cy%3D%2245%22%20rx%3D%225%22%20ry%3D%223.5%22%20fill%3D%22%23d4aa62%22%2F%3E%3Cpath%20d%3D%22M122%2022V10l7%203%22%2F%3E%3Cellipse%20cx%3D%22118%22%20cy%3D%2223%22%20rx%3D%224%22%20ry%3D%223%22%20fill%3D%22%23d4aa62%22%2F%3E%3C%2Fsvg%3E");
+}
+/* Seek track and both time labels share 80% of the artwork's width. */
+.player-app{--mq3-seek-width:min(72.8vw,288px)}
+.player-app .mq3-progress,.player-app .mq3-time{
+ width:var(--mq3-seek-width);max-width:100%;box-sizing:border-box;
+ margin-left:auto;margin-right:auto;
+}
+.player-app .mq3-waveform{height:44px!important;margin-bottom:0!important}
+.player-app .mq3-transport{margin-top:-2px}
+@media(min-width:801px){.player-app{--mq3-seek-width:312px}}
+@media(max-width:360px){
+ .player-app .topbar.topbar-hero::before,.player-app .topbar.topbar-hero::after{width:calc(50% - 65px);height:72px}
+}
+
