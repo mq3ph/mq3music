@@ -4,82 +4,75 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-
   <title>MQ3 Music — Pick a Song. Press Play.</title>
-
   <meta name="description" content="Discover original music by manny III. Name Songs, Inspirational, OPM and Love Songs. Listen with YouTube and Spotify.">
-
   <link rel="icon" href="/assets/logo.png">
   <link rel="stylesheet" href="/listening.css">
   <link rel="stylesheet" href="/mobile-player.css">
   <link rel="stylesheet" href="/player-options.css">
-
+  <link rel="stylesheet" href="/player-redesign.css">
   <style>
-    @media (min-width:801px){
-      .player-app .catalog-layout{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) !important;grid-template-areas:"library listen" !important;align-items:start;}
-      .player-app .catalog-left{grid-area:library;min-width:0;}
-      .player-app .catalog-left .search-block,.player-app .catalog-left .filters,.player-app .catalog-left #catalog-status,.player-app .catalog-left #song-grid{grid-area:auto;}
-      .player-app .catalog-left .filters{margin-top:16px;margin-bottom:16px;}
-      .player-app .catalog-left #catalog-status{margin:0 0 10px;}
-      .player-app .catalog-left #song-grid{margin-top:0;}
-      .player-app .listen{grid-area:listen;}
-    }
-    @media (max-width:800px){
-      .player-app .catalog-left{display:contents;}
-      .player-app .listen{margin-bottom:0 !important;}
-      .player-app .filters{
-        margin-top:0 !important;
-        padding-top:32px !important;
-      }
-    }
-    .lyrics-panel{margin-top:14px;border:1px solid #6e4023;border-radius:16px;background:#170504;overflow:hidden;box-shadow:inset 0 1px 0 #fff3cf0d;}
-    .lyrics-panel>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#f0d79a;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between;}
-    .lyrics-panel>summary::-webkit-details-marker{display:none;}
-    .lyrics-panel>summary::after{content:'Show';font-size:11px;color:#bfae9f;text-transform:uppercase;letter-spacing:1px;}
-    .lyrics-panel[open]>summary::after{content:'Hide';}
-    .lyrics-panel[hidden]{display:none;}
-    .lyrics-body{border-top:1px solid #5a321f;padding:14px 16px;max-height:420px;overflow:auto;}
-    .lyrics-body pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.75;color:#f5e9dd;font-size:14px;}
-    @media(max-width:800px){.lyrics-body{max-height:360px}.lyrics-body pre{font-size:15px;line-height:1.8}}
+    .lyrics-panel{margin-top:14px;border:1px solid #6e4023;border-radius:16px;background:#170504;overflow:hidden;box-shadow:inset 0 1px 0 #fff3cf0d}
+    .lyrics-panel>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#f0d79a;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between}
+    .lyrics-panel>summary::-webkit-details-marker{display:none}.lyrics-panel>summary::after{content:'Show';font-size:11px;color:#bfae9f;text-transform:uppercase;letter-spacing:1px}.lyrics-panel[open]>summary::after{content:'Hide'}.lyrics-panel[hidden]{display:none}.lyrics-body{border-top:1px solid #5a321f;padding:14px 16px;max-height:420px;overflow:auto}.lyrics-body pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.75;color:#f5e9dd;font-size:14px}
   </style>
 </head>
-
 <body class="player-app">
   <div class="wrap">
     <header class="topbar topbar-hero">
-      <a class="brand" href="/" aria-label="MQ3 Home"><img src="/assets/logo.png" alt="MQ3" class="header-logo"><span class="brand-copy"><strong>Pick a Song</strong><small>PRESS PLAY</small></span></a>
+      <a class="brand" href="/" aria-label="MQ3 Home"><img src="/assets/logo.png" alt="MQ3" class="header-logo"></a>
       <span id="demo" class="small muted" hidden>Preview</span>
     </header>
-    <div class="hero-divider" aria-hidden="true"><span></span></div>
 
-    <main><section id="songs"><div class="catalog-layout">
-      <div class="catalog-left">
-        <div class="search-block"><div class="search-meta"><label for="search">Search songs or names</label></div><input id="search" type="search" placeholder="Find a title or name…" autocomplete="off"></div>
-        <div class="filters" aria-label="Categories"><button data-category="All" aria-pressed="true">All Songs</button><button data-category="Name Songs" aria-pressed="false">Name Songs</button><button data-category="Inspirational" aria-pressed="false">Inspirational</button><button data-category="OPM" aria-pressed="false">OPM</button><button data-category="Love Songs" aria-pressed="false">Love Songs</button></div>
-        <div id="catalog-status" role="status">Loading songs…</div><button id="retry-catalog" hidden>Retry loading songs</button><div id="song-grid" class="grid"></div>
-      </div>
-
-      <aside class="listen" id="listen">
-        <details id="player-options" class="player-options"><summary aria-label="Player options" title="Player options">⋯</summary><div class="player-options-panel"><div id="song-actions" hidden><button id="favorite-song" aria-pressed="false">♡ Save favorite</button><button id="share-song">Share song</button><input id="share-link" aria-label="Song link to copy" readonly hidden><a id="open-youtube" target="_blank" rel="noopener">Open in YouTube ↗</a><a id="open-spotify" target="_blank" rel="noopener">Open in Spotify ↗</a></div><div class="options-library" aria-label="Your library"><button data-collection="all" aria-pressed="true">All songs</button><button data-collection="favorites" aria-pressed="false">Favorites</button><button data-collection="recent" aria-pressed="false">Recent songs</button><button id="clear-recent">Clear recent</button><small>Favorites and recent selections stay in this browser.</small></div><details id="spotify-help" class="small" hidden><summary>Spotify preview help</summary><p>Spotify controls embedded playback. If only a preview plays, use Open in Spotify for full playback.</p><a href="https://developer.spotify.com/documentation/embeds/tutorials/troubleshooting" target="_blank" rel="noopener">Spotify help ↗</a></details></div></details>
-
-        <div class="now-playing-head"><img id="player-cover" src="/assets/logo.png" alt=""><div class="now-playing-copy"><div class="eyebrow">Now playing</div><h2 id="song-title">Choose your song</h2><div class="track-meta"><span id="song-artist" class="muted">manny III</span><span id="song-category" class="muted"></span></div></div></div>
-
-        <div class="platforms" aria-label="Playback source">
-          <button id="youtube" class="platform-button youtube-tab" aria-pressed="true" disabled><span class="platform-icon youtube-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/><path class="play-mark" d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"/></svg></span><span>YouTube</span></button>
-          <button id="spotify" class="platform-button spotify-tab" aria-pressed="false" disabled><span class="platform-icon spotify-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="11"/><path class="spotify-wave" d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"/></svg></span><span>Spotify</span></button>
+    <main>
+      <section id="songs">
+        <div class="search-block">
+          <div class="search-meta"><label for="search">Search songs or names</label></div>
+          <input id="search" type="search" placeholder="Find a title or name…" autocomplete="off">
         </div>
 
-        <div id="player" class="player"><div class="player-empty"><div><img src="/assets/logo.png" alt="">Choose a song</div></div></div>
-        <p id="player-note" class="player-note"></p>
-        <div id="spotify-fullplay" class="spotify-fullplay" hidden><span>Preview in MQ3</span><a id="spotify-fullplay-link" target="_blank" rel="noopener">Play full song in Spotify ↗</a></div>
+        <div class="catalog-layout">
+          <aside class="listen" id="listen">
+            <details id="player-options" class="player-options"><summary aria-label="Player options" title="Player options">⋯</summary><div class="player-options-panel"><div id="song-actions" hidden><button id="favorite-song" aria-pressed="false">♡ Save favorite</button><button id="share-song">Share song</button><input id="share-link" aria-label="Song link to copy" readonly hidden><a id="open-youtube" target="_blank" rel="noopener">Open in YouTube ↗</a><a id="open-spotify" target="_blank" rel="noopener">Open in Spotify ↗</a></div><div class="options-library" aria-label="Your library"><button data-collection="all" aria-pressed="true">All songs</button><button data-collection="favorites" aria-pressed="false">Favorites</button><button data-collection="recent" aria-pressed="false">Recent songs</button><button id="clear-recent">Clear recent</button><small>Favorites and recent selections stay in this browser.</small></div><details id="spotify-help" class="small" hidden><summary>Spotify preview help</summary><p>Spotify controls embedded playback. If only a preview plays, use Open in Spotify for full playback.</p><a href="https://developer.spotify.com/documentation/embeds/tutorials/troubleshooting" target="_blank" rel="noopener">Spotify help ↗</a></details></div></details>
 
-        <details id="lyrics-panel" class="lyrics-panel" hidden><summary>Lyrics</summary><div class="lyrics-body"><pre id="song-lyrics"></pre></div></details>
+            <div class="now-playing-head">
+              <img id="player-cover" src="/assets/logo.png" alt="">
+              <div class="now-playing-copy">
+                <div class="eyebrow">Now playing</div>
+                <h2 id="song-title">Choose your song</h2>
+                <div class="track-meta"><span id="song-artist" class="muted">manny III</span><span id="song-category" class="muted"></span></div>
+              </div>
+            </div>
 
-        <div id="status" role="status"></div>
+            <div id="mq3-waveform" class="mq3-waveform" aria-hidden="true"></div>
+            <div class="mq3-wave-label">Listening</div>
+
+            <div class="platforms" aria-label="Playback source">
+              <button id="youtube" class="platform-button youtube-tab" aria-pressed="true" disabled><span class="platform-icon youtube-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/><path class="play-mark" d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"/></svg></span><span>YouTube</span></button>
+              <button id="spotify" class="platform-button spotify-tab" aria-pressed="false" disabled><span class="platform-icon spotify-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="11"/><path class="spotify-wave" d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"/></svg></span><span>Spotify</span></button>
+            </div>
+
+            <div id="player" class="player"><div class="player-empty"><div><img src="/assets/logo.png" alt="">Choose a song</div></div></div>
+            <p id="player-note" class="player-note"></p>
+            <div id="spotify-fullplay" class="spotify-fullplay" hidden><span>Preview in MQ3</span><a id="spotify-fullplay-link" target="_blank" rel="noopener">Play full song in Spotify ↗</a></div>
+
+            <details id="lyrics-panel" class="lyrics-panel" hidden><summary>Lyrics</summary><div class="lyrics-body"><pre id="song-lyrics"></pre></div></details>
+            <div id="status" role="status"></div>
+          </aside>
+
+          <div class="catalog-left">
+            <div class="filters" aria-label="Categories"><button data-category="All" aria-pressed="true">All Songs</button><button data-category="Name Songs" aria-pressed="false">Name Songs</button><button data-category="Inspirational" aria-pressed="false">Inspirational</button><button data-category="OPM" aria-pressed="false">OPM</button><button data-category="Love Songs" aria-pressed="false">Love Songs</button></div>
+            <div id="catalog-status" role="status">Loading songs…</div>
+            <button id="retry-catalog" hidden>Retry loading songs</button>
+            <div id="song-grid" class="grid"></div>
+          </div>
+        </div>
+
         <div id="support-artist" class="support-artist"><span class="support-title">Support manny III</span><div class="support-actions"><a id="subscribe-mq3" class="support-button youtube-support" target="_blank" rel="noopener">Subscribe</a><a id="follow-mq3" class="support-button spotify-support" target="_blank" rel="noopener">Follow</a></div><small>Confirmation opens separately on the official platform.</small></div>
-      </aside>
-    </div></section></main>
+      </section>
+    </main>
   </div>
   <script type="module" src="/listening.js"></script>
+  <script src="/cover-variants.js"></script>
 </body>
 </html>
