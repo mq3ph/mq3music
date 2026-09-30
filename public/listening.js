@@ -140,6 +140,8 @@ async function load(){
 $('retry-catalog').addEventListener('click',load);
 const options=$('player-options');document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});options.addEventListener('keydown',event=>{if(event.key==='Escape'){options.open=false;options.querySelector('summary').focus();}});
 ensureEnhancementStyles();setupMiniPlayer();setupLyricsTools();
+const sourcePanel=document.querySelector('.source-stack');document.querySelector('.player-options-panel').prepend(sourcePanel);
+sourcePanel.querySelector('summary').textContent='YouTube / Spotify';
 const quickActions=el('div',null,'mq3-quick-actions');quickActions.setAttribute('aria-label','Song actions');quickActions.append($('favorite-song'),$('share-song'),$('share-link'));$('lyrics-panel').before(quickActions);
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(()=>{});
 load();
