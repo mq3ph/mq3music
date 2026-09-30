@@ -44,3 +44,19 @@
 .player-app .support-artist{margin-top:18px!important}
 @media(prefers-reduced-motion:reduce){.player-app .mq3-waveform span{transform:none!important}.mq3-progress #mq3-progress-fill,.mq3-progress #mq3-progress-dot{transition:none}}
 @media(min-width:801px){.player-app .wrap{max-width:520px}.player-app .now-playing-head #player-cover{width:390px!important;height:390px!important}.player-app .lyrics-body pre{font-size:13px!important}}
+/* Photographic covers: keep the title on the artwork, without duplicate metadata. */
+.player-app .cover-frame{position:relative;max-width:100%;overflow:hidden;border-radius:12px;line-height:0}
+.player-app .now-playing-head #player-cover{display:block;max-width:100%;object-fit:cover}
+.player-app .artwork-title{position:absolute;bottom:0;left:0;right:0;padding:65px 20px 28px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#ffe3a0;font:clamp(24px,7vw,38px)/1.15 Georgia,serif;text-align:center;overflow-wrap:anywhere;text-shadow:0 2px 8px #000}
+.player-app .artwork-title:empty{display:none}
+.player-app .now-playing-copy{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%);white-space:nowrap}
+.mq3-controls .mq3-main{display:grid;place-items:center}
+.mq3-controls .mq3-main svg{width:23px;height:23px;fill:currentColor}
+.mq3-controls button:focus-visible,.mq3-progress:focus-visible{outline:2px solid #ffe3a0;outline-offset:5px}
+.mq3-controls button:disabled{opacity:.45;cursor:wait}
+.mq3-progress::before{content:'';position:absolute;inset:-10px 0}
+/* Larger centered brand, proportional to the square cover on every screen. */
+.player-app .topbar.topbar-hero{position:relative;display:flex;justify-content:center;align-items:center;padding:14px 0 12px;min-height:0}
+.player-app .brand img.header-logo{width:clamp(92px,25vw,112px)!important;height:clamp(92px,25vw,112px)!important;object-fit:contain}
+.player-app .topbar #demo{position:absolute;right:4px;top:14px;font-size:10px}
+.player-app .search-block{margin-top:0;margin-bottom:12px}
