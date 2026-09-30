@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/mobile-player.css">
   <link rel="stylesheet" href="/player-options.css">
   <link rel="stylesheet" href="/player-redesign.css">
+  <link rel="stylesheet" href="/visual-match.css">
   <style>
     .lyrics-panel{margin-top:14px;border:1px solid #6e4023;border-radius:16px;background:#170504;overflow:hidden;box-shadow:inset 0 1px 0 #fff3cf0d}
     .lyrics-panel>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#f0d79a;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between}
@@ -45,19 +46,31 @@
             </div>
 
             <div id="mq3-waveform" class="mq3-waveform" aria-hidden="true"></div>
-            <div class="mq3-wave-label">Listening</div>
-
-            <div class="platforms" aria-label="Playback source">
-              <button id="youtube" class="platform-button youtube-tab" aria-pressed="true" disabled><span class="platform-icon youtube-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/><path class="play-mark" d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"/></svg></span><span>YouTube</span></button>
-              <button id="spotify" class="platform-button spotify-tab" aria-pressed="false" disabled><span class="platform-icon spotify-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="11"/><path class="spotify-wave" d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"/></svg></span><span>Spotify</span></button>
+            <div class="mq3-transport" aria-label="Playback controls">
+              <div class="mq3-progress" aria-hidden="true"></div>
+              <div class="mq3-time"><span>0:00</span><span>--:--</span></div>
+              <div class="mq3-controls">
+                <button id="mq3-shuffle" type="button" aria-label="Shuffle">⤨</button>
+                <button id="mq3-prev" type="button" aria-label="Previous song">◀</button>
+                <button id="mq3-main-play" class="mq3-main" type="button" aria-label="Play">▶</button>
+                <button id="mq3-next" type="button" aria-label="Next song">▶</button>
+                <button id="mq3-repeat" type="button" aria-label="Repeat">↻</button>
+              </div>
             </div>
-
-            <div id="player" class="player"><div class="player-empty"><div><img src="/assets/logo.png" alt="">Choose a song</div></div></div>
-            <p id="player-note" class="player-note"></p>
-            <div id="spotify-fullplay" class="spotify-fullplay" hidden><span>Preview in MQ3</span><a id="spotify-fullplay-link" target="_blank" rel="noopener">Play full song in Spotify ↗</a></div>
 
             <details id="lyrics-panel" class="lyrics-panel" hidden><summary>Lyrics</summary><div class="lyrics-body"><pre id="song-lyrics"></pre></div></details>
             <div id="status" role="status"></div>
+
+            <details class="source-stack">
+              <summary>Playback source</summary>
+              <div class="platforms" aria-label="Playback source">
+                <button id="youtube" class="platform-button youtube-tab" aria-pressed="true" disabled><span class="platform-icon youtube-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/><path class="play-mark" d="m9.6 15.5 6.3-3.5-6.3-3.5v7Z"/></svg></span><span>YouTube</span></button>
+                <button id="spotify" class="platform-button spotify-tab" aria-pressed="false" disabled><span class="platform-icon spotify-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="11"/><path class="spotify-wave" d="M6.7 8.8c3.5-1 7.8-.8 11 .8M7.4 12c3-.8 6.6-.6 9.4.7M8.1 15.1c2.4-.6 5.3-.4 7.7.6"/></svg></span><span>Spotify</span></button>
+              </div>
+              <div id="player" class="player"><div class="player-empty"><div><img src="/assets/logo.png" alt="">Choose a song</div></div></div>
+              <p id="player-note" class="player-note"></p>
+              <div id="spotify-fullplay" class="spotify-fullplay" hidden><span>Preview in MQ3</span><a id="spotify-fullplay-link" target="_blank" rel="noopener">Play full song in Spotify ↗</a></div>
+            </details>
           </aside>
 
           <div class="catalog-left">
@@ -74,5 +87,6 @@
   </div>
   <script type="module" src="/listening.js"></script>
   <script src="/cover-variants.js"></script>
+  <script src="/player-controls.js"></script>
 </body>
 </html>
