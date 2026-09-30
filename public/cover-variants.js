@@ -27,6 +27,7 @@ try{
 
 function hashText(value){let h=2166136261;for(const ch of String(value||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0;}
 export function coverFor(song){
+  if(String(song?.cover_url||'').trim())return song.cover_url;
   const choices=categoryArtwork[song?.category]||categoryArtwork['Name Songs'];
   const key=choices[hashText(song?.id||song?.title||'mq3')%choices.length];
   const data=artwork[key];
