@@ -20,6 +20,16 @@ export function platformLink(raw,platform,artist=false){
   if(!m||m[1]!== (artist?'artist':'track'))bad(artist?'Use a Spotify artist link.':'Use a Spotify song / track link, not an album.');
   return 'https://open.spotify.com/'+m[1]+'/'+m[2];
 }
+function durationSeconds(raw){
+  const value=String(raw??'').trim();if(!value)return 0;
+  if(/^\d+$/.test(value)){const n=Number(value);if(Number.isSafeInteger(n)&&n>=0&&n<=21600)return n;}
+  const parts=value.split(':').map(Number);
+  if(parts.length<2||parts.length>3||parts.some(n=>!Number.isInteger(n)||n<0))bad('Duration must look like 3:51 or 1:03:20.');
+  let seconds=0;
+  if(parts.length===2){const [m,s]=parts;if(s>59)bad('Duration must look like 3:51 or 1:03:20.');seconds=m*60+s;}
+  else{const [h,m,s]=parts;if(m>59||s>59)bad('Duration must look like 3:51 or 1:03:20.');seconds=h*3600+m*60+s;}
+  if(seconds>21600)bad('Duration is too long.');return seconds;
+}
 export function songInput(body){
   const title=String(body.title||'').trim(),artist=String(body.artist||'manny III').trim();
   if(!title||title.length>160||!artist||artist.length>100)bad('Enter a song title and artist.');
@@ -34,7 +44,8 @@ export function songInput(body){
   }
   const description=String(body.description||'').trim();if(description.length>1200)bad('Description is too long.');
   const lyrics=String(body.lyrics||'').trim();if(lyrics.length>30000)bad('Lyrics are too long.');
-  return {title,artist,category:body.category,youtube_url,spotify_url,cover_url,description,lyrics,published,featured:body.featured===true};
+  const duration_seconds=durationSeconds(body.duration_seconds??body.duration);
+  return {title,artist,category,youtube_url,spotify_url,cover_url,description,lyrics,duration_seconds,published,featured:body.featured===true};
 }
 // Calendar periods in Philippine time; these are website analytics, not platform royalties.
 export function periodStart(period,now=new Date()){
