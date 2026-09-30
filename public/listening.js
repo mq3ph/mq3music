@@ -142,9 +142,9 @@ const options=$('player-options');document.addEventListener('click',event=>{if(o
 ensureEnhancementStyles();setupMiniPlayer();setupLyricsTools();
 const headerBrand=document.querySelector('.brand');
 if(headerBrand){
- const logo=headerBrand.querySelector('.header-logo');if(logo)logo.src='/assets/logo-clean.png';
+ const logo=headerBrand.querySelector('.header-logo');if(logo)logo.src='/assets/logo-headphones.png';
  const tagline=el('span','MUSIC. QUALITY. 3RD GEN.','mq3-brand-tagline');headerBrand.append(tagline);
- const headerStyle=el('style');headerStyle.textContent='.player-app .topbar-hero .brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;margin-inline:auto!important;text-decoration:none}.player-app .topbar-hero .brand img.header-logo{flex:none!important;align-self:center!important;margin:0 auto!important}.player-app .mq3-brand-tagline{display:block;color:#edc66d;font:600 9px/1.4 Arial,sans-serif;letter-spacing:1px;white-space:nowrap;text-align:center}.player-app .topbar{padding-bottom:12px!important}';document.head.append(headerStyle);
+ const headerStyle=el('style');headerStyle.textContent='.player-app .topbar-hero .brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;margin-inline:auto!important;text-decoration:none}.player-app .topbar-hero .brand img.header-logo{width:clamp(124px,34vw,144px)!important;height:clamp(124px,34vw,144px)!important;flex:none!important;align-self:center!important;margin:0 auto!important}.player-app .mq3-brand-tagline{display:block;color:#edc66d;font:600 9px/1.4 Arial,sans-serif;letter-spacing:1px;white-space:nowrap;text-align:center}.player-app .topbar{padding-bottom:12px!important}';document.head.append(headerStyle);
 }
 const sourcePanel=document.querySelector('.source-stack');document.querySelector('.player-options-panel').prepend(sourcePanel);
 sourcePanel.querySelector('summary').textContent='YouTube / Spotify';
@@ -165,5 +165,6 @@ window.addEventListener('mq3-advance',event=>{
  if(next.id===selected?.id){window.dispatchEvent(new CustomEvent('mq3-replay-request',{detail:{autoplay:event.detail.autoplay}}));return;}
  selectSong(next,{scroll:false,autoplay:event.detail.autoplay,keepQueue:true,preferredPlatform:platform});
 });
+
 
 
