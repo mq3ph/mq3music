@@ -1,0 +1,45 @@
+/* Tight visual match to the approved mobile reference */
+.player-app .wrap{max-width:430px;padding:0 10px 32px}
+.player-app .topbar.topbar-hero{padding:4px 0 2px;justify-content:center}
+.player-app .brand img.header-logo{width:42px!important;height:42px!important}
+.player-app .search-block{margin:2px 0 10px}
+.player-app .search-meta{display:none}
+.player-app #search{min-height:42px!important;border-radius:10px!important;padding:9px 12px!important;font-size:14px!important}
+.player-app .listen{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.player-app .player-options{top:2px!important;right:2px!important}
+.player-app .now-playing-head{margin:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;gap:0!important}
+.player-app .now-playing-head #player-cover{width:min(91vw,360px)!important;height:min(91vw,360px)!important;border-radius:8px!important;box-shadow:0 10px 24px rgba(0,0,0,.34)!important}
+.player-app .now-playing-copy{padding-top:8px!important}
+.player-app .listen h2#song-title{font-size:17px!important;margin:0!important;font-family:Arial,sans-serif!important;font-weight:700!important}
+.player-app .track-meta{margin-top:5px!important;justify-content:center!important}
+.player-app #song-artist{display:none!important}
+.player-app #song-category{min-height:24px!important;padding:2px 10px!important;font-size:10px!important;border-radius:999px!important}
+.player-app .mq3-waveform{height:54px!important;margin:5px auto 0!important;max-width:370px!important;gap:1.5px!important;padding:0 2px!important}
+.player-app .mq3-waveform span{width:2px!important;min-width:2px!important}
+.player-app .mq3-wave-label{display:none!important}
+.mq3-transport{max-width:370px;margin:0 auto 8px}
+.mq3-progress{height:3px;background:#705e60;border-radius:999px;position:relative;margin:0 2px 3px}
+.mq3-progress::before{content:"";position:absolute;left:0;top:0;bottom:0;width:27%;background:#ff4f79;border-radius:999px}
+.mq3-progress::after{content:"";position:absolute;left:27%;top:50%;width:9px;height:9px;border-radius:50%;background:#ff93ad;transform:translate(-50%,-50%)}
+.mq3-time{display:flex;justify-content:space-between;font-size:10px;color:#bba6a1;margin:0 1px 4px}
+.mq3-controls{display:grid;grid-template-columns:1fr 1fr 1.35fr 1fr 1fr;align-items:center;gap:4px}
+.mq3-controls button{min-height:34px;padding:5px;border:0;background:transparent;color:#fff;border-radius:999px;font-size:18px}
+.mq3-controls .mq3-main{width:48px;height:48px;justify-self:center;background:linear-gradient(#bf3153,#7f1734);border:1px solid #e7607f;box-shadow:0 6px 16px rgba(0,0,0,.35);font-size:20px}
+.player-app .lyrics-panel{margin:7px 0 0!important;border-radius:11px!important;background:rgba(45,22,25,.92)!important;border-color:#5c3a3d!important}
+.player-app .lyrics-panel>summary{padding:10px 11px!important;font-size:11px!important}
+.player-app .lyrics-body{padding:10px 11px!important;max-height:390px!important}
+.player-app .lyrics-body pre{font-size:12px!important;line-height:1.55!important}
+.player-app .catalog-left{margin-top:16px!important}
+.player-app .filters{margin-bottom:8px!important}
+.player-app .song-row{padding:9px 4px!important}
+.player-app .song-info small{display:none!important}
+.player-app .song-row img{width:46px!important;height:46px!important;border-radius:7px!important}
+.player-app .source-stack{margin:14px 0 0;border-top:1px solid rgba(151,97,40,.26);padding-top:10px}
+.player-app .source-stack>summary{list-style:none;cursor:pointer;color:#c6ab9b;font-size:11px;text-align:center}
+.player-app .source-stack>summary::-webkit-details-marker{display:none}
+.player-app .source-stack>summary::after{content:' ▾'}
+.player-app .source-stack[open]>summary::after{content:' ▴'}
+.player-app .source-stack .platforms{margin:9px 0 10px!important}
+.player-app .source-stack .player{margin:0 auto!important}
+.player-app .support-artist{margin-top:18px!important}
+@media(min-width:801px){.player-app .wrap{max-width:520px}.player-app .now-playing-head #player-cover{width:390px!important;height:390px!important}.player-app .lyrics-body pre{font-size:13px!important}}
