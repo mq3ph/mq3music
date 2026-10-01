@@ -1,4 +1,16 @@
 const $=id=>document.getElementById(id);
+let libraryView='published',missingDetail='';
+async function refreshRequestCount(){try{const r=await api('/admin/name-requests-count');const b=document.querySelector('[data-tab="requests"]');if(b)b.textContent='Name requests'+(r.total?' ('+r.total+' new)':'');}catch{}}
+function setupAdminOverview(){
+ const logo=document.querySelector('.brand img');if(logo)logo.src='/assets/logo-headphones.png';
+ const hint=document.querySelector('[data-panel="songs"] > p.small');if(hint)hint.textContent='Manage published songs and saved drafts. Edit a draft, check Published, then Save song to restore it.';
+ const filters=node('div');filters.className='actions';
+ for(const [id,label,choices] of [['library-view','Show songs',[['published','Published'],['drafts','Drafts / Unpublished'],['all','All songs']]],['missing-detail','Song details',[['','All details'],['duration','Missing duration'],['lyrics','Missing lyrics'],['artwork','Missing custom artwork']]]]){const wrap=node('label',label),select=node('select');select.id=id;for(const [value,text] of choices){const option=node('option',text);option.value=value;select.append(option);}select.onchange=()=>{libraryView=$('library-view').value;missingDetail=$('missing-detail').value;renderSongs();};wrap.append(select);filters.append(wrap);}$('song-library-search').closest('.panel').after(filters);
+ const section=node('section');section.className='panel';section.append(node('h3','Website visitors'));const note=node('p','Estimated unique browsers, not identified people. Clearing cookies or changing devices counts again. Counts start with this update; song views are separate.');note.className='small';section.append(note);
+ const select=node('select');select.setAttribute('aria-label','Visitor reporting period');for(const [value,label] of [['daily','Today'],['weekly','This week'],['monthly','This month'],['all','All time']]){const option=node('option',label);option.value=value;select.append(option);}const refresh=node('button','Refresh visitors'),result=node('p');result.id='visitor-summary';result.setAttribute('role','status');section.append(select,refresh,result);document.querySelector('[data-panel="analytics"]').prepend(section);
+ const load=async()=>{refresh.disabled=true;result.textContent='Loading visitors…';try{const r=await api('/admin/visitors?period='+select.value);result.textContent=r.visitors+' unique browsers · '+r.views+' page visits';}catch(e){result.textContent=e.message;}finally{refresh.disabled=false;}};select.onchange=load;refresh.onclick=load;document.querySelector('[data-tab="analytics"]').addEventListener('click',load);
+ document.addEventListener('mq3-requests-updated',refreshRequestCount);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)refreshRequestCount();});setInterval(()=>{if(!document.hidden&&!$('dashboard').hidden)refreshRequestCount();},60000);
+}
 let songs=[],report=null,period='daily',editingSongId=null,savingSong=false,createId=crypto.randomUUID();
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 
@@ -49,22 +61,22 @@ function badges(items){const box=node('div');box.className='mq3-admin-badges';it
 function updateSelection(){const boxes=[...document.querySelectorAll('.song-select:not(:disabled)')],checked=boxes.filter(b=>b.checked);$('remove-selected').disabled=!checked.length;$('select-all-songs').checked=!!boxes.length&&checked.length===boxes.length;$('select-all-songs').indeterminate=checked.length>0&&checked.length<boxes.length;}
 
 function renderSongs(){
-  const library=songs.filter(s=>s.published).sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base'}));
+  const library=songs.filter(s=>libraryView==='all'||(libraryView==='published'?s.published:!s.published)).sort((a,b)=>a.title.localeCompare(b.title,undefined,{sensitivity:'base'}));
   const term=$('song-library-search').value.trim().toLowerCase();
-  const visible=library.filter(s=>[s.title,s.artist,s.category,s.youtube_url?'youtube':'',s.spotify_url?'spotify':'',s.lyrics?'lyrics':'',s.featured?'featured':''].join(' ').toLowerCase().includes(term));
+  const visible=library.filter(s=>!missingDetail||(missingDetail==='duration'?!s.duration_seconds:missingDetail==='lyrics'?!String(s.lyrics||'').trim():!s.cover_url)).filter(s=>[s.title,s.artist,s.category,s.youtube_url?'youtube':'',s.spotify_url?'spotify':'',s.lyrics?'lyrics':'',s.featured?'featured':''].join(' ').toLowerCase().includes(term));
   $('song-rows').replaceChildren();
   for(const s of visible){
-    const pick=node('input');pick.type='checkbox';pick.className='song-select';pick.dataset.id=s.id;pick.setAttribute('aria-label','Select '+s.title);pick.addEventListener('change',updateSelection);
+    const pick=node('input');pick.type='checkbox';pick.className='song-select';pick.dataset.id=s.id;pick.disabled=!s.published;pick.setAttribute('aria-label','Select '+s.title);pick.addEventListener('change',updateSelection);
     const playerItems=[];if(s.youtube_url)playerItems.push(['YouTube','']);if(s.spotify_url)playerItems.push(['Spotify','']);if(!playerItems.length)playerItems.push(['Needs links','muted']);
-    const statusItems=[['Published','good']];if(String(s.lyrics||'').trim())statusItems.push(['Lyrics','']);if(s.duration_seconds)statusItems.push([formatDuration(s.duration_seconds),'']);if(s.featured)statusItems.push(['Featured','']);
+    const statusItems=[[s.published?'Published':'Draft / Unpublished',s.published?'good':'muted']];if(String(s.lyrics||'').trim())statusItems.push(['Lyrics','']);if(s.duration_seconds)statusItems.push([formatDuration(s.duration_seconds),'']);if(s.featured)statusItems.push(['Featured','']);
     const actions=node('div');actions.className='mq3-admin-actions';
     const edit=node('button','Edit');edit.type='button';edit.addEventListener('click',()=>editSong(s));
     const duplicate=node('button','Duplicate');duplicate.type='button';duplicate.addEventListener('click',()=>duplicateSong(s));
     actions.append(edit,duplicate);
     row('song-rows',[pick,s.title,s.category,badges(playerItems),badges(statusItems),actions]);
   }
-  if(!visible.length)row('song-rows',['','No published songs match this search.','','','','']);
-  $('library-count').textContent=visible.length+' shown · '+library.length+' published';$('select-all-songs').checked=false;$('select-all-songs').indeterminate=false;$('remove-selected').disabled=true;
+  if(!visible.length)row('song-rows',['','No songs match these filters.','','','','']);
+  $('library-count').textContent=visible.length+' shown · '+library.length+' in this view';$('select-all-songs').checked=false;$('select-all-songs').indeterminate=false;$('remove-selected').disabled=true;
 }
 
 async function loadSongs(){songs=await api('/admin/songs');renderSongs();}
@@ -82,7 +94,7 @@ function duplicateSong(s){if(savingSong)return;fillSongForm(s,{duplicate:true});
 async function loadAnalytics(){report=await api('/admin/analytics?period='+period);$('total-views').textContent=report.total.toLocaleString();$('legacy-views').textContent=report.legacy_total.toLocaleString();$('period-label').textContent={daily:'Today',weekly:'This week',monthly:'This month',all:'Since migration'}[period];$('analytics-rows').replaceChildren();for(const s of report.songs)row('analytics-rows',[s.title,s.category,s.views,s.legacy_views]);}
 async function loadAudience(){const rows=await api('/admin/audience');$('audience-rows').replaceChildren();rows.forEach((s,i)=>{const previous=rows[i+1];const delta=key=>previous?((s[key]-previous[key]>=0?'+':'')+(s[key]-previous[key])):'—';row('audience-rows',[s.recorded_on.slice(0,10),s.youtube_subscribers,delta('youtube_subscribers'),s.spotify_followers,delta('spotify_followers'),s.note]);});if(!rows.length)row('audience-rows',['No snapshots yet.','','','','','']);}
 async function loadSettings(){const s=await api('/admin/settings');for(const key of['youtube_channel','spotify_artist'])$('settings-form').elements[key].value=s[key]||'';}
-async function enter(){await loadSongs();$('login').hidden=true;$('dashboard').hidden=false;$('logout').hidden=false;}
+async function enter(){await loadSongs();refreshRequestCount();$('login').hidden=true;$('dashboard').hidden=false;$('logout').hidden=false;}
 
 function submit(id,handler){$(id).addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;const label=b.textContent;b.textContent='Saving…';try{await handler(e.target);}catch(err){message(err.message,true);}finally{b.disabled=false;b.textContent=label;}});}
 submit('login',async f=>{await api('/login',{password:f.elements.password.value});f.reset();await enter();message('Signed in.');});
@@ -116,6 +128,7 @@ document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click'
 
 $('export-analytics').addEventListener('click',()=>{if(!report)return;const cell=v=>'"'+String(v).replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';const rows=[['Song','Category','Website views ('+report.period+')','Historical views'],...report.songs.map(s=>[s.title,s.category,s.views,s.legacy_views])];const url=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=node('a');a.href=url;a.download='mq3-website-views-'+report.period+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 
-ensureAdminEnhancementStyles();
+setupAdminOverview();ensureAdminEnhancementStyles();
 $('audience-form').elements.recorded_on.value=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
 enter().catch(e=>{if(!e.message.includes('sign in'))message(e.message,true);});import './name-requests.js';
+

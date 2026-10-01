@@ -190,3 +190,4 @@ window.addEventListener('mq3-advance',event=>{
 
 import('./name-requests.js');
 
+fetch('/api/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>{});
