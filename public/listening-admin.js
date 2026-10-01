@@ -1,6 +1,5 @@
 const $=id=>document.getElementById(id);
 let libraryView='published',missingDetail='';
-async function refreshRequestCount(){try{const r=await api('/admin/name-requests-count');const b=document.querySelector('[data-tab="requests"]');if(b)b.textContent='Name requests'+(r.total?' ('+r.total+' new)':'');}catch{}}
 function setupAdminOverview(){
  const logo=document.querySelector('.brand img');if(logo)logo.src='/assets/logo-headphones.png';
  const hint=document.querySelector('[data-panel="songs"] > p.small');if(hint)hint.textContent='Manage published songs and saved drafts. Edit a draft, check Published, then Save song to restore it.';
@@ -9,7 +8,6 @@ function setupAdminOverview(){
  const section=node('section');section.className='panel';section.append(node('h3','Website visitors'));const note=node('p','Estimated unique browsers, not identified people. Clearing cookies or changing devices counts again. Counts start with this update; song views are separate.');note.className='small';section.append(note);
  const select=node('select');select.setAttribute('aria-label','Visitor reporting period');for(const [value,label] of [['daily','Today'],['weekly','This week'],['monthly','This month'],['all','All time']]){const option=node('option',label);option.value=value;select.append(option);}const refresh=node('button','Refresh visitors'),result=node('p');result.id='visitor-summary';result.setAttribute('role','status');section.append(select,refresh,result);document.querySelector('[data-panel="analytics"]').prepend(section);
  const load=async()=>{refresh.disabled=true;result.textContent='Loading visitors…';try{const r=await api('/admin/visitors?period='+select.value);result.textContent=r.visitors+' unique browsers · '+r.views+' page visits';}catch(e){result.textContent=e.message;}finally{refresh.disabled=false;}};select.onchange=load;refresh.onclick=load;document.querySelector('[data-tab="analytics"]').addEventListener('click',load);
- document.addEventListener('mq3-requests-updated',refreshRequestCount);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('dashboard').hidden)refreshRequestCount();});setInterval(()=>{if(!document.hidden&&!$('dashboard').hidden)refreshRequestCount();},60000);
 }
 let songs=[],report=null,period='daily',editingSongId=null,savingSong=false,createId=crypto.randomUUID();
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
@@ -94,7 +92,7 @@ function duplicateSong(s){if(savingSong)return;fillSongForm(s,{duplicate:true});
 async function loadAnalytics(){report=await api('/admin/analytics?period='+period);$('total-views').textContent=report.total.toLocaleString();$('legacy-views').textContent=report.legacy_total.toLocaleString();$('period-label').textContent={daily:'Today',weekly:'This week',monthly:'This month',all:'Since migration'}[period];$('analytics-rows').replaceChildren();for(const s of report.songs)row('analytics-rows',[s.title,s.category,s.views,s.legacy_views]);}
 async function loadAudience(){const rows=await api('/admin/audience');$('audience-rows').replaceChildren();rows.forEach((s,i)=>{const previous=rows[i+1];const delta=key=>previous?((s[key]-previous[key]>=0?'+':'')+(s[key]-previous[key])):'—';row('audience-rows',[s.recorded_on.slice(0,10),s.youtube_subscribers,delta('youtube_subscribers'),s.spotify_followers,delta('spotify_followers'),s.note]);});if(!rows.length)row('audience-rows',['No snapshots yet.','','','','','']);}
 async function loadSettings(){const s=await api('/admin/settings');for(const key of['youtube_channel','spotify_artist'])$('settings-form').elements[key].value=s[key]||'';}
-async function enter(){await loadSongs();refreshRequestCount();$('login').hidden=true;$('dashboard').hidden=false;$('logout').hidden=false;}
+async function enter(){await loadSongs();$('login').hidden=true;$('dashboard').hidden=false;$('logout').hidden=false;}
 
 function submit(id,handler){$(id).addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;const label=b.textContent;b.textContent='Saving…';try{await handler(e.target);}catch(err){message(err.message,true);}finally{b.disabled=false;b.textContent=label;}});}
 submit('login',async f=>{await api('/login',{password:f.elements.password.value});f.reset();await enter();message('Signed in.');});
@@ -130,5 +128,6 @@ $('export-analytics').addEventListener('click',()=>{if(!report)return;const cell
 
 setupAdminOverview();ensureAdminEnhancementStyles();
 $('audience-form').elements.recorded_on.value=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
-enter().catch(e=>{if(!e.message.includes('sign in'))message(e.message,true);});import './name-requests.js';
+enter().catch(e=>{if(!e.message.includes('sign in'))message(e.message,true);});
+
 

@@ -51,16 +51,7 @@ export function createApp(s=services()){
 
  app.post('/api/visit',wrap(async(req,res)=>{sameOrigin(req);await limit(req,'visits',120);let v=req.cookies.mq3_visitor;if(!/^[a-f0-9]{64}$/.test(v||''))v=token();res.cookie('mq3_visitor',v,{...cookie(),maxAge:90*86400000});const day=new Date(Date.now()+8*3600000).toISOString().slice(0,10);await q('INSERT INTO hub_visitors(visitor,day) VALUES($1,$2) ON CONFLICT(visitor,day) DO UPDATE SET views=hub_visitors.views+1',[hash(v),day]);res.json({ok:true});}));
  app.get('/api/admin/visitors',wrap(async(req,res)=>{const period=String(req.query.period||'daily'),start=new Date(periodStart(period).getTime()+8*3600000).toISOString().slice(0,10);const [counts]=await q('SELECT count(DISTINCT visitor)::integer AS visitors,COALESCE(sum(views),0)::integer AS views FROM hub_visitors WHERE day >= $1',[start]);res.json({period,...counts});}));
- app.get('/api/admin/name-requests-count',wrap(async(_req,res)=>{const [r]=await q("SELECT count(*)::integer AS total FROM hub_name_requests WHERE status='New'");res.json(r);}));
- app.post('/api/name-requests',wrap(async(req,res)=>{
-  sameOrigin(req);await limit(req,'name-requests',5);
-  const field=(key,max,required=false)=>{const v=req.body?.[key];if(typeof v!=='string'||v.trim().length>max||(required&&!v.trim()))fail(400,'Please check the '+key+' field.');return v.trim();};
-  const name=field('name',100,true),dedication=field('dedication',1200),contact=field('contact',200);
-  if(req.body.website)fail(400,'Unable to submit this request.');
-  const id=uuid(req.body.id);await q("INSERT INTO hub_name_requests(id,name,dedication,contact) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO NOTHING",[id,name,dedication,contact]);res.status(201).json({ok:true,id});
- }));
- app.get('/api/admin/name-requests',wrap(async(req,res)=>{const offset=Number(req.query.offset||0);if(!Number.isSafeInteger(offset)||offset<0)fail(400,'Invalid page.');res.json(await q('SELECT * FROM hub_name_requests ORDER BY created_at DESC,id DESC LIMIT 50 OFFSET $1',[offset]));}));
- app.post('/api/admin/name-requests',wrap(async(req,res)=>{const id=uuid(req.body.id),status=req.body.status;if(!['New','In progress','Completed','Archived'].includes(status))fail(400,'Choose a valid request status.');const rows=await q('UPDATE hub_name_requests SET status=$1 WHERE id=$2 RETURNING id',[status,id]);if(!rows.length)fail(404,'Request not found.');res.json({ok:true});}));
+ app.post('/api/name-requests',(_req,res)=>res.status(410).json({error:'MQ3 is no longer accepting song requests.'}));
  app.get('/api/catalog',wrap(async(_req,res)=>{const songs=await q("SELECT id,title,artist,category,youtube_url,spotify_url,cover_url,description,lyrics,duration_seconds,featured,created_at FROM hub_songs WHERE published=true AND (youtube_url<>'' OR spotify_url<>'') ORDER BY featured DESC,created_at DESC");const [settings]=await q('SELECT youtube_channel,spotify_artist FROM hub_settings WHERE id=1');res.json({songs,settings:settings||{},demo:env.MQ3_DEMO==='1'});}));
  app.post('/api/song-views',wrap(async(req,res)=>{sameOrigin(req);await limit(req,'views',120);const id=uuid(req.body.song_id);const [song]=await q('SELECT id FROM hub_songs WHERE id=$1 AND published=true',[id]);if(!song)fail(404,'Song is unavailable.');let visitor=req.cookies.mq3_visit;if(!/^[a-f0-9]{64}$/.test(visitor||'')){visitor=token();const now=new Date();await q('DELETE FROM limits WHERE expires_at<$1',[now]);res.cookie('mq3_visit',visitor,{...cookie(),maxAge:24*3600000});}const key=hash(visitor+':'+id+':'+Math.floor(Date.now()/1800000));await q('INSERT INTO hub_events(event_key,song_id) VALUES($1,$2) ON CONFLICT(event_key) DO NOTHING',[key,id]);res.json({ok:true});}));
  app.post('/api/admin/cover-upload',express.raw({type:['image/jpeg','image/png','image/webp'],limit:'5mb'}),wrap(async(req,res)=>{if(!env.BLOB_READ_WRITE_TOKEN)fail(503,'Cover image storage is not configured.');const type=req.get('content-type')||'';const ext=type==='image/png'?'png':type==='image/webp'?'webp':type==='image/jpeg'?'jpg':'';if(!ext)fail(400,'Use a JPG, PNG or WebP image.');if(!Buffer.isBuffer(req.body)||!req.body.length)fail(400,'Choose an image to upload.');const name=`${randomUUID()}.${ext}`;await (s.putCover||put)(`covers/${name}`,req.body,{access:'private',contentType:type,addRandomSuffix:false,token:env.BLOB_READ_WRITE_TOKEN});res.json({url:`/api/covers/${name}`});}));
@@ -89,3 +80,4 @@ export function createApp(s=services()){
  return app;
 }
 export default createApp();
+
