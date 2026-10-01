@@ -3,6 +3,21 @@ import {readIds, writeIds, filterSongs, recentIds} from './library-state.js';
 const $ = id => document.getElementById(id);
 const el = (tag, text, cls) => { const n = document.createElement(tag); if(text!==undefined&&text!==null) n.textContent=text; if(cls) n.className=cls; return n; };
 let playbackQueue=[];
+let upcomingIds=[];
+function planUpcoming(){
+ const index=playbackQueue.indexOf(selected?.id);
+ upcomingIds=[...playbackQueue.slice(index+1),...playbackQueue.slice(0,Math.max(0,index))];
+ if($('mq3-shuffle').getAttribute('aria-pressed')==='true')for(let i=upcomingIds.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[upcomingIds[i],upcomingIds[j]]=[upcomingIds[j],upcomingIds[i]];}
+ if(!upcomingIds.length&&selected)upcomingIds=[selected.id];
+}
+function renderUpcoming(){
+ const list=$('mq3-up-next-list');if(!list)return;list.replaceChildren();
+ const repeating=$('mq3-repeat').getAttribute('aria-pressed')==='true';
+ $('mq3-up-next-note').textContent=repeating?'Repeat is on · this song will play again':$('mq3-shuffle').getAttribute('aria-pressed')==='true'?'Shuffle order · plays automatically':'Plays automatically in this order';
+ const ids=repeating?[selected?.id]:upcomingIds.slice(0,3);
+ for(const id of ids){const song=songs.find(s=>s.id===id);if(!song)continue;const row=el('button',null,'mq3-up-next-row'),img=el('img'),name=el('span',song.title),time=el('small',song.duration_seconds?formatDuration(song.duration_seconds):'--:--');img.src=coverFor(song);img.alt='';row.type='button';row.append(img,name,time);row.addEventListener('click',()=>{if(song.id===selected?.id){window.dispatchEvent(new CustomEvent('mq3-replay-request',{detail:{autoplay:true}}));return;}selectSong(song,{autoplay:true,keepQueue:true,scroll:false,preferredPlatform:platform});});list.append(row);}
+ $('mq3-up-next').hidden=!selected;
+}
 let lyricCues=[],activeLyricTime=null;
 let songs=[], settings={}, selected=null, platform='youtube', category='All', collection='all', demo=false;
 let favorites=[], recent=[], storage=null, loading=false, listenObserver=null;
@@ -149,6 +164,11 @@ if(headerBrand){
 const sourcePanel=document.querySelector('.source-stack');document.querySelector('.player-options-panel').prepend(sourcePanel);
 sourcePanel.querySelector('summary').textContent='YouTube / Spotify';
 const quickActions=el('div',null,'mq3-quick-actions');quickActions.setAttribute('aria-label','Song actions');quickActions.append($('favorite-song'),$('share-song'),$('share-link'));$('lyrics-panel').before(quickActions);
+const upNext=el('details');upNext.id='mq3-up-next';upNext.hidden=true;upNext.append(el('summary','Up Next'));const queueNote=el('p');queueNote.id='mq3-up-next-note';const queueList=el('div');queueList.id='mq3-up-next-list';upNext.append(queueNote,queueList);$('lyrics-panel').after(upNext);
+const queueStyle=el('style');queueStyle.textContent='#mq3-up-next{margin:12px 0;border:1px solid #97612866;border-radius:12px;padding:10px 12px;background:#290b0744}#mq3-up-next summary{cursor:pointer;color:#edc66d;font-weight:600;min-height:24px}#mq3-up-next-note{font-size:12px;margin:8px 0}.mq3-up-next-row{display:flex;width:100%;gap:10px;border:0;background:transparent;padding:8px 0;text-align:left}.mq3-up-next-row img{width:36px;height:36px;object-fit:cover;border-radius:6px}.mq3-up-next-row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mq3-up-next-row small{white-space:nowrap;color:#dec6b2}';document.head.append(queueStyle);
+window.addEventListener('mq3-song-selected',()=>{if(upcomingIds[0]===selected?.id)upcomingIds.shift();else upcomingIds=[];if(!upcomingIds.length)planUpcoming();renderUpcoming();});
+new MutationObserver(()=>{planUpcoming();renderUpcoming();}).observe($('mq3-shuffle'),{attributes:true,attributeFilter:['aria-pressed']});
+new MutationObserver(renderUpcoming).observe($('mq3-repeat'),{attributes:true,attributeFilter:['aria-pressed']});
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(()=>{});
 load();
 
@@ -159,12 +179,14 @@ window.addEventListener('mq3-advance',event=>{
  if(!queue.length)return;
  const index=queue.findIndex(s=>s.id===selected?.id);
  let next;
- if(event.detail.shuffle&&queue.length>1){
-  const choices=queue.filter(s=>s.id!==selected?.id);next=choices[Math.floor(Math.random()*choices.length)];
- }else next=queue[(Math.max(0,index)+(event.detail.delta||1)+queue.length)%queue.length];
+ if((event.detail.delta||1)>0){if(!upcomingIds.length)planUpcoming();next=songs.find(s=>s.id===upcomingIds[0]);}
+ else next=queue[(Math.max(0,index)-1+queue.length)%queue.length];
+ if(!next)return;
  if(next.id===selected?.id){window.dispatchEvent(new CustomEvent('mq3-replay-request',{detail:{autoplay:event.detail.autoplay}}));return;}
  selectSong(next,{scroll:false,autoplay:event.detail.autoplay,keepQueue:true,preferredPlatform:platform});
 });
 
 
+
+import('./name-requests.js');
 
