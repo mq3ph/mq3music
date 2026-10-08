@@ -1,13 +1,16 @@
 import {buildArtworkCommand} from './artwork-command.js';
 const $=id=>document.getElementById(id),form=$('song-form'),generate=$('generate-artwork'),clear=$('clear-artwork'),preview=$('artwork-preview'),label=$('artwork-preview-label'),status=$('artwork-generator-status'),command=$('artwork-command'),copy=$('copy-artwork-command'),upload=$('artwork-upload');
 let revision=0,uploadController=null,uploading=false;
+const assistant=$('artwork-assistant'),countryField=$('artwork-country-field'),country=$('artwork-country'),openAssistant=$('open-artwork-ai');
+function selectedAssistant(){return assistant.value==='meta'?'Meta AI':'ChatGPT';}
+function syncAssistant(){const ai=selectedAssistant();generate.textContent='Build '+ai+' Command';openAssistant.href=assistant.value==='meta'?'https://www.meta.ai/':'https://chatgpt.com/';openAssistant.textContent='Open '+ai+' ↗';countryField.style.display=form.elements.category.value==='Name Songs'?'block':'none';}
 function setStatus(text,type=''){status.textContent=text;status.className='artwork-generator-status'+(type?' '+type:'');}
 function syncPreview(){const url=form.elements.cover_url.value.trim();preview.hidden=!url;if(url)preview.src=url;else preview.removeAttribute('src');label.textContent=url?'Selected artwork. Save the song to use it in the player.':'No custom artwork selected. Automatic category artwork will be used.';}
-function reset(){revision++;uploadController?.abort();uploadController=null;uploading=false;upload.disabled=false;clear.disabled=false;upload.value='';command.value='';copy.disabled=true;copy.textContent='Copy command';syncPreview();setStatus('');}
+function reset(){revision++;uploadController?.abort();uploadController=null;uploading=false;upload.disabled=false;clear.disabled=false;upload.value='';assistant.value='chatgpt';country.value='';command.value='';copy.disabled=true;copy.textContent='Copy command';syncPreview();syncAssistant();setStatus('');}
 function selectedText(id){const select=$(id);return select.options[select.selectedIndex].text;}
 generate.addEventListener('click',()=>{const title=form.elements.title.value.trim();if(!title){setStatus('Enter a song title first.','error');form.elements.title.focus();return;}
- command.value=buildArtworkCommand({title,artist:form.elements.artist.value.trim(),category:form.elements.category.value,lyrics:form.elements.lyrics.value.trim()||'(No lyrics supplied. Use only the provided details.)',subject:selectedText('artwork-subject'),mood:selectedText('artwork-mood'),scene:selectedText('artwork-scene')});copy.disabled=false;setStatus('Command ready. Copy it and paste into ChatGPT.','good');});
-copy.addEventListener('click',async()=>{if(!command.value)return;try{await navigator.clipboard.writeText(command.value);copy.textContent='Copied ✓';setStatus('Paste into ChatGPT, choose a concept, then ask it to generate the image.','good');}catch{command.focus();command.select();setStatus('Command selected. Press Ctrl+C (or use Copy on your phone).');}});
+ command.value=buildArtworkCommand({assistant:selectedAssistant(),country:country.value.trim(),title,artist:form.elements.artist.value.trim(),category:form.elements.category.value,lyrics:form.elements.lyrics.value.trim()||'(No lyrics supplied. Use only the provided details.)',subject:selectedText('artwork-subject'),mood:selectedText('artwork-mood'),scene:selectedText('artwork-scene')});copy.disabled=false;setStatus('Command ready. Copy it and paste into '+selectedAssistant()+'.','good');});
+copy.addEventListener('click',async()=>{if(!command.value)return;try{await navigator.clipboard.writeText(command.value);copy.textContent='Copied ✓';setStatus('Paste into '+selectedAssistant()+', choose a concept, then ask it to generate the image.','good');}catch{command.focus();command.select();setStatus('Command selected. Press Ctrl+C (or use Copy on your phone).');}});
 clear.addEventListener('click',()=>{revision++;form.elements.cover_url.value='';upload.value='';syncPreview();setStatus('Save the song to use the automatic category artwork.');});
 form.addEventListener('submit',e=>{if(uploading){e.preventDefault();e.stopImmediatePropagation();setStatus('Wait for the artwork upload before saving the song.');}},true);
 upload.addEventListener('change',async()=>{
@@ -26,5 +29,6 @@ upload.addEventListener('change',async()=>{
 });
 form.addEventListener('mq3-song-form-loaded',reset);
 form.addEventListener('reset',()=>{revision++;uploadController?.abort();setTimeout(reset,0);});
-for(const input of [form.elements.title,form.elements.artist,form.elements.category,form.elements.lyrics,$('artwork-subject'),$('artwork-mood'),$('artwork-scene')])input.addEventListener('input',()=>{if(command.value){command.value='';copy.disabled=true;setStatus('Song details changed. Build a fresh command before copying.');}});
-syncPreview();
+for(const input of [form.elements.title,form.elements.artist,form.elements.category,form.elements.lyrics,$('artwork-subject'),$('artwork-mood'),$('artwork-scene'),assistant,country])input.addEventListener('input',()=>{syncAssistant();if(command.value){command.value='';copy.disabled=true;setStatus('Song details changed. Build a fresh command before copying.');}});
+assistant.addEventListener('change',()=>{syncAssistant();if(command.value){command.value='';copy.disabled=true;setStatus('Assistant changed. Build a fresh command before copying.');}});form.elements.category.addEventListener('change',syncAssistant);
+syncAssistant();syncPreview();
